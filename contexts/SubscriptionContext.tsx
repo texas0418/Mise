@@ -85,6 +85,8 @@ interface SubscriptionContextValue extends SubscriptionState {
   refreshStatus: () => Promise<void>;
   /** @deprecated Use purchaseBase() instead */
   purchasePro: () => Promise<boolean>;
+  /** Returns true if the given feature requires Pro AND the user is not Pro */
+  requiresPro: (feature: ProFeature) => boolean;
 }
 
 export type ProFeature =
@@ -346,6 +348,14 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     await Promise.all([checkSubscriptionStatus(), fetchOfferings()]);
   }, []);
 
+  const requiresPro = useCallback(
+    (feature: ProFeature): boolean => {
+      if (state.isPro) return false;
+      return PRO_FEATURES.has(feature);
+    },
+    [state.isPro],
+  );
+
   // ─── Context value ───────────────────────────────────────────────────────
 
   const value: SubscriptionContextValue = {
@@ -355,6 +365,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     purchasePro,
     restorePurchases,
     refreshStatus,
+    requiresPro,
   };
 
   return (

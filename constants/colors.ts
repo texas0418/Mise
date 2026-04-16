@@ -21,6 +21,7 @@ const Colors = {
   },
   status: {
     active: '#4ADE80',
+    success: '#34D399',
     warning: '#FBBF24',
     error: '#F87171',
     info: '#60A5FA',

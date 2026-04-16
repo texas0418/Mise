@@ -41,7 +41,7 @@ async function getOrCreateDeviceUuid(): Promise<string> {
     if (Platform.OS === 'ios') {
       uuid = (await Application.getIosIdForVendorAsync()) || '';
     } else {
-      uuid = Application.androidId || '';
+      uuid = Application.getAndroidId() || '';
     }
   } catch {
     uuid = '';

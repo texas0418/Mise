@@ -25,7 +25,7 @@ export interface FieldDefinition {
   /** Valid values if type is 'enum' */
   enumValues?: string[];
   /** Default value if the column is unmapped or cell is empty */
-  defaultValue?: string | number | boolean;
+  defaultValue?: string | number | boolean | string[] | number[];
   /** Common alternate names users might use in spreadsheets */
   aliases?: string[];
 }

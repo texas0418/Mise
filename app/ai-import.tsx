@@ -23,7 +23,7 @@ import {
   AlertCircle, Trash2, Key, Image as ImageIcon, Type,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import Colors from '@/constants/colors';
 import { useLayout } from '@/utils/useLayout';
 import { useProjects } from '@/contexts/ProjectContext';
