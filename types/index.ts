@@ -443,3 +443,57 @@ export interface DirectorMessage {
   sentAt: string;
   sceneNumber?: number;
 }
+
+// ---------------------------------------------------------------------------
+// Script PDF (full script document with annotations)
+// ---------------------------------------------------------------------------
+
+export type ScriptRevisionColor =
+  | 'white'
+  | 'blue'
+  | 'pink'
+  | 'yellow'
+  | 'green'
+  | 'goldenrod'
+  | 'buff'
+  | 'salmon'
+  | 'cherry';
+
+export interface ScriptPDF {
+  id: string;
+  projectId: string;
+  userId: string;
+  title: string;
+  filePath: string;        // Path inside the Supabase 'scripts' storage bucket
+  fileSize: number;
+  pageCount: number;
+  version?: string;        // e.g. "Draft 3", "Shooting Script"
+  colorCode?: ScriptRevisionColor;
+  uploadedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AnnotationType = 'highlight' | 'note' | 'drawing';
+
+export interface ScriptAnnotation {
+  id: string;
+  scriptPdfId: string;
+  projectId: string;
+  userId: string;
+  pageNumber: number;
+  type: AnnotationType;
+  color: string;            // hex color, e.g. "#FFEB3B" for highlight
+  // Highlight: normalized rect (0-1, relative to page size)
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  // Note: text content
+  textContent?: string;
+  // Drawing: serialized SVG path data (e.g. "M10,20 L30,40 L50,10")
+  pathData?: string;
+  strokeWidth?: number;
+  createdAt: string;
+  updatedAt: string;
+}
