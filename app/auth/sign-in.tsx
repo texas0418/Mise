@@ -43,7 +43,7 @@ export default function SignInScreen() {
     try {
       await signIn(email.trim(), password);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/(tabs)');
+      router.replace('/(tabs)' as never);
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert('Sign In Failed', error.message || 'Please check your credentials.');
@@ -208,7 +208,7 @@ export default function SignInScreen() {
         {/* Skip / Continue without account */}
         <TouchableOpacity
           style={styles.skipButton}
-          onPress={() => router.replace('/(tabs)')}
+          onPress={() => router.replace('/(tabs)' as never)}
           activeOpacity={0.7}
         >
           <Text style={styles.skipText}>Continue without account</Text>
