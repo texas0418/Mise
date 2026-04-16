@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, LogIn, UserCircle, Smartphone, Cloud } from 'lucide-react-native';
+import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, LogIn, UserCircle, Smartphone, Cloud, ScrollText } from 'lucide-react-native';
 import { useProjects } from '@/contexts/ProjectContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
@@ -23,6 +23,7 @@ const PRE_PROD_TOOLS: ToolItem[] = [
   { icon: Drama, label: 'Cast', subtitle: 'Actors & characters', route: '/cast-manager', color: '#FB7185' },
   { icon: BookHeart, label: 'Lookbook', subtitle: 'Director\'s vision deck', route: '/lookbook', color: '#C084FC' },
   { icon: FileText, label: 'Script Breakdown', subtitle: 'Tag scenes & elements', route: '/script-breakdown', color: '#60A5FA' },
+  { icon: ScrollText, label: 'Scripts', subtitle: 'View & annotate PDFs', route: '/scripts', color: '#F97316' },
   { icon: MapPin, label: 'Locations', subtitle: 'Scout & manage sites', route: '/locations', color: '#4ADE80' },
   { icon: DollarSign, label: 'Budget', subtitle: 'Track spending', route: '/budget', color: '#FBBF24' },
   { icon: ClipboardList, label: 'Call Sheets', subtitle: 'Daily crew sheets', route: '/call-sheets', color: '#FB923C' },
