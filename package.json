@@ -14,7 +14,6 @@
     "@expo/vector-icons": "^15.0.3",
     "@nkzw/create-context-hook": "^1.1.0",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "@shopify/react-native-skia": "^2.6.2",
     "@stardazed/streams-text-encoding": "^1.0.2",
     "@supabase/supabase-js": "^2.98.0",
     "@tanstack/react-query": "^5.83.0",
@@ -69,6 +68,5 @@
     "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"
   },
-  "private": true,
-  "trustedDependencies": ["@shopify/react-native-skia"]
+  "private": true
 }
