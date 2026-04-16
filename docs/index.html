@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mise — Film Director Suite | Privacy Policy</title>
+  <style>
+    :root {
+      --gold: #C8A04A;
+      --gold-light: #D4B366;
+      --gold-dim: rgba(200,160,74,0.12);
+      --bg: #0A0A0A;
+      --card: #141414;
+      --text: #F5F5F5;
+      --text-sec: #A0A0A0;
+      --text-dim: #6B6B6B;
+      --border: #2A2A2C;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 720px; margin: 0 auto; padding: 48px 24px 96px; }
+    .header { text-align: center; margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+    .logo { font-size: 28px; font-weight: 800; color: var(--gold); letter-spacing: 6px; margin-bottom: 4px; }
+    .logo-sub { font-size: 14px; color: var(--text-dim); font-weight: 400; }
+    h1 { font-size: 32px; font-weight: 700; color: var(--text); margin-top: 24px; margin-bottom: 8px; }
+    .effective { font-size: 13px; color: var(--text-dim); }
+    h2 { font-size: 20px; font-weight: 700; color: var(--gold); margin-top: 40px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-top: 24px; margin-bottom: 8px; }
+    p { font-size: 15px; color: var(--text-sec); margin-bottom: 16px; }
+    ul { margin: 0 0 16px 0; padding-left: 24px; }
+    li { font-size: 15px; color: var(--text-sec); margin-bottom: 8px; }
+    .highlight { background: var(--gold-dim); border-left: 3px solid var(--gold); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+    .highlight p { margin-bottom: 0; color: var(--text); font-weight: 500; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+    th { text-align: left; padding: 10px 12px; background: var(--card); color: var(--gold); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-sec); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-green { background: rgba(74,222,128,0.15); color: #4ADE80; }
+    .badge-gold { background: var(--gold-dim); color: var(--gold); }
+    .footer { margin-top: 64px; padding-top: 32px; border-top: 1px solid var(--border); text-align: center; }
+    .footer p { font-size: 13px; color: var(--text-dim); }
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    strong { color: var(--text); font-weight: 600; }
+    @media (max-width: 600px) { .container { padding: 32px 16px 64px; } h1 { font-size: 26px; } h2 { font-size: 18px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">MISE</div>
+      <div class="logo-sub">Film Director Suite</div>
+      <h1>Privacy Policy</h1>
+      <p class="effective">Effective Date: March 2, 2026 &nbsp;|&nbsp; Last Updated: March 2, 2026</p>
+    </div>
+    <div class="highlight">
+      <p>Mise is built with a privacy-first philosophy. Your production data stays on your device. We do not collect, store, or transmit your personal information to any server.</p>
+    </div>
+    <h2>1. Introduction</h2>
+    <p>This Privacy Policy describes how Mise &mdash; Film Director Suite (&ldquo;Mise,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) handles information when you use our mobile application (the &ldquo;App&rdquo;) available on the Apple App Store and Google Play Store.</p>
+    <p>We respect your privacy and are committed to protecting it. Mise is designed as an offline-first application that stores all user data locally on your device.</p>
+    <h2>2. Information We Collect</h2>
+    <h3>Information We Do NOT Collect</h3>
+    <p>Mise does not collect, transmit, or store any of the following on external servers:</p>
+    <ul>
+      <li>Personal identification information (name, email, phone number)</li>
+      <li>Location data</li>
+      <li>Device identifiers or advertising IDs</li>
+      <li>Usage analytics or behavioral data</li>
+      <li>Photos, files, or media from your device</li>
+      <li>Production data you enter into the App</li>
+    </ul>
+    <h3>Data Stored Locally on Your Device</h3>
+    <p>The App stores the following data locally on your device using AsyncStorage (a local key-value storage system). This data never leaves your device unless you explicitly choose to export or share it:</p>
+    <ul>
+      <li><strong>Production data:</strong> Projects, shots, schedules, crew lists, budgets, locations, script breakdowns, cast information, VFX shots, festival submissions, time entries, script sides, continuity notes, wrap reports, and other production-related data you enter</li>
+      <li><strong>App preferences:</strong> Active project selection, notification settings, and display preferences</li>
+      <li><strong>Import history:</strong> Records of recent bulk data imports for undo functionality</li>
+    </ul>
+    <h3>Anthropic API Key (Optional)</h3>
+    <p>If you choose to use the optional AI Import feature, you may provide your own Anthropic API key. This key is stored locally on your device in AsyncStorage and is only transmitted directly to Anthropic&rsquo;s API servers (api.anthropic.com) when you explicitly initiate an AI Import request. We do not have access to your API key and it is never transmitted to our servers.</p>
+    <h2>3. How We Use Information</h2>
+    <p>Since we do not collect personal information, there is minimal data usage to describe. Here is how information flows within the App:</p>
+    <table>
+      <thead><tr><th>Data Type</th><th>Storage</th><th>Transmitted?</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Production data</td><td>Device only</td><td><span class="badge badge-green">Never</span></td><td>Core app functionality</td></tr>
+        <tr><td>App preferences</td><td>Device only</td><td><span class="badge badge-green">Never</span></td><td>Personalizing your experience</td></tr>
+        <tr><td>Imported spreadsheets</td><td>Parsed on device, data saved locally</td><td><span class="badge badge-green">Never</span></td><td>Bulk data entry from CSV/XLSX files</td></tr>
+        <tr><td>AI Import text/photos</td><td>Processed via Anthropic API</td><td><span class="badge badge-gold">User-initiated only</span></td><td>Converting natural language or images to structured data</td></tr>
+        <tr><td>API key</td><td>Device only</td><td><span class="badge badge-gold">To Anthropic only</span></td><td>Authentication for AI Import</td></tr>
+        <tr><td>Subscription status</td><td>Managed by Apple/Google</td><td><span class="badge badge-gold">To Apple/Google only</span></td><td>Verifying your subscription</td></tr>
+      </tbody>
+    </table>
+    <h2>4. AI Import Feature &amp; Third-Party Services</h2>
+    <p>The AI Import feature is entirely optional. When you use it:</p>
+    <ul>
+      <li>Your text description or photo is sent directly from your device to Anthropic&rsquo;s API (api.anthropic.com) using your own API key</li>
+      <li>Anthropic processes the request and returns structured data</li>
+      <li>The structured data is stored locally on your device</li>
+      <li>We do not act as an intermediary &mdash; the connection is directly between your device and Anthropic</li>
+    </ul>
+    <p>Anthropic&rsquo;s handling of data sent to their API is governed by <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener">Anthropic&rsquo;s Privacy Policy</a>. We encourage you to review their policy before using the AI Import feature.</p>
+    <h2>5. Subscription &amp; Payments</h2>
+    <p>Mise offers a monthly subscription at $4.99/month. All payment processing is handled entirely by Apple (via the App Store) or Google (via Google Play). We do not collect, store, or have access to your payment information, credit card details, or billing address.</p>
+    <p>Subscription management, including cancellation, is handled through your Apple ID or Google Play account settings. For details on how Apple and Google handle your payment data, please refer to:</p>
+    <ul>
+      <li><a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener">Apple&rsquo;s Privacy Policy</a></li>
+      <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google&rsquo;s Privacy Policy</a></li>
+    </ul>
+    <h2>6. Data Sharing</h2>
+    <div class="highlight">
+      <p>We do not sell, rent, trade, or otherwise share your personal information with any third parties. Period.</p>
+    </div>
+    <p>The only circumstances in which data leaves your device are:</p>
+    <ul>
+      <li><strong>AI Import (user-initiated):</strong> Text or image data is sent to Anthropic&rsquo;s API when you explicitly tap &ldquo;Generate&rdquo;</li>
+      <li><strong>Export/Share (user-initiated):</strong> When you choose to export or share production data using the device&rsquo;s native share sheet</li>
+      <li><strong>CSV Template sharing (user-initiated):</strong> When you download a template CSV file</li>
+      <li><strong>Subscription verification:</strong> Apple/Google manages subscription status</li>
+    </ul>
+    <h2>7. Data Retention &amp; Deletion</h2>
+    <p>Since all your data is stored locally on your device:</p>
+    <ul>
+      <li><strong>You control your data entirely.</strong> You can delete any project, shot, crew member, or other entity at any time within the App</li>
+      <li><strong>Uninstalling the App</strong> removes all locally stored data from your device</li>
+      <li><strong>Import undo</strong> allows you to reverse the most recent bulk import with one tap</li>
+      <li><strong>API key removal:</strong> You can clear your stored Anthropic API key at any time from within the AI Import settings</li>
+    </ul>
+    <p>We do not retain any data on servers because we do not operate servers that store user data.</p>
+    <h2>8. Children&rsquo;s Privacy</h2>
+    <p>Mise is not directed at children under the age of 13 (or the applicable age in your jurisdiction). We do not knowingly collect personal information from children. Since the App does not collect personal information from any user, this risk is inherently mitigated.</p>
+    <h2>9. Security</h2>
+    <p>Your data is protected by the security features of your device&rsquo;s operating system (iOS or Android). Since data is stored locally using AsyncStorage:</p>
+    <ul>
+      <li>Data is sandboxed within the App and not accessible to other apps</li>
+      <li>Device-level protections (passcode, Face ID, fingerprint) protect your data</li>
+      <li>No network transmission means no exposure to network-based attacks for core features</li>
+    </ul>
+    <p>For the optional AI Import feature, your API key is stored in local AsyncStorage. We recommend using device-level security (passcode, biometric lock) to protect your device.</p>
+    <h2>10. App Store Privacy Labels</h2>
+    <h3>Apple App Store &mdash; App Privacy</h3>
+    <table>
+      <thead><tr><th>Category</th><th>Collected?</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr><td>Contact Info</td><td><span class="badge badge-green">No</span></td><td>Not collected</td></tr>
+        <tr><td>Health &amp; Fitness</td><td><span class="badge badge-green">No</span></td><td>Not collected</td></tr>
+        <tr><td>Financial Info</td><td><span class="badge badge-green">No</span></td><td>Payments handled by Apple/Google</td></tr>
+        <tr><td>Location</td><td><span class="badge badge-green">No</span></td><td>Not collected</td></tr>
+        <tr><td>Sensitive Info</td><td><span class="badge badge-green">No</span></td><td>Not collected</td></tr>
+        <tr><td>Contacts</td><td><span class="badge badge-green">No</span></td><td>Not collected</td></tr>
+        <tr><td>User Content</td><td><span class="badge badge-green">No</span></td><td>Stored on device only</td></tr>
+        <tr><td>Browsing History</td><td><span class="badge badge-green">No</span></td><td>Not collected</td></tr>
+        <tr><td>Search History</td><td><span class="badge badge-green">No</span></td><td>Not collected</td></tr>
+        <tr><td>Identifiers</td><td><span class="badge badge-green">No</span></td><td>Not collected</td></tr>
+        <tr><td>Usage Data</td><td><span class="badge badge-green">No</span></td><td>Not collected</td></tr>
+        <tr><td>Diagnostics</td><td><span class="badge badge-green">No</span></td><td>Not collected</td></tr>
+        <tr><td>Purchases</td><td><span class="badge badge-gold">Apple/Google</span></td><td>Managed by platform, not by Mise</td></tr>
+      </tbody>
+    </table>
+    <h3>Google Play &mdash; Data Safety</h3>
+    <p>For the Google Play Data Safety section, Mise declares:</p>
+    <ul>
+      <li><strong>Data shared with third parties:</strong> No data is shared with third parties</li>
+      <li><strong>Data collected:</strong> No data is collected by the developer</li>
+      <li><strong>Security practices:</strong> Data is stored locally and protected by device-level encryption</li>
+      <li><strong>Data deletion:</strong> Users can delete all data by uninstalling the app or deleting individual items within the app</li>
+    </ul>
+    <h2>11. Your Rights</h2>
+    <p>Depending on your jurisdiction, you may have rights under privacy laws such as GDPR (EU), CCPA (California), or other local regulations. Since Mise does not collect personal data on external servers:</p>
+    <ul>
+      <li><strong>Right to Access:</strong> All your data is on your device and fully accessible to you within the App</li>
+      <li><strong>Right to Deletion:</strong> You can delete any data within the App or uninstall it to remove all data</li>
+      <li><strong>Right to Portability:</strong> You can export your data using the App&rsquo;s export/share features</li>
+      <li><strong>Right to Object to Processing:</strong> We do not process your data on external servers</li>
+    </ul>
+    <p>If you have questions about exercising your rights, please contact us at the address below.</p>
+    <h2>12. Changes to This Privacy Policy</h2>
+    <p>We may update this Privacy Policy from time to time. If we make material changes, we will update the &ldquo;Last Updated&rdquo; date at the top of this page. We encourage you to review this page periodically. Continued use of the App after changes constitutes acceptance of the updated policy.</p>
+    <h2>13. Contact Us</h2>
+    <p>If you have questions, concerns, or requests regarding this Privacy Policy or our privacy practices, please contact us:</p>
+    <p>
+      <strong>Email:</strong> <a href="mailto:privacy@mise.app">privacy@mise.app</a><br>
+      <strong>App:</strong> Mise &mdash; Film Director Suite<br>
+      <strong>Developer:</strong> Mise App
+    </p>
+    <div class="footer">
+      <p>&copy; 2026 Mise &mdash; Film Director Suite. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
