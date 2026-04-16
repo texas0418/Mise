@@ -376,6 +376,21 @@ export default function RootLayout() {
                       title: "Invite Member",
                     }}
                   />
+                  <Stack.Screen
+                    name="scripts"
+                    options={{ title: "Scripts" }}
+                  />
+                  <Stack.Screen
+                    name="new-script"
+                    options={{
+                      presentation: "modal",
+                      title: "Upload Script",
+                    }}
+                  />
+                  <Stack.Screen
+                    name="script-viewer"
+                    options={{ headerShown: false }}
+                  />
                 </Stack>
               )}
               </PermissionProvider>

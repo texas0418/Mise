@@ -23,7 +23,8 @@ export type Resource =
   | 'messages' | 'script_breakdown' | 'digital_slate'
   | 'lens_calc' | 'frame_guides' | 'weather'
   | 'portfolio' | 'export' | 'shot_checklist'
-  | 'director_statement' | 'credits';
+  | 'director_statement' | 'credits'
+  | 'scripts';
 
 export const ALL_ROLES: Role[] = ['owner', 'director', 'producer', 'ad', 'dp', 'editor', 'crew', 'viewer'];
 
@@ -94,6 +95,7 @@ const ROLE_PERMISSIONS: Record<Role, RolePermissions> = {
     script_sides: 'read',
     script_breakdown: 'read',
     weather: 'read',
+    scripts: 'read',
   },
   dp: {
     _default: 'none',
@@ -112,6 +114,7 @@ const ROLE_PERMISSIONS: Record<Role, RolePermissions> = {
     weather: 'read',
     blocking: 'read',
     notes: 'read',
+    scripts: 'read',
   },
   editor: {
     _default: 'none',
@@ -126,6 +129,7 @@ const ROLE_PERMISSIONS: Record<Role, RolePermissions> = {
     continuity: 'read',
     script_sides: 'read',
     script_breakdown: 'read',
+    scripts: 'read',
   },
   crew: {
     _default: 'read',
@@ -195,7 +199,7 @@ export function getAccessibleResources(role: Role): Resource[] {
     'call_sheets', 'shot_refs', 'mood_board', 'selects', 'messages',
     'script_breakdown', 'digital_slate', 'lens_calc', 'frame_guides',
     'weather', 'portfolio', 'export', 'shot_checklist',
-    'director_statement', 'credits',
+    'director_statement', 'credits', 'scripts',
   ];
   return all.filter(r => canView(role, r));
 }
@@ -233,6 +237,7 @@ export const ROUTE_TO_RESOURCE: Record<string, Resource> = {
   '/portfolio': 'portfolio',
   '/frame-guides': 'frame_guides',
   '/export-share': 'export',
+  '/scripts': 'scripts',
 };
 
 export function getResourceForRoute(route: string): Resource | null {
