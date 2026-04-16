@@ -7,7 +7,8 @@ import {
   LocationScout, BudgetItem, ContinuityNote, VFXShot, FestivalSubmission,
   ProductionNote, MoodBoardItem, DirectorCredit, ShotReference, WrapReport,
   LocationWeather, BlockingNote, ColorReference, TimeEntry, ScriptSide,
-  CastMember, LookbookItem, DirectorStatement, SceneSelect, DirectorMessage
+  CastMember, LookbookItem, DirectorStatement, SceneSelect, DirectorMessage,
+  ScriptPDF, ScriptAnnotation
 } from '@/types';
 import {
   SAMPLE_PROJECTS, SAMPLE_SHOTS, SAMPLE_SCHEDULE, SAMPLE_CREW,
@@ -49,6 +50,8 @@ const STORAGE_KEYS = {
   directorStatement: 'mise_director_statement',
   selects: 'mise_selects',
   messages: 'mise_messages',
+  scriptPDFs: 'mise_script_pdfs',
+  scriptAnnotations: 'mise_script_annotations',
 };
 
 async function loadFromStorage<T>(key: string, fallback: T[]): Promise<T[]> {
@@ -165,6 +168,8 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const directorStatementStore = useEntityStore<DirectorStatement>('directorStatement', STORAGE_KEYS.directorStatement, SAMPLE_DIRECTOR_STATEMENT, 'director_statements', enqueueMutation);
   const selectStore = useEntityStore<SceneSelect>('selects', STORAGE_KEYS.selects, SAMPLE_SELECTS, 'scene_selects', enqueueMutation);
   const messageStore = useEntityStore<DirectorMessage>('messages', STORAGE_KEYS.messages, SAMPLE_MESSAGES, 'director_messages', enqueueMutation);
+  const scriptPDFStore = useEntityStore<ScriptPDF>('scriptPDFs', STORAGE_KEYS.scriptPDFs, [], 'script_pdfs', enqueueMutation);
+  const scriptAnnotationStore = useEntityStore<ScriptAnnotation>('scriptAnnotations', STORAGE_KEYS.scriptAnnotations, [], 'script_annotations', enqueueMutation);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEYS.activeProject).then((id) => {
@@ -203,6 +208,8 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const directorStatements = directorStatementStore.items;
   const sceneSelects = selectStore.items;
   const directorMessages = messageStore.items;
+  const scriptPDFs = scriptPDFStore.items;
+  const scriptAnnotations = scriptAnnotationStore.items;
 
   const activeProject = projects.find(p => p.id === activeProjectId) ?? null;
   const isLoading = projectStore.isLoading || shotStore.isLoading || scheduleStore.isLoading || crewStore.isLoading || takeStore.isLoading;
@@ -213,7 +220,8 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     moodBoardItems, directorCredits, shotReferences, wrapReports,
     locationWeather, blockingNotes, colorReferences, timeEntries,
     scriptSides, castMembers, lookbookItems, directorStatements,
-    sceneSelects, directorMessages, activeProject, activeProjectId,
+    sceneSelects, directorMessages, scriptPDFs, scriptAnnotations,
+    activeProject, activeProjectId,
     isLoading, selectProject,
 
     addProject: projectStore.add, updateProject: projectStore.update, deleteProject: projectStore.remove,
@@ -242,6 +250,10 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     addDirectorStatement: directorStatementStore.add, updateDirectorStatement: directorStatementStore.update, deleteDirectorStatement: directorStatementStore.remove,
     addSceneSelect: selectStore.add, updateSceneSelect: selectStore.update, deleteSceneSelect: selectStore.remove,
     addMessage: messageStore.add, updateMessage: messageStore.update, deleteMessage: messageStore.remove,
+
+    // Script PDFs + Annotations
+    addScriptPDF: scriptPDFStore.add, updateScriptPDF: scriptPDFStore.update, deleteScriptPDF: scriptPDFStore.remove,
+    addScriptAnnotation: scriptAnnotationStore.add, updateScriptAnnotation: scriptAnnotationStore.update, deleteScriptAnnotation: scriptAnnotationStore.remove,
 
     // Bulk import methods
     addCrewMemberBulk: crewStore.addBulk,
@@ -381,4 +393,14 @@ export function useProjectSelects(projectId: string | null) {
 export function useProjectMessages(projectId: string | null) {
   const { directorMessages } = useProjects();
   return (directorMessages ?? []).filter(m => m.projectId === projectId).sort((a, b) => b.sentAt.localeCompare(a.sentAt));
+}
+
+export function useProjectScriptPDFs(projectId: string | null) {
+  const { scriptPDFs } = useProjects();
+  return scriptPDFs.filter(s => s.projectId === projectId).sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
+}
+
+export function useScriptAnnotations(scriptPdfId: string | null) {
+  const { scriptAnnotations } = useProjects();
+  return scriptAnnotations.filter(a => a.scriptPdfId === scriptPdfId);
 }
