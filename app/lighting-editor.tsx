@@ -10,10 +10,11 @@ import {
   Sun, Zap, Square, Circle, Minus, Cloud, Palette, Box, Tag,
   ChevronDown, ChevronUp, Info, X, Sunrise, Sparkles,
 } from 'lucide-react-native';
+import Svg, { Path, Defs, RadialGradient, Stop } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectLightingDiagrams } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
-import { LightingDiagram, LightingElement, LightingElementType } from '@/types';
+import { LightingDiagram, LightingElement, LightingElementType, LightIntensity } from '@/types';
 import { ELEMENT_CATALOG, ElementCatalogItem, getElementDefaults } from '@/utils/lightingTemplates';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
@@ -34,6 +35,94 @@ const ICON_MAP: Record<string, React.ElementType> = {
 function getIconForType(type: LightingElementType): React.ElementType {
   const catalog = ELEMENT_CATALOG.find(e => e.type === type);
   return ICON_MAP[catalog?.iconKey ?? 'tag'] ?? Tag;
+}
+
+// ─── Light Beam Cone ─────────────────────────────────────────────────────────
+
+/** Beam reach in pixels, tied to intensity */
+const BEAM_LENGTH: Record<LightIntensity, number> = {
+  low: 45,
+  medium: 75,
+  high: 110,
+  max: 150,
+};
+
+/** Beam spread angle in degrees (half-angle from center) */
+const BEAM_SPREAD = 28;
+
+function LightBeamCone({
+  rotation,
+  intensity,
+  color,
+}: {
+  rotation: number;
+  intensity: LightIntensity;
+  color: string;
+}) {
+  const length = BEAM_LENGTH[intensity];
+  const spreadRad = (BEAM_SPREAD * Math.PI) / 180;
+
+  // SVG viewBox is centered on the light icon position
+  // The cone extends outward in the rotation direction
+  const svgSize = length * 2 + 40;
+  const cx = svgSize / 2;
+  const cy = svgSize / 2;
+
+  // Convert rotation to radians (0° = up, clockwise)
+  const rotRad = ((rotation - 90) * Math.PI) / 180;
+
+  // Cone tip is at center, two edges fan out
+  const leftAngle = rotRad - spreadRad;
+  const rightAngle = rotRad + spreadRad;
+
+  const x1 = cx + Math.cos(leftAngle) * length;
+  const y1 = cy + Math.sin(leftAngle) * length;
+  const x2 = cx + Math.cos(rightAngle) * length;
+  const y2 = cy + Math.sin(rightAngle) * length;
+
+  // Arc endpoint for the rounded cone tip
+  const midX = cx + Math.cos(rotRad) * length;
+  const midY = cy + Math.sin(rotRad) * length;
+
+  const pathData = [
+    `M ${cx} ${cy}`,           // start at center (light position)
+    `L ${x1} ${y1}`,           // left edge of cone
+    `A ${length} ${length} 0 0 1 ${x2} ${y2}`, // arc across the front
+    `Z`,                       // close back to center
+  ].join(' ');
+
+  const gradientId = `beam-${rotation}-${intensity}`;
+
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        width: svgSize,
+        height: svgSize,
+        left: -(svgSize / 2) + ELEMENT_SIZE / 2,
+        top: -(svgSize / 2) + ELEMENT_SIZE / 2 + 2,
+        zIndex: -1,
+      }}
+      pointerEvents="none"
+    >
+      <Svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
+        <Defs>
+          <RadialGradient id={gradientId} cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor={color} stopOpacity="0.35" />
+            <Stop offset="60%" stopColor={color} stopOpacity="0.12" />
+            <Stop offset="100%" stopColor={color} stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Path
+          d={pathData}
+          fill={`url(#${gradientId})`}
+          stroke={color}
+          strokeWidth={0.8}
+          strokeOpacity={0.3}
+        />
+      </Svg>
+    </View>
+  );
 }
 
 // ─── Draggable Element ───────────────────────────────────────────────────────
@@ -99,20 +188,16 @@ function CanvasElement({
           top: pos.y - ELEMENT_SIZE / 2,
           borderColor: isSelected ? Colors.accent.gold : 'transparent',
           borderWidth: isSelected ? 2 : 0,
+          overflow: 'visible',
         },
       ]}
     >
-      {/* Light beam indicator */}
-      {isLight && (
-        <View
-          style={[
-            styles.beamIndicator,
-            {
-              backgroundColor: color + '30',
-              borderColor: color + '60',
-              transform: [{ rotate: `${element.rotation}deg` }],
-            },
-          ]}
+      {/* Light beam cone */}
+      {isLight && element.intensity && (
+        <LightBeamCone
+          rotation={element.rotation}
+          intensity={element.intensity}
+          color={color}
         />
       )}
       {/* Icon */}
@@ -243,6 +328,15 @@ export default function LightingEditorScreen() {
     setShowEditModal(true);
   }, [selectedElement]);
 
+  const cycleIntensity = useCallback(() => {
+    if (!selectedId || !selectedElement?.intensity) return;
+    const levels: LightIntensity[] = ['low', 'medium', 'high', 'max'];
+    const idx = levels.indexOf(selectedElement.intensity);
+    const next = levels[(idx + 1) % levels.length];
+    updateElement(selectedId, { intensity: next });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }, [selectedId, selectedElement, updateElement]);
+
   const saveEditModal = useCallback(() => {
     if (!selectedId) return;
     updateElement(selectedId, {
@@ -364,8 +458,17 @@ export default function LightingEditorScreen() {
           <View style={styles.selectedControls}>
             <View style={styles.selectedInfo}>
               <Text style={styles.selectedLabel}>{selectedElement.label}</Text>
-              <Text style={styles.selectedType}>{selectedElement.type.replace(/-/g, ' ')}</Text>
+              <Text style={styles.selectedType}>
+                {selectedElement.type.replace(/-/g, ' ')}
+                {selectedElement.intensity ? ` · ${selectedElement.intensity}` : ''}
+              </Text>
             </View>
+            {selectedElement.intensity && (
+              <TouchableOpacity onPress={cycleIntensity} style={[styles.controlBtn, styles.intensityBtn]}>
+                <Zap color="#FBBF24" size={16} />
+                <Text style={styles.intensityLabel}>{selectedElement.intensity[0].toUpperCase()}</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity onPress={() => rotateSelected(-45)} style={styles.controlBtn}>
               <RotateCw color={Colors.text.secondary} size={18} style={{ transform: [{ scaleX: -1 }] }} />
             </TouchableOpacity>
@@ -508,11 +611,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 2,
   },
-  beamIndicator: {
-    position: 'absolute', top: -12, width: 20, height: 24,
-    borderRadius: 10, borderWidth: 1,
-    transformOrigin: 'bottom',
-  },
   elementIconWrap: {
     width: 32, height: 32, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center',
@@ -529,15 +627,22 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg.secondary,
   },
   selectedControls: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
   },
-  selectedInfo: { flex: 1 },
-  selectedLabel: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.primary },
-  selectedType: { fontSize: 11, color: Colors.text.tertiary, textTransform: 'capitalize' as const },
+  selectedInfo: { flex: 1, minWidth: 0 },
+  selectedLabel: { fontSize: 13, fontWeight: '700' as const, color: Colors.text.primary },
+  selectedType: { fontSize: 10, color: Colors.text.tertiary, textTransform: 'capitalize' as const },
   controlBtn: {
-    width: 38, height: 38, borderRadius: 10,
+    width: 36, height: 36, borderRadius: 10,
     backgroundColor: Colors.bg.elevated, justifyContent: 'center', alignItems: 'center',
     borderWidth: 0.5, borderColor: Colors.border.subtle,
+  },
+  intensityBtn: {
+    flexDirection: 'column', gap: 0,
+    backgroundColor: '#FBBF2412', borderColor: '#FBBF2444',
+  },
+  intensityLabel: {
+    fontSize: 8, fontWeight: '800' as const, color: '#FBBF24', marginTop: -2,
   },
   hintRow: { alignItems: 'center', paddingVertical: 4 },
   hintText: { fontSize: 12, color: Colors.text.tertiary },
