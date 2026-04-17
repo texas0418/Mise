@@ -249,6 +249,21 @@ export default function RootLayout() {
                     }}
                   />
                   <Stack.Screen
+                    name="lighting-diagrams"
+                    options={{ title: "Lighting Diagrams" }}
+                  />
+                  <Stack.Screen
+                    name="new-lighting-diagram"
+                    options={{
+                      presentation: "modal",
+                      title: "New Lighting Diagram",
+                    }}
+                  />
+                  <Stack.Screen
+                    name="lighting-editor"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
                     name="color-references"
                     options={{ title: "Color & LUT Reference" }}
                   />

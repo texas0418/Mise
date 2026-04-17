@@ -146,7 +146,7 @@ function BudgetCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function BudgetScreen() {
-  const { activeProject, activeProjectId, deleteBudgetItem, addBudgetItem } = useProjects();
+  const { activeProject, activeProjectId, deleteBudgetItem, addBudgetItem, addBudgetItemBulk } = useProjects();
   const budget = useProjectBudget(activeProjectId);
   const router = useRouter();
   const { isTablet, contentPadding } = useLayout();
@@ -167,7 +167,7 @@ export default function BudgetScreen() {
           text: 'Load Template',
           onPress: () => {
             const items = generateBudgetTemplate(activeProjectId);
-            items.forEach(item => addBudgetItem(item));
+            addBudgetItemBulk(items);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           },
         },

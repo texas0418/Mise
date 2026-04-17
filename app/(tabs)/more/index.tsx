@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, LogIn, UserCircle, Smartphone, Cloud, ScrollText } from 'lucide-react-native';
+import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, LogIn, UserCircle, Smartphone, Cloud, ScrollText, Lightbulb } from 'lucide-react-native';
 import { useProjects } from '@/contexts/ProjectContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
@@ -31,6 +31,7 @@ const PRE_PROD_TOOLS: ToolItem[] = [
   { icon: Users, label: 'Crew', subtitle: 'Cast & crew directory', route: '/crew-directory', color: '#A78BFA' },
   { icon: Image, label: 'Shot References', subtitle: 'Visual shot library', route: '/shot-references', color: '#38BDF8' },
   { icon: Move, label: 'Blocking', subtitle: 'Rehearsal & staging', route: '/blocking-notes', color: '#34D399' },
+  { icon: Lightbulb, label: 'Lighting', subtitle: 'Lighting diagrams', route: '/lighting-diagrams', color: '#FBBF24' },
   { icon: Paintbrush, label: 'Color / LUTs', subtitle: 'Look & grade references', route: '/color-references', color: '#E879F9' },
   { icon: CloudSun, label: 'Weather', subtitle: 'Location forecasts', route: '/location-weather', color: '#06B6D4' },
 ];

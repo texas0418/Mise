@@ -8,7 +8,7 @@ import {
   ProductionNote, MoodBoardItem, DirectorCredit, ShotReference, WrapReport,
   LocationWeather, BlockingNote, ColorReference, TimeEntry, ScriptSide,
   CastMember, LookbookItem, DirectorStatement, SceneSelect, DirectorMessage,
-  ScriptPDF, ScriptAnnotation
+  ScriptPDF, ScriptAnnotation, LightingDiagram
 } from '@/types';
 import {
   SAMPLE_PROJECTS, SAMPLE_SHOTS, SAMPLE_SCHEDULE, SAMPLE_CREW,
@@ -52,6 +52,7 @@ const STORAGE_KEYS = {
   messages: 'mise_messages',
   scriptPDFs: 'mise_script_pdfs',
   scriptAnnotations: 'mise_script_annotations',
+  lightingDiagrams: 'mise_lighting_diagrams',
 };
 
 async function loadFromStorage<T>(key: string, fallback: T[]): Promise<T[]> {
@@ -170,6 +171,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const messageStore = useEntityStore<DirectorMessage>('messages', STORAGE_KEYS.messages, SAMPLE_MESSAGES, 'director_messages', enqueueMutation);
   const scriptPDFStore = useEntityStore<ScriptPDF>('scriptPDFs', STORAGE_KEYS.scriptPDFs, [], 'script_pdfs', enqueueMutation);
   const scriptAnnotationStore = useEntityStore<ScriptAnnotation>('scriptAnnotations', STORAGE_KEYS.scriptAnnotations, [], 'script_annotations', enqueueMutation);
+  const lightingDiagramStore = useEntityStore<LightingDiagram>('lightingDiagrams', STORAGE_KEYS.lightingDiagrams, [], 'lighting_diagrams', enqueueMutation);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEYS.activeProject).then((id) => {
@@ -210,6 +212,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const directorMessages = messageStore.items;
   const scriptPDFs = scriptPDFStore.items;
   const scriptAnnotations = scriptAnnotationStore.items;
+  const lightingDiagrams = lightingDiagramStore.items;
 
   const activeProject = projects.find(p => p.id === activeProjectId) ?? null;
   const isLoading = projectStore.isLoading || shotStore.isLoading || scheduleStore.isLoading || crewStore.isLoading || takeStore.isLoading;
@@ -221,6 +224,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     locationWeather, blockingNotes, colorReferences, timeEntries,
     scriptSides, castMembers, lookbookItems, directorStatements,
     sceneSelects, directorMessages, scriptPDFs, scriptAnnotations,
+    lightingDiagrams,
     activeProject, activeProjectId,
     isLoading, selectProject,
 
@@ -254,6 +258,9 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     // Script PDFs + Annotations
     addScriptPDF: scriptPDFStore.add, updateScriptPDF: scriptPDFStore.update, deleteScriptPDF: scriptPDFStore.remove,
     addScriptAnnotation: scriptAnnotationStore.add, updateScriptAnnotation: scriptAnnotationStore.update, deleteScriptAnnotation: scriptAnnotationStore.remove,
+
+    // Lighting Diagrams
+    addLightingDiagram: lightingDiagramStore.add, updateLightingDiagram: lightingDiagramStore.update, deleteLightingDiagram: lightingDiagramStore.remove,
 
     // Bulk import methods
     addCrewMemberBulk: crewStore.addBulk,
@@ -403,4 +410,9 @@ export function useProjectScriptPDFs(projectId: string | null) {
 export function useScriptAnnotations(scriptPdfId: string | null) {
   const { scriptAnnotations } = useProjects();
   return scriptAnnotations.filter(a => a.scriptPdfId === scriptPdfId);
+}
+
+export function useProjectLightingDiagrams(projectId: string | null) {
+  const { lightingDiagrams } = useProjects();
+  return lightingDiagrams.filter(d => d.projectId === projectId).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }

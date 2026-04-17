@@ -11,7 +11,7 @@ import { generateBudgetTemplate, TEMPLATE_LINE_COUNT } from '@/utils/budgetTempl
 
 export default function NewProjectScreen() {
   const router = useRouter();
-  const { addProject, addBudgetItem } = useProjects();
+  const { addProject, addBudgetItemBulk } = useProjects();
 
   const [title, setTitle] = useState('');
   const [logline, setLogline] = useState('');
@@ -43,10 +43,10 @@ export default function NewProjectScreen() {
     });
     if (prefillBudget) {
       const items = generateBudgetTemplate(projectId);
-      items.forEach(item => addBudgetItem(item));
+      addBudgetItemBulk(items);
     }
     router.back();
-  }, [title, logline, genre, status, format, prefillBudget, addProject, addBudgetItem, router]);
+  }, [title, logline, genre, status, format, prefillBudget, addProject, addBudgetItemBulk, router]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
