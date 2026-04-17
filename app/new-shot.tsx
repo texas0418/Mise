@@ -3,10 +3,11 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert,
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { useProjects, useProjectShots } from '@/contexts/ProjectContext';
+import { useProjects, useProjectShots, useProjectLightingDiagrams } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { ShotType, ShotMovement, ShotStatus } from '@/types';
 import { SHOT_TYPES, SHOT_MOVEMENTS } from '@/mocks/data';
+import { Lightbulb } from 'lucide-react-native';
 
 const STATUS_OPTIONS: { value: ShotStatus; label: string; color: string }[] = [
   { value: 'planned', label: 'Planned', color: Colors.text.tertiary },
@@ -23,6 +24,13 @@ export default function NewShotScreen() {
   const editId = params.id;
   const existingItem = editId ? shots.find(s => s.id === editId) : null;
   const isEditing = !!existingItem;
+  const lightingDiagrams = useProjectLightingDiagrams(activeProjectId);
+
+  // Find a lighting diagram linked to this shot's scene/shot
+  const linkedDiagram = isEditing ? lightingDiagrams.find(d =>
+    d.sceneNumber === existingItem!.sceneNumber &&
+    (d.shotNumber === existingItem!.shotNumber || !d.shotNumber)
+  ) : null;
 
   const [sceneNumber, setSceneNumber] = useState('');
   const [shotNumber, setShotNumber] = useState('');
@@ -198,6 +206,35 @@ export default function NewShotScreen() {
             placeholder="Additional notes" placeholderTextColor={Colors.text.tertiary} />
         </View>
 
+        {/* Lighting diagram link — edit mode only */}
+        {isEditing && (
+          <TouchableOpacity
+            style={styles.lightingLink}
+            onPress={() => {
+              if (linkedDiagram) {
+                router.push(`/lighting-editor?id=${linkedDiagram.id}` as never);
+              } else {
+                router.push(`/new-lighting-diagram?scene=${existingItem!.sceneNumber}&shot=${existingItem!.shotNumber}` as never);
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <Lightbulb color={linkedDiagram ? Colors.accent.gold : Colors.text.tertiary} size={18} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.lightingLinkText, linkedDiagram && { color: Colors.accent.gold }]}>
+                {linkedDiagram ? linkedDiagram.title : 'Create Lighting Diagram'}
+              </Text>
+              <Text style={styles.lightingLinkSub}>
+                {linkedDiagram
+                  ? `${linkedDiagram.elements.filter(e => e.type.includes('light') || e.type === 'kicker' || e.type === 'practical').length} lights · ${linkedDiagram.templateName}`
+                  : `For Sc.${existingItem!.sceneNumber} / ${existingItem!.shotNumber}`
+                }
+              </Text>
+            </View>
+            <ChevronDown color={Colors.text.tertiary} size={14} style={{ transform: [{ rotate: '-90deg' }] }} />
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-shot-button">
           <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Shot'}</Text>
         </TouchableOpacity>
@@ -226,6 +263,13 @@ const styles = StyleSheet.create({
   optionTextActive: { color: Colors.accent.gold, fontWeight: '600' as const },
   saveButton: { backgroundColor: Colors.accent.gold, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 12 },
   saveButtonText: { fontSize: 16, fontWeight: '700' as const, color: Colors.text.inverse },
+  lightingLink: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: Colors.bg.card, borderRadius: 12, padding: 14, marginBottom: 8,
+    borderWidth: 0.5, borderColor: Colors.border.subtle,
+  },
+  lightingLinkText: { fontSize: 14, fontWeight: '600' as const, color: Colors.text.primary },
+  lightingLinkSub: { fontSize: 11, color: Colors.text.tertiary, marginTop: 1 },
   emptyContainer: { flex: 1, backgroundColor: Colors.bg.primary, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyTitle: { fontSize: 18, fontWeight: '600' as const, color: Colors.text.primary },
   emptySubtitle: { fontSize: 14, color: Colors.text.secondary, marginTop: 4 },

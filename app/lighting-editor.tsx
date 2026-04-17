@@ -8,14 +8,14 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft, Plus, RotateCw, Trash2, Save, Lightbulb, Camera, User,
   Sun, Zap, Square, Circle, Minus, Cloud, Palette, Box, Tag,
-  ChevronDown, ChevronUp, Info, X, Sunrise, Sparkles,
+  ChevronDown, ChevronUp, Info, X, Sunrise, Sparkles, Bookmark,
 } from 'lucide-react-native';
 import Svg, { Path, Defs, RadialGradient, Stop } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectLightingDiagrams } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { LightingDiagram, LightingElement, LightingElementType, LightIntensity } from '@/types';
-import { ELEMENT_CATALOG, ElementCatalogItem, getElementDefaults } from '@/utils/lightingTemplates';
+import { ELEMENT_CATALOG, ElementCatalogItem, getElementDefaults, saveCustomTemplate } from '@/utils/lightingTemplates';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const CANVAS_SIZE = Math.min(SCREEN_W, SCREEN_H - 160);
@@ -262,6 +262,7 @@ export default function LightingEditorScreen() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editLabel, setEditLabel] = useState('');
   const [editNotes, setEditNotes] = useState('');
+  const [editColor, setEditColor] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
 
   const selectedElement = useMemo(
@@ -325,6 +326,7 @@ export default function LightingEditorScreen() {
     if (!selectedElement) return;
     setEditLabel(selectedElement.label);
     setEditNotes(selectedElement.notes ?? '');
+    setEditColor(selectedElement.color ?? '#FFFFFF');
     setShowEditModal(true);
   }, [selectedElement]);
 
@@ -342,9 +344,10 @@ export default function LightingEditorScreen() {
     updateElement(selectedId, {
       label: editLabel.trim() || 'Element',
       notes: editNotes.trim(),
+      color: editColor,
     });
     setShowEditModal(false);
-  }, [selectedId, editLabel, editNotes, updateElement]);
+  }, [selectedId, editLabel, editNotes, editColor, updateElement]);
 
   // ── Save diagram ──
 
@@ -358,6 +361,38 @@ export default function LightingEditorScreen() {
     setHasChanges(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   }, [diagram, elements, updateLightingDiagram]);
+
+  const handleSaveAsTemplate = useCallback(() => {
+    if (!diagram || elements.length === 0) {
+      Alert.alert('No Elements', 'Add some elements before saving as a template.');
+      return;
+    }
+    Alert.prompt(
+      'Save as Template',
+      'Give your custom template a name:',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Save',
+          onPress: (name?: string) => {
+            if (!name?.trim()) return;
+            const stripped = elements.map(({ id, ...rest }) => rest);
+            saveCustomTemplate({
+              id: `custom-${Date.now()}`,
+              label: name.trim(),
+              description: `Custom template from "${diagram.title}"`,
+              elements: stripped,
+              createdAt: new Date().toISOString(),
+            });
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            Alert.alert('Saved', `"${name.trim()}" is now available as a template when creating new diagrams.`);
+          },
+        },
+      ],
+      'plain-text',
+      diagram.title,
+    );
+  }, [diagram, elements]);
 
   const handleBack = useCallback(() => {
     if (hasChanges) {
@@ -406,6 +441,13 @@ export default function LightingEditorScreen() {
           <Text style={styles.headerTitle} numberOfLines={1}>{diagram.title}</Text>
           {hasChanges && <View style={styles.unsavedDot} />}
         </View>
+        <TouchableOpacity
+          onPress={handleSaveAsTemplate}
+          style={styles.headerBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Bookmark color={Colors.text.secondary} size={18} />
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={handleSave}
           style={[styles.saveBtn, !hasChanges && styles.saveBtnDisabled]}
@@ -537,6 +579,26 @@ export default function LightingEditorScreen() {
               multiline
               textAlignVertical="top"
             />
+
+            <Text style={styles.modalLabel}>Color</Text>
+            <View style={styles.colorGrid}>
+              {[
+                '#FBBF24', '#F97316', '#FB923C', '#FCD34D',  // Warm: gold, orange, amber, yellow
+                '#60A5FA', '#3B82F6', '#93C5FD', '#06B6D4',  // Cool: blue, royal, sky, cyan
+                '#4ADE80', '#34D399', '#A78BFA', '#E879F9',  // Green, teal, purple, pink
+                '#F87171', '#FB7185', '#F5F5F5', '#6B7280',  // Red, rose, white, grey
+              ].map(c => (
+                <TouchableOpacity
+                  key={c}
+                  style={[
+                    styles.colorSwatch,
+                    { backgroundColor: c },
+                    editColor === c && styles.colorSwatchSelected,
+                  ]}
+                  onPress={() => setEditColor(c)}
+                />
+              ))}
+            </View>
 
             <View style={styles.modalActions}>
               <TouchableOpacity onPress={() => setShowEditModal(false)} style={styles.modalCancelBtn}>
@@ -705,6 +767,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent.gold,
   },
   modalSaveText: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.inverse },
+
+  // Color picker
+  colorGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4,
+  },
+  colorSwatch: {
+    width: 32, height: 32, borderRadius: 8,
+    borderWidth: 1.5, borderColor: 'transparent',
+  },
+  colorSwatchSelected: {
+    borderColor: Colors.text.primary,
+    shadowColor: '#FFF', shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5, shadowRadius: 4,
+  },
 
   // Error
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 },

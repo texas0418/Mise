@@ -201,3 +201,42 @@ export function getTemplate(name: LightingTemplateName): LightingTemplate {
 
 /** How many templates are available */
 export const TEMPLATE_COUNT = LIGHTING_TEMPLATES.length;
+
+// ─── Custom (user-saved) templates ───────────────────────────────────────────
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const CUSTOM_TEMPLATES_KEY = 'mise_custom_lighting_templates';
+
+export interface CustomTemplate {
+  id: string;
+  label: string;
+  description: string;
+  elements: Omit<LightingElement, 'id'>[];
+  createdAt: string;
+}
+
+export async function loadCustomTemplates(): Promise<CustomTemplate[]> {
+  try {
+    const stored = await AsyncStorage.getItem(CUSTOM_TEMPLATES_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed;
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+export async function saveCustomTemplate(template: CustomTemplate): Promise<void> {
+  const existing = await loadCustomTemplates();
+  existing.push(template);
+  await AsyncStorage.setItem(CUSTOM_TEMPLATES_KEY, JSON.stringify(existing));
+}
+
+export async function deleteCustomTemplate(id: string): Promise<void> {
+  const existing = await loadCustomTemplates();
+  const filtered = existing.filter(t => t.id !== id);
+  await AsyncStorage.setItem(CUSTOM_TEMPLATES_KEY, JSON.stringify(filtered));
+}

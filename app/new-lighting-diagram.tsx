@@ -1,28 +1,51 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
-import { Lightbulb, Check } from 'lucide-react-native';
+import { Lightbulb, Check, Star, Trash2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectLightingDiagrams } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { LightingTemplateName, LightingElement } from '@/types';
-import { LIGHTING_TEMPLATES, getTemplate } from '@/utils/lightingTemplates';
+import { LIGHTING_TEMPLATES, getTemplate, loadCustomTemplates, deleteCustomTemplate, CustomTemplate } from '@/utils/lightingTemplates';
 
 export default function NewLightingDiagramScreen() {
   const router = useRouter();
   const { activeProjectId, activeProject, addLightingDiagram, updateLightingDiagram } = useProjects();
   const diagrams = useProjectLightingDiagrams(activeProjectId);
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; scene?: string; shot?: string }>();
   const editId = params.id;
   const existingItem = editId ? diagrams.find(d => d.id === editId) : null;
   const isEditing = !!existingItem;
 
   const [title, setTitle] = useState('');
-  const [sceneNumber, setSceneNumber] = useState('');
-  const [shotNumber, setShotNumber] = useState('');
+  const [sceneNumber, setSceneNumber] = useState(params.scene ?? '');
+  const [shotNumber, setShotNumber] = useState(params.shot ?? '');
   const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');
   const [templateName, setTemplateName] = useState<LightingTemplateName>('three-point');
+  const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
+  const [selectedCustomId, setSelectedCustomId] = useState<string | null>(null);
+
+  // Load custom templates
+  useEffect(() => {
+    loadCustomTemplates().then(setCustomTemplates);
+  }, []);
+
+  const handleDeleteCustomTemplate = useCallback((tmpl: CustomTemplate) => {
+    Alert.alert('Delete Template', `Remove "${tmpl.label}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive', onPress: async () => {
+          await deleteCustomTemplate(tmpl.id);
+          setCustomTemplates(prev => prev.filter(t => t.id !== tmpl.id));
+          if (selectedCustomId === tmpl.id) {
+            setSelectedCustomId(null);
+            setTemplateName('three-point');
+          }
+        },
+      },
+    ]);
+  }, [selectedCustomId]);
 
   useEffect(() => {
     if (existingItem) {
@@ -62,8 +85,17 @@ export default function NewLightingDiagramScreen() {
       });
     } else {
       // Create new diagram with template elements
-      const template = getTemplate(templateName);
-      const elements: LightingElement[] = template.elements.map((el, i) => ({
+      let sourceElements: Omit<LightingElement, 'id'>[];
+      const customTmpl = selectedCustomId ? customTemplates.find(t => t.id === selectedCustomId) : null;
+
+      if (customTmpl) {
+        sourceElements = customTmpl.elements;
+      } else {
+        const template = getTemplate(templateName);
+        sourceElements = template.elements;
+      }
+
+      const elements: LightingElement[] = sourceElements.map((el, i) => ({
         ...el,
         id: `el-${Date.now()}-${i}`,
       }));
@@ -75,7 +107,7 @@ export default function NewLightingDiagramScreen() {
         shotNumber: shotNumber.trim() || undefined,
         title: title.trim(),
         description: description.trim(),
-        templateName,
+        templateName: customTmpl ? 'blank' as LightingTemplateName : templateName,
         elements,
         bgStyle: 'dark',
         notes: notes.trim(),
@@ -85,7 +117,7 @@ export default function NewLightingDiagramScreen() {
     }
 
     router.back();
-  }, [activeProjectId, title, sceneNumber, shotNumber, description, notes, templateName, isEditing, existingItem, addLightingDiagram, updateLightingDiagram, router]);
+  }, [activeProjectId, title, sceneNumber, shotNumber, description, notes, templateName, selectedCustomId, customTemplates, isEditing, existingItem, addLightingDiagram, updateLightingDiagram, router]);
 
   if (!activeProject) {
     return (
@@ -147,12 +179,12 @@ export default function NewLightingDiagramScreen() {
           <Text style={styles.label}>Starting Template</Text>
           <View style={styles.templateGrid}>
             {LIGHTING_TEMPLATES.map(tmpl => {
-              const selected = templateName === tmpl.name;
+              const selected = !selectedCustomId && templateName === tmpl.name;
               return (
                 <TouchableOpacity
                   key={tmpl.name}
                   style={[styles.templateCard, selected && styles.templateCardSelected]}
-                  onPress={() => setTemplateName(tmpl.name)}
+                  onPress={() => { setTemplateName(tmpl.name); setSelectedCustomId(null); }}
                   activeOpacity={0.7}
                 >
                   <View style={styles.templateCardHeader}>
@@ -166,6 +198,35 @@ export default function NewLightingDiagramScreen() {
               );
             })}
           </View>
+
+          {/* Custom templates */}
+          {customTemplates.length > 0 && (
+            <>
+              <Text style={[styles.label, { marginTop: 20 }]}>Your Saved Templates</Text>
+              <View style={styles.templateGrid}>
+                {customTemplates.map(tmpl => {
+                  const selected = selectedCustomId === tmpl.id;
+                  return (
+                    <TouchableOpacity
+                      key={tmpl.id}
+                      style={[styles.templateCard, selected && styles.templateCardSelected]}
+                      onPress={() => { setSelectedCustomId(tmpl.id); }}
+                      onLongPress={() => handleDeleteCustomTemplate(tmpl)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.templateCardHeader}>
+                        <Star color={selected ? Colors.accent.gold : '#FB923C'} size={14} />
+                        {selected && <Check color={Colors.accent.gold} size={14} />}
+                      </View>
+                      <Text style={[styles.templateLabel, selected && styles.templateLabelSelected]}>{tmpl.label}</Text>
+                      <Text style={styles.templateDesc} numberOfLines={2}>{tmpl.description}</Text>
+                      <Text style={styles.templateCount}>{tmpl.elements.length} elements · long-press to delete</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </>
+          )}
         </>
       )}
 
