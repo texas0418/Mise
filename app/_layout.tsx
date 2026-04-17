@@ -122,6 +122,10 @@ export default function RootLayout() {
                     options={{ title: "Budget" }}
                   />
                   <Stack.Screen
+                    name="budget-spreadsheet"
+                    options={{ title: "Budget" }}
+                  />
+                  <Stack.Screen
                     name="new-budget-item"
                     options={{
                       presentation: "modal",

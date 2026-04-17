@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { Plus, DollarSign, AlertCircle, Check, Clock, ChevronDown, ChevronUp, Pencil, Trash2, Search, ArrowUpDown } from 'lucide-react-native';
+import { Plus, DollarSign, AlertCircle, Check, Clock, ChevronDown, ChevronUp, Pencil, Trash2, Search, ArrowUpDown, LayoutGrid, FileText } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectBudget } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -9,6 +10,7 @@ import ImportButton from '@/components/ImportButton';
 import AIImportButton from '@/components/AIImportButton';
 import { BudgetItem, BudgetCategory } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { generateBudgetTemplate, TEMPLATE_LINE_COUNT } from '@/utils/budgetTemplate';
 
 const CATEGORY_COLORS: Record<BudgetCategory, string> = {
   'talent': '#FB923C', 'crew': '#60A5FA', 'equipment': '#A78BFA', 'locations': '#4ADE80',
@@ -144,7 +146,7 @@ function BudgetCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function BudgetScreen() {
-  const { activeProject, activeProjectId, deleteBudgetItem } = useProjects();
+  const { activeProject, activeProjectId, deleteBudgetItem, addBudgetItem } = useProjects();
   const budget = useProjectBudget(activeProjectId);
   const router = useRouter();
   const { isTablet, contentPadding } = useLayout();
@@ -153,6 +155,25 @@ export default function BudgetScreen() {
   const [sortMode, setSortMode] = useState<SortMode>('category');
   const [showSortOptions, setShowSortOptions] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<BudgetCategory | 'all'>('all');
+
+  const handleLoadTemplate = useCallback(() => {
+    if (!activeProjectId) return;
+    Alert.alert(
+      'Load Budget Template',
+      `This will add ${TEMPLATE_LINE_COUNT} industry-standard line items to your budget. Existing items won't be affected.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Load Template',
+          onPress: () => {
+            const items = generateBudgetTemplate(activeProjectId);
+            items.forEach(item => addBudgetItem(item));
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          },
+        },
+      ]
+    );
+  }, [activeProjectId, addBudgetItem]);
 
   const stats = useMemo(() => {
     const totalEstimated = budget.reduce((s, b) => s + b.estimated, 0);
@@ -223,7 +244,18 @@ export default function BudgetScreen() {
   return (
     <PermissionGate resource="budget">
     <View style={styles.container}>
-      <Stack.Screen options={{ title: 'Budget' }} />
+      <Stack.Screen options={{
+        title: 'Budget',
+        headerRight: () => (
+          <TouchableOpacity
+            style={{ padding: 6, marginRight: 4 }}
+            onPress={() => router.replace('/budget-spreadsheet' as never)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <LayoutGrid color={Colors.text.secondary} size={20} />
+          </TouchableOpacity>
+        ),
+      }} />
 
       <FlatList
         data={filteredAndSorted}
@@ -268,6 +300,10 @@ export default function BudgetScreen() {
                 <View style={[styles.progressFill, { width: `${spentPercent}%` as unknown as number, backgroundColor: spentPercent > 90 ? Colors.status.error : spentPercent > 70 ? Colors.status.warning : Colors.accent.gold }]} />
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}><ImportButton entityKey="budget" />
+        <TouchableOpacity style={styles.templateBtnSmall} onPress={handleLoadTemplate} activeOpacity={0.7}>
+                <FileText color={Colors.accent.gold} size={13} />
+                <Text style={styles.templateBtnSmallText}>Template</Text>
+              </TouchableOpacity>
         <AIImportButton entityKey="budget" variant="compact" /></View>
               <Text style={styles.progressText}>{spentPercent.toFixed(0)}% of budget used · {budget.length} items</Text>
             </View>
@@ -339,6 +375,12 @@ export default function BudgetScreen() {
             <DollarSign color={Colors.text.tertiary} size={48} />
             <Text style={styles.emptyTitle}>{searchQuery ? 'No matching items' : 'No budget items'}</Text>
             <Text style={styles.emptySubtitle}>{searchQuery ? 'Try a different search' : 'Track your production spending'}</Text>
+            {!searchQuery && (
+              <TouchableOpacity style={styles.templateBtn} onPress={handleLoadTemplate} activeOpacity={0.7}>
+                <FileText color={Colors.accent.gold} size={16} />
+                <Text style={styles.templateBtnText}>Use Film Budget Template</Text>
+              </TouchableOpacity>
+            )}
           </View>
         }
       />
@@ -418,4 +460,16 @@ const styles = StyleSheet.create({
   emptyInner: { alignItems: 'center', paddingVertical: 60 },
   emptyTitle: { fontSize: 18, fontWeight: '600' as const, color: Colors.text.primary, marginTop: 16 },
   emptySubtitle: { fontSize: 14, color: Colors.text.secondary, marginTop: 4, textAlign: 'center' },
+  templateBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 20,
+    paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10,
+    backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44',
+  },
+  templateBtnText: { fontSize: 14, fontWeight: '600' as const, color: Colors.accent.gold },
+  templateBtnSmall: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8,
+    backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '33',
+  },
+  templateBtnSmallText: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold },
 });

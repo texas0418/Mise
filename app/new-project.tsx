@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { X, ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -7,16 +7,18 @@ import { useProjects } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { ProjectStatus } from '@/types';
 import { PROJECT_STATUSES, GENRES } from '@/mocks/data';
+import { generateBudgetTemplate, TEMPLATE_LINE_COUNT } from '@/utils/budgetTemplate';
 
 export default function NewProjectScreen() {
   const router = useRouter();
-  const { addProject } = useProjects();
+  const { addProject, addBudgetItem } = useProjects();
 
   const [title, setTitle] = useState('');
   const [logline, setLogline] = useState('');
   const [genre, setGenre] = useState('Drama');
   const [format, setFormat] = useState('Short Film');
   const [status, setStatus] = useState<ProjectStatus>('development');
+  const [prefillBudget, setPrefillBudget] = useState(false);
   const [showGenres, setShowGenres] = useState(false);
   const [showStatuses, setShowStatuses] = useState(false);
   const [showFormats, setShowFormats] = useState(false);
@@ -29,8 +31,9 @@ export default function NewProjectScreen() {
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    const projectId = Date.now().toString();
     addProject({
-      id: Date.now().toString(),
+      id: projectId,
       title: title.trim(),
       logline: logline.trim(),
       genre,
@@ -38,8 +41,12 @@ export default function NewProjectScreen() {
       format,
       createdAt: new Date().toISOString().split('T')[0],
     });
+    if (prefillBudget) {
+      const items = generateBudgetTemplate(projectId);
+      items.forEach(item => addBudgetItem(item));
+    }
     router.back();
-  }, [title, logline, genre, status, format, addProject, router]);
+  }, [title, logline, genre, status, format, prefillBudget, addProject, addBudgetItem, router]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -132,6 +139,19 @@ export default function NewProjectScreen() {
         )}
       </View>
 
+      <View style={styles.switchRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.switchLabel}>Pre-fill Budget Template</Text>
+          <Text style={styles.switchHint}>{TEMPLATE_LINE_COUNT} industry-standard line items</Text>
+        </View>
+        <Switch
+          value={prefillBudget}
+          onValueChange={setPrefillBudget}
+          trackColor={{ true: Colors.accent.gold, false: Colors.bg.elevated }}
+          thumbColor={Colors.text.primary}
+        />
+      </View>
+
       <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-project-button">
         <Text style={styles.saveButtonText}>Create Project</Text>
       </TouchableOpacity>
@@ -221,5 +241,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700' as const,
     color: Colors.text.inverse,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.bg.card,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 0.5,
+    borderColor: Colors.border.subtle,
+  },
+  switchLabel: {
+    fontSize: 14,
+    color: Colors.text.primary,
+    fontWeight: '500' as const,
+  },
+  switchHint: {
+    fontSize: 11,
+    color: Colors.text.tertiary,
+    marginTop: 2,
   },
 });
