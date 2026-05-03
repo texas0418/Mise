@@ -47,14 +47,14 @@ export default function NewShotScreen() {
   // Pre-fill when editing
   useEffect(() => {
     if (existingItem) {
-      setSceneNumber(existingItem.sceneNumber.toString());
-      setShotNumber(existingItem.shotNumber);
-      setType(existingItem.type);
-      setMovement(existingItem.movement);
-      setLens(existingItem.lens);
-      setDescription(existingItem.description);
+      setSceneNumber(existingItem.sceneNumber?.toString() ?? '');
+      setShotNumber(existingItem.shotNumber ?? '');
+      setType(existingItem.type ?? 'medium');
+      setMovement(existingItem.movement ?? 'static');
+      setLens(existingItem.lens ?? '50mm');
+      setDescription(existingItem.description ?? '');
       setNotes(existingItem.notes || '');
-      setStatus(existingItem.status);
+      setStatus(existingItem.status ?? 'planned');
     }
   }, [existingItem?.id]);
 
