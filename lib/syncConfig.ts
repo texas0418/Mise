@@ -37,6 +37,9 @@ export const SYNCABLE_TABLES: TableConfig[] = [
   { table: 'director_statements', storageKey: 'mise_director_statement',queryKey: 'directorStatement',projectScoped: true },
   { table: 'scene_selects',       storageKey: 'mise_selects',           queryKey: 'selects',          projectScoped: true },
   { table: 'director_messages',   storageKey: 'mise_messages',          queryKey: 'messages',         projectScoped: true },
+  { table: 'script_pdfs',         storageKey: 'mise_script_pdfs',       queryKey: 'scriptPDFs',       projectScoped: true },
+  { table: 'script_annotations',  storageKey: 'mise_script_annotations',queryKey: 'scriptAnnotations',projectScoped: true },
+  { table: 'lighting_diagrams',   storageKey: 'mise_lighting_diagrams', queryKey: 'lightingDiagrams', projectScoped: true },
 ];
 
 export function getTableConfig(tableName: string): TableConfig | undefined {
@@ -79,9 +82,9 @@ export function recordToCamel<T>(row: Record<string, any>): T {
 // ---------------------------------------------------------------------------
 // Field aliases — for cases where auto snake_case produces the wrong DB column
 //
-// 'projects.imageUrl' auto-converts to 'image_url' but the DB column is 'cover_image'.
-// Push aliases:  app camelCase field  → DB snake_case column  (before upsert)
-// Pull aliases:  DB snake_case column → app camelCase field   (after fetch)
+// 'projects.imageUrl' auto-converts to 'image_url' which IS the correct DB column.
+// The old alias mapping to 'cover_image' was WRONG — the DB column is actually 'image_url'.
+// Only add aliases here when the auto-conversion genuinely produces the wrong name.
 // ---------------------------------------------------------------------------
 interface TableAliases {
   push: Record<string, string>;   // snake_case auto-name → correct DB column name
@@ -89,10 +92,8 @@ interface TableAliases {
 }
 
 const FIELD_ALIASES: Record<string, TableAliases> = {
-  projects: {
-    push: { image_url: 'cover_image' },   // 'imageUrl' auto-converts to 'image_url', remap to 'cover_image'
-    pull: { cover_image: 'imageUrl' },    // 'cover_image' from DB should become 'imageUrl' in app
-  },
+  // projects.imageUrl → image_url is correct auto-conversion, no alias needed
+  // Add aliases here only if a mismatch is discovered
 };
 
 /**
@@ -115,14 +116,12 @@ export function applyPushAliases(table: string, row: Record<string, any>): Recor
 /**
  * Apply pull aliases to a camelCase record after recordToCamel().
  * Renames DB-specific camelCase fields to app field names.
- * e.g. 'coverImage' (from 'cover_image') → 'imageUrl'
  */
 export function applyPullAliases(table: string, record: Record<string, any>): Record<string, any> {
   const aliases = FIELD_ALIASES[table]?.pull;
   if (!aliases) return record;
   const result = { ...record };
   for (const [dbColName, appFieldName] of Object.entries(aliases)) {
-    // dbColName is snake_case, but recordToCamel already ran, so check camelCase version
     const camelDbName = toCamelCase(dbColName);
     if (camelDbName in result) {
       result[appFieldName] = result[camelDbName];
@@ -130,4 +129,53 @@ export function applyPullAliases(table: string, record: Record<string, any>): Re
     }
   }
   return result;
+}
+
+// ---------------------------------------------------------------------------
+// Known Supabase columns per table — generated from information_schema
+//
+// stripUnknownColumns() removes any keys NOT in this list before upserting,
+// preventing "column does not exist" errors from Supabase.
+// ---------------------------------------------------------------------------
+const KNOWN_COLUMNS: Record<string, string[] | null> = {
+  blocking_notes: ['id', 'user_id', 'project_id', 'scene_number', 'title', 'description', 'actor_positions', 'camera_position', 'movement_notes', 'diagram_url', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  budget_items: ['id', 'user_id', 'project_id', 'category', 'description', 'estimated', 'actual', 'notes', 'vendor', 'paid', 'created_at', 'updated_at', 'deleted_at'],
+  call_sheet_entries: ['id', 'user_id', 'project_id', 'schedule_day_id', 'crew_member_id', 'call_time', 'role', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  cast_members: ['id', 'user_id', 'project_id', 'actor_name', 'character_name', 'character_description', 'status', 'headshot', 'email', 'phone', 'agent_name', 'agent_contact', 'scenes', 'shoot_days', 'availability', 'performance_notes', 'preferred_takes', 'costume_notes', 'created_at', 'updated_at', 'deleted_at'],
+  color_references: ['id', 'user_id', 'project_id', 'scene_number', 'name', 'lut_style', 'primary_color', 'secondary_color', 'accent_color', 'contrast', 'saturation', 'temperature', 'reference_film', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  continuity_notes: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'description', 'details', 'timestamp', 'created_at', 'updated_at', 'deleted_at'],
+  crew_members: ['id', 'user_id', 'project_id', 'name', 'role', 'department', 'phone', 'email', 'created_at', 'updated_at', 'deleted_at'],
+  director_credits: ['id', 'user_id', 'project_id', 'title', 'role', 'year', 'format', 'festival', 'award', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  director_messages: ['id', 'user_id', 'project_id', 'category', 'priority', 'subject', 'body', 'recipients', 'sent_at', 'scene_number', 'created_at', 'updated_at', 'deleted_at'],
+  director_statements: ['id', 'user_id', 'project_id', 'text', 'created_at', 'updated_at', 'deleted_at'],
+  festival_submissions: ['id', 'user_id', 'project_id', 'festival_name', 'location', 'deadline', 'submission_date', 'fee', 'status', 'category', 'platform_url', 'notes', 'notification_date', 'created_at', 'updated_at', 'deleted_at'],
+  location_scouts: ['id', 'user_id', 'project_id', 'name', 'address', 'contact_name', 'contact_phone', 'permit_required', 'permit_status', 'parking_notes', 'power_available', 'notes', 'rating', 'photo_urls', 'scenes', 'latitude', 'longitude', 'created_at', 'updated_at', 'deleted_at'],
+  location_weather: ['id', 'user_id', 'project_id', 'location_id', 'date', 'sunrise', 'sunset', 'golden_hour_am', 'golden_hour_pm', 'temp_high', 'temp_low', 'condition', 'wind_speed', 'humidity', 'precip_chance', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  lookbook_items: ['id', 'user_id', 'project_id', 'section', 'title', 'description', 'image_url', 'reference_film', 'color_hex', 'sort_order', 'created_at', 'updated_at', 'deleted_at'],
+  mood_board_items: ['id', 'user_id', 'project_id', 'board_name', 'type', 'image_url', 'color', 'note', 'label', 'created_at', 'updated_at', 'deleted_at'],
+  production_notes: ['id', 'user_id', 'project_id', 'title', 'content', 'category', 'pinned', 'created_at', 'updated_at', 'deleted_at'],
+  projects: ['id', 'user_id', 'title', 'logline', 'genre', 'status', 'format', 'image_url', 'budget', 'director', 'producer', 'created_at', 'updated_at', 'deleted_at'],
+  scene_breakdowns: ['id', 'user_id', 'project_id', 'scene_number', 'scene_name', 'int_ext', 'time_of_day', 'location', 'cast_list', 'extras', 'props', 'wardrobe', 'special_equipment', 'notes', 'page_count', 'created_at', 'updated_at', 'deleted_at'],
+  scene_selects: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'take_number', 'rating', 'is_circled', 'is_alt', 'editor_note', 'performance_note', 'technical_note', 'timecode', 'created_at', 'updated_at', 'deleted_at'],
+  schedule_days: ['id', 'user_id', 'project_id', 'date', 'day_number', 'scenes', 'location', 'call_time', 'wrap_time', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  script_annotations: ['id', 'script_pdf_id', 'project_id', 'user_id', 'page_number', 'type', 'color', 'x', 'y', 'width', 'height', 'text_content', 'path_data', 'stroke_width', 'created_at', 'updated_at', 'deleted_at'],
+  script_pdfs: ['id', 'project_id', 'user_id', 'title', 'file_path', 'file_size', 'page_count', 'version', 'color_code', 'uploaded_at', 'created_at', 'updated_at', 'deleted_at'],
+  script_sides: ['id', 'user_id', 'project_id', 'scene_number', 'scene_header', 'page_start', 'page_end', 'page_count', 'shoot_date', 'status', 'synopsis', 'cast_ids', 'linked_shot_ids', 'annotations', 'revision_color', 'revision_date', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  shot_references: ['id', 'user_id', 'project_id', 'shot_id', 'scene_number', 'title', 'image_url', 'shot_type', 'lighting_style', 'notes', 'tags', 'created_at', 'updated_at', 'deleted_at'],
+  shots: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'type', 'movement', 'lens', 'description', 'notes', 'status', 'created_at', 'updated_at', 'deleted_at'],
+  takes: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'take_number', 'is_circled', 'is_ng', 'notes', 'timestamp', 'created_at', 'updated_at', 'deleted_at'],
+  time_entries: ['id', 'user_id', 'project_id', 'schedule_day_id', 'crew_member_id', 'department', 'date', 'call_time', 'wrap_time', 'lunch_start', 'lunch_end', 'scheduled_hours', 'actual_hours', 'overtime_hours', 'rate', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  vfx_shots: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'description', 'complexity', 'status', 'vendor', 'deadline', 'notes', 'estimated_cost', 'created_at', 'updated_at', 'deleted_at'],
+  wrap_reports: ['id', 'user_id', 'project_id', 'schedule_day_id', 'day_number', 'date', 'call_time', 'actual_wrap', 'scheduled_wrap', 'scenes_scheduled', 'scenes_completed', 'shots_planned', 'shots_completed', 'total_takes', 'circled_takes', 'ng_takes', 'pages_scheduled', 'pages_completed', 'overtime_minutes', 'notes', 'safety_incidents', 'weather_conditions', 'created_at', 'updated_at', 'deleted_at'],
+  // lighting_diagrams not yet in Supabase — will pass through without stripping
+};
+
+function stripUnknownColumns(table: string, row: Record<string, any>): Record<string, any> {
+  const known = KNOWN_COLUMNS[table];
+  if (!known) return row;
+  const cleaned: Record<string, any> = {};
+  for (const key of Object.keys(row)) {
+    if (known.includes(key)) cleaned[key] = row[key];
+  }
+  return cleaned;
 }

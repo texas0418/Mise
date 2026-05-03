@@ -75,34 +75,40 @@ function convertRowIds(row: Record<string, any>): Record<string, any> {
 
 // ---------------------------------------------------------------------------
 // Known Supabase columns per table
+// Generated from: SELECT table_name, column_name FROM information_schema.columns
+// WHERE table_schema = 'public' ORDER BY table_name, ordinal_position;
 // ---------------------------------------------------------------------------
 const KNOWN_COLUMNS: Record<string, string[] | null> = {
-  projects: ['id', 'user_id', 'title', 'logline', 'genre', 'format', 'status', 'cover_image', 'created_at', 'updated_at', 'deleted_at', 'project_id'],
-  shots: ['id', 'user_id', 'project_id', 'scene', 'shot_number', 'shot_type', 'shot_size', 'movement', 'lens', 'description', 'notes', 'duration', 'location', 'status', 'sort_order', 'created_at', 'updated_at', 'deleted_at'],
-  schedule_days: ['id', 'user_id', 'project_id', 'date', 'title', 'description', 'status', 'scenes', 'call_time', 'wrap_time', 'location', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  crew_members: ['id', 'user_id', 'project_id', 'name', 'role', 'department', 'email', 'phone', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  takes: ['id', 'user_id', 'project_id', 'shot_id', 'take_number', 'is_circled', 'notes', 'duration', 'timecode_in', 'timecode_out', 'rating', 'created_at', 'updated_at', 'deleted_at'],
-  scene_breakdowns: ['id', 'user_id', 'project_id', 'scene_number', 'title', 'description', 'cast', 'extras', 'props', 'wardrobe', 'vehicles', 'special_equipment', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  location_scouts: ['id', 'user_id', 'project_id', 'name', 'address', 'description', 'contact', 'phone', 'notes', 'photos', 'rating', 'status', 'latitude', 'longitude', 'created_at', 'updated_at', 'deleted_at'],
-  budget_items: ['id', 'user_id', 'project_id', 'category', 'description', 'estimated', 'actual', 'notes', 'status', 'vendor', 'created_at', 'updated_at', 'deleted_at'],
-  continuity_notes: ['id', 'user_id', 'project_id', 'scene', 'shot', 'description', 'notes', 'photos', 'created_at', 'updated_at', 'deleted_at'],
-  vfx_shots: ['id', 'user_id', 'project_id', 'shot_id', 'description', 'status', 'vendor', 'complexity', 'deadline', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  festival_submissions: ['id', 'user_id', 'project_id', 'festival_name', 'deadline', 'status', 'category', 'fee', 'notes', 'submission_date', 'notification_date', 'created_at', 'updated_at', 'deleted_at'],
-  production_notes: ['id', 'user_id', 'project_id', 'title', 'content', 'category', 'tags', 'created_at', 'updated_at', 'deleted_at'],
-  mood_board_items: ['id', 'user_id', 'project_id', 'title', 'image_url', 'description', 'category', 'tags', 'sort_order', 'created_at', 'updated_at', 'deleted_at'],
-  director_credits: ['id', 'user_id', 'project_id', 'title', 'role', 'year', 'description', 'created_at', 'updated_at', 'deleted_at'],
-  shot_references: ['id', 'user_id', 'project_id', 'title', 'image_url', 'description', 'source', 'tags', 'created_at', 'updated_at', 'deleted_at'],
-  wrap_reports: ['id', 'user_id', 'project_id', 'date', 'scenes_completed', 'setups', 'notes', 'call_time', 'wrap_time', 'created_at', 'updated_at', 'deleted_at'],
-  location_weather: ['id', 'user_id', 'project_id', 'location', 'date', 'temperature', 'conditions', 'wind', 'humidity', 'sunrise', 'sunset', 'golden_hour_am', 'golden_hour_pm', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  blocking_notes: ['id', 'user_id', 'project_id', 'scene', 'title', 'description', 'diagram', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  color_references: ['id', 'user_id', 'project_id', 'title', 'description', 'image_url', 'lut_name', 'notes', 'tags', 'created_at', 'updated_at', 'deleted_at'],
-  time_entries: ['id', 'user_id', 'project_id', 'crew_member_id', 'date', 'call_time', 'wrap_time', 'meal_start', 'meal_end', 'notes', 'overtime', 'created_at', 'updated_at', 'deleted_at'],
-  script_sides: ['id', 'user_id', 'project_id', 'scene', 'pages', 'date', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  cast_members: ['id', 'user_id', 'project_id', 'name', 'character', 'email', 'phone', 'agent', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  lookbook_items: ['id', 'user_id', 'project_id', 'title', 'image_url', 'description', 'category', 'tags', 'sort_order', 'created_at', 'updated_at', 'deleted_at'],
-  director_statements: ['id', 'user_id', 'project_id', 'title', 'content', 'created_at', 'updated_at', 'deleted_at'],
-  scene_selects: ['id', 'user_id', 'project_id', 'scene', 'take_id', 'shot_id', 'notes', 'rating', 'is_selected', 'created_at', 'updated_at', 'deleted_at'],
-  director_messages: ['id', 'user_id', 'project_id', 'to', 'subject', 'body', 'sent_at', 'created_at', 'updated_at', 'deleted_at'],
+  projects: ['id', 'user_id', 'title', 'logline', 'genre', 'status', 'format', 'image_url', 'budget', 'director', 'producer', 'created_at', 'updated_at', 'deleted_at'],
+  shots: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'type', 'movement', 'lens', 'description', 'notes', 'status', 'created_at', 'updated_at', 'deleted_at'],
+  schedule_days: ['id', 'user_id', 'project_id', 'date', 'day_number', 'scenes', 'location', 'call_time', 'wrap_time', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  crew_members: ['id', 'user_id', 'project_id', 'name', 'role', 'department', 'phone', 'email', 'created_at', 'updated_at', 'deleted_at'],
+  takes: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'take_number', 'is_circled', 'is_ng', 'notes', 'timestamp', 'created_at', 'updated_at', 'deleted_at'],
+  scene_breakdowns: ['id', 'user_id', 'project_id', 'scene_number', 'scene_name', 'int_ext', 'time_of_day', 'location', 'cast_list', 'extras', 'props', 'wardrobe', 'special_equipment', 'notes', 'page_count', 'created_at', 'updated_at', 'deleted_at'],
+  location_scouts: ['id', 'user_id', 'project_id', 'name', 'address', 'contact_name', 'contact_phone', 'permit_required', 'permit_status', 'parking_notes', 'power_available', 'notes', 'rating', 'photo_urls', 'scenes', 'latitude', 'longitude', 'created_at', 'updated_at', 'deleted_at'],
+  budget_items: ['id', 'user_id', 'project_id', 'category', 'description', 'estimated', 'actual', 'notes', 'vendor', 'paid', 'created_at', 'updated_at', 'deleted_at'],
+  continuity_notes: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'description', 'details', 'timestamp', 'created_at', 'updated_at', 'deleted_at'],
+  vfx_shots: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'description', 'complexity', 'status', 'vendor', 'deadline', 'notes', 'estimated_cost', 'created_at', 'updated_at', 'deleted_at'],
+  festival_submissions: ['id', 'user_id', 'project_id', 'festival_name', 'location', 'deadline', 'submission_date', 'fee', 'status', 'category', 'platform_url', 'notes', 'notification_date', 'created_at', 'updated_at', 'deleted_at'],
+  production_notes: ['id', 'user_id', 'project_id', 'title', 'content', 'category', 'pinned', 'created_at', 'updated_at', 'deleted_at'],
+  mood_board_items: ['id', 'user_id', 'project_id', 'board_name', 'type', 'image_url', 'color', 'note', 'label', 'created_at', 'updated_at', 'deleted_at'],
+  call_sheet_entries: ['id', 'user_id', 'project_id', 'schedule_day_id', 'crew_member_id', 'call_time', 'role', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  director_credits: ['id', 'user_id', 'project_id', 'title', 'role', 'year', 'format', 'festival', 'award', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  shot_references: ['id', 'user_id', 'project_id', 'shot_id', 'scene_number', 'title', 'image_url', 'shot_type', 'lighting_style', 'notes', 'tags', 'created_at', 'updated_at', 'deleted_at'],
+  wrap_reports: ['id', 'user_id', 'project_id', 'schedule_day_id', 'day_number', 'date', 'call_time', 'actual_wrap', 'scheduled_wrap', 'scenes_scheduled', 'scenes_completed', 'shots_planned', 'shots_completed', 'total_takes', 'circled_takes', 'ng_takes', 'pages_scheduled', 'pages_completed', 'overtime_minutes', 'notes', 'safety_incidents', 'weather_conditions', 'created_at', 'updated_at', 'deleted_at'],
+  location_weather: ['id', 'user_id', 'project_id', 'location_id', 'date', 'sunrise', 'sunset', 'golden_hour_am', 'golden_hour_pm', 'temp_high', 'temp_low', 'condition', 'wind_speed', 'humidity', 'precip_chance', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  blocking_notes: ['id', 'user_id', 'project_id', 'scene_number', 'title', 'description', 'actor_positions', 'camera_position', 'movement_notes', 'diagram_url', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  color_references: ['id', 'user_id', 'project_id', 'scene_number', 'name', 'lut_style', 'primary_color', 'secondary_color', 'accent_color', 'contrast', 'saturation', 'temperature', 'reference_film', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  time_entries: ['id', 'user_id', 'project_id', 'schedule_day_id', 'crew_member_id', 'department', 'date', 'call_time', 'wrap_time', 'lunch_start', 'lunch_end', 'scheduled_hours', 'actual_hours', 'overtime_hours', 'rate', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  script_sides: ['id', 'user_id', 'project_id', 'scene_number', 'scene_header', 'page_start', 'page_end', 'page_count', 'shoot_date', 'status', 'synopsis', 'cast_ids', 'linked_shot_ids', 'annotations', 'revision_color', 'revision_date', 'notes', 'created_at', 'updated_at', 'deleted_at'],
+  cast_members: ['id', 'user_id', 'project_id', 'actor_name', 'character_name', 'character_description', 'status', 'headshot', 'email', 'phone', 'agent_name', 'agent_contact', 'scenes', 'shoot_days', 'availability', 'performance_notes', 'preferred_takes', 'costume_notes', 'created_at', 'updated_at', 'deleted_at'],
+  lookbook_items: ['id', 'user_id', 'project_id', 'section', 'title', 'description', 'image_url', 'reference_film', 'color_hex', 'sort_order', 'created_at', 'updated_at', 'deleted_at'],
+  director_statements: ['id', 'user_id', 'project_id', 'text', 'created_at', 'updated_at', 'deleted_at'],
+  scene_selects: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'take_number', 'rating', 'is_circled', 'is_alt', 'editor_note', 'performance_note', 'technical_note', 'timecode', 'created_at', 'updated_at', 'deleted_at'],
+  director_messages: ['id', 'user_id', 'project_id', 'category', 'priority', 'subject', 'body', 'recipients', 'sent_at', 'scene_number', 'created_at', 'updated_at', 'deleted_at'],
+  script_annotations: ['id', 'script_pdf_id', 'project_id', 'user_id', 'page_number', 'type', 'color', 'x', 'y', 'width', 'height', 'text_content', 'path_data', 'stroke_width', 'created_at', 'updated_at', 'deleted_at'],
+  script_pdfs: ['id', 'project_id', 'user_id', 'title', 'file_path', 'file_size', 'page_count', 'version', 'color_code', 'uploaded_at', 'created_at', 'updated_at', 'deleted_at'],
+  // lighting_diagrams not yet in Supabase — will pass through without stripping
 };
 
 function stripUnknownColumns(table: string, row: Record<string, any>): Record<string, any> {
@@ -118,8 +124,6 @@ function stripUnknownColumns(table: string, row: Record<string, any>): Record<st
 // ---------------------------------------------------------------------------
 // Field-level merge: remote wins for non-null fields when timestamps tie/remote wins;
 // local fields are KEPT if the remote value is null/undefined.
-// This prevents sparse Supabase rows (e.g. seeded with only title+id) from
-// wiping rich local data like coverImage, genre, status, etc.
 // ---------------------------------------------------------------------------
 function mergeRecords(
   local: Record<string, any>,
@@ -128,11 +132,9 @@ function mergeRecords(
   const merged = { ...local };
   for (const key of Object.keys(remote)) {
     const remoteVal = remote[key];
-    // Only overwrite local value if remote has a real (non-null) value
     if (remoteVal !== null && remoteVal !== undefined) {
       merged[key] = remoteVal;
     }
-    // If remote is null/undefined, keep whatever local has
   }
   return merged;
 }
@@ -217,10 +219,8 @@ async function pushSingleItem(item: SyncQueueItem, userId: string): Promise<void
     row.user_id = userId;
     convertRowIds(row);
     row.updated_at = new Date().toISOString();
-    // FIX: provide created_at fallback instead of deleting it —
-    // some tables have created_at NOT NULL with no database default
     if (action === 'insert') row.created_at = row.created_at || new Date().toISOString();
-    row = applyPushAliases(table, row); // remap imageUrl→cover_image etc.
+    row = applyPushAliases(table, row);
     row = stripUnknownColumns(table, row);
     const { error } = await supabase.from(table).upsert(row, { onConflict: 'id' });
     if (error) throw error;
@@ -294,7 +294,7 @@ async function pullTableChanges(config: TableConfig, userId: string): Promise<nu
 
   for (const row of rows) {
     let camelRecord = recordToCamel<Record<string, any>>(row);
-    camelRecord = applyPullAliases(config.table, camelRecord); // cover_image → imageUrl etc.
+    camelRecord = applyPullAliases(config.table, camelRecord);
 
     // Soft-deleted remote record — remove locally
     if (camelRecord.deletedAt) {
@@ -306,7 +306,6 @@ async function pullTableChanges(config: TableConfig, userId: string): Promise<nu
     const localItem = localMap.get(camelRecord.id);
 
     if (!localItem) {
-      // New remote record not in local — add it
       localMap.set(camelRecord.id, camelRecord);
       mergedCount++;
       continue;
@@ -317,11 +316,9 @@ async function pullTableChanges(config: TableConfig, userId: string): Promise<nu
     const localTime = new Date(localItem.updatedAt || localItem.createdAt || 0).getTime();
 
     if (remoteTime >= localTime) {
-      // Remote is newer — merge but preserve local fields where remote is null
       localMap.set(camelRecord.id, mergeRecords(localItem, camelRecord));
       mergedCount++;
     }
-    // else: local is newer, keep local as-is
   }
 
   await AsyncStorage.setItem(config.storageKey, JSON.stringify(Array.from(localMap.values())));
@@ -377,9 +374,8 @@ export async function initialUpload(userId: string): Promise<number> {
         row.user_id = userId;
         convertRowIds(row);
         row.updated_at = row.updated_at || new Date().toISOString();
-        // FIX: always provide created_at — some tables have NOT NULL with no default
         row.created_at = row.created_at || new Date().toISOString();
-        row = applyPushAliases(config.table, row); // remap imageUrl→cover_image etc.
+        row = applyPushAliases(config.table, row);
         row = stripUnknownColumns(config.table, row);
         return row;
       });
@@ -413,18 +409,15 @@ export async function forceFullResync(userId: string): Promise<void> {
 
 // ---------------------------------------------------------------------------
 // One-time data migrations
-// Bump MIGRATION_VERSION to force a fresh re-seed from mock data on next launch.
 // ---------------------------------------------------------------------------
-const MIGRATION_VERSION = 'mise_migration_v2'; // bump this string to trigger reset
+const MIGRATION_VERSION = 'mise_migration_v2';
 
 export async function runMigrationsIfNeeded(): Promise<boolean> {
   const done = await AsyncStorage.getItem(MIGRATION_VERSION);
-  if (done) return false; // already ran
+  if (done) return false;
 
   console.log('[SyncEngine] Running one-time migration: clearing stale project cache');
 
-  // Clear only the projects storage key — forces reload from SAMPLE_PROJECTS fallback.
-  // Also clear all sync cursors so a fresh pull happens after re-seed.
   try {
     await AsyncStorage.removeItem('mise_projects');
     await clearAllSyncCursors();
