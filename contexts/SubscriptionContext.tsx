@@ -3,16 +3,18 @@
  *
  * RevenueCat Subscription Provider — v2 Device Licensing Model
  *
- * Products:
- *   com.mise.film_director_suite.pro_monthly         → $4.99/mo (base, 1st device)
- *   com.mise.film_director_suite.pro_additional_device → $2.99/mo (each extra device)
+ * Products (4 total — must match App Store Connect exactly):
+ *   com.mise.film_director_suite.pro_monthly                  → $4.99/mo  (base, 1st device)
+ *   com.mise.film_director_suite.pro_yearly                   → $49.99/yr (base annual)
+ *   com.mise.film_director_suite.additional_device_monthly    → $2.99/mo  (extra device)
+ *   com.mise.film_director_suite.additional_device_annual     → $29.99/yr (extra device annual)
  *
  * Entitlement: "Mise Film Director Suite Pro"
  *
  * Flow:
- *   - purchaseBase()           → buys the $4.99 monthly, grants entitlement
- *   - purchaseAdditionalDevice() → buys the $2.99 add-on for extra devices
- *   - restorePurchases()       → restores any active RC subscription
+ *   - purchaseBase() / purchaseBaseAnnual()                          → first device
+ *   - purchaseAdditionalDevice() / purchaseAdditionalDeviceAnnual()  → extra device
+ *   - restorePurchases()                                              → restores any active RC subscription
  *   - After any successful purchase, DeviceLicenseContext calls activateCurrentDevice()
  */
 
@@ -37,7 +39,7 @@ try {
   console.log('[Subscription] RevenueCat SDK not installed — running in free mode');
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants ──────────────────────────────────────────────────────────────
 
 const REVENUECAT_IOS_KEY = 'appl_hDSIJdgEdYkPSIavpEfPgjEImCA';
 const REVENUECAT_ANDROID_KEY = '';
@@ -46,20 +48,26 @@ const ENTITLEMENT_ID = 'Mise Film Director Suite Pro';
 
 // Product identifiers — must match App Store Connect exactly
 export const PRODUCT_IDS = {
-  /** Base subscription — $4.99/month, required for first device */
+  /** Base subscription monthly — $4.99/month, required for first device */
   base: 'com.mise.film_director_suite.pro_monthly',
-  /** Add-on subscription — $2.99/month per additional device */
-  additionalDevice: 'com.mise.film_director_suite.pro_additional_device',
+  /** Base subscription annual — $49.99/year (saves 17%) */
+  baseAnnual: 'com.mise.film_director_suite.pro_yearly',
+  /** Add-on subscription monthly — $2.99/month per additional device */
+  additionalDevice: 'com.mise.film_director_suite.additional_device_monthly',
+  /** Add-on subscription annual — $29.99/year per additional device (saves 17%) */
+  additionalDeviceAnnual: 'com.mise.film_director_suite.additional_device_annual',
 } as const;
 
 // RevenueCat package identifiers set in the Offerings dashboard
-// '$rc_monthly' is RevenueCat's built-in identifier for MONTHLY packages
+// '$rc_monthly' / '$rc_annual' are RevenueCat's built-in identifiers
 export const PACKAGE_IDS = {
   base: '$rc_monthly',
-  additionalDevice: 'mise_additional_device',
+  baseAnnual: '$rc_annual',
+  additionalDevice: 'additional_device_monthly',
+  additionalDeviceAnnual: 'additional_device_annual',
 } as const;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 interface SubscriptionState {
   isInitialized: boolean;
@@ -67,18 +75,26 @@ interface SubscriptionState {
   isLoading: boolean;
   /** All available packages from the current RC Offering */
   packages: any[];
-  /** The base $4.99 package, if available */
+  /** The base $4.99/mo package, if available */
   basePackage: any | null;
-  /** The additional device $2.99 package, if available */
+  /** The base $49.99/yr package, if available */
+  baseAnnualPackage: any | null;
+  /** The additional device $2.99/mo package, if available */
   additionalDevicePackage: any | null;
+  /** The additional device $29.99/yr package, if available */
+  additionalDeviceAnnualPackage: any | null;
   error: string | null;
 }
 
 interface SubscriptionContextValue extends SubscriptionState {
-  /** Purchase the base Pro subscription ($4.99/mo, first device) */
+  /** Purchase the base Pro monthly subscription ($4.99/mo, first device) */
   purchaseBase: () => Promise<boolean>;
-  /** Purchase an additional device slot ($2.99/mo) */
+  /** Purchase the base Pro annual subscription ($49.99/yr, first device) */
+  purchaseBaseAnnual: () => Promise<boolean>;
+  /** Purchase an additional device monthly slot ($2.99/mo) */
   purchaseAdditionalDevice: () => Promise<boolean>;
+  /** Purchase an additional device annual slot ($29.99/yr) */
+  purchaseAdditionalDeviceAnnual: () => Promise<boolean>;
   /** Restore any previous purchases from the App Store */
   restorePurchases: () => Promise<boolean>;
   /** Refresh subscription status (call after device activation) */
@@ -108,11 +124,11 @@ const PRO_FEATURES: Set<ProFeature> = new Set([
 
 export const FREE_PROJECT_LIMIT = 2;
 
-// ─── Context ──────────────────────────────────────────────────────────────────
+// ─── Context ────────────────────────────────────────────────────────────────
 
 const SubscriptionContext = createContext<SubscriptionContextValue | null>(null);
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
+// ─── Provider ───────────────────────────────────────────────────────────────
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<SubscriptionState>({
@@ -121,7 +137,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     isLoading: false,
     packages: [],
     basePackage: null,
+    baseAnnualPackage: null,
     additionalDevicePackage: null,
+    additionalDeviceAnnualPackage: null,
     error: null,
   });
 
@@ -143,7 +161,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     appState.current = nextState;
   }, []);
 
-  // ─── Initialization ──────────────────────────────────────────────────────
+  // ─── Initialization ─────────────────────────────────────────────────────
 
   const initializeRevenueCat = async () => {
     if (!Purchases) {
@@ -190,7 +208,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  // ─── Offerings ───────────────────────────────────────────────────────────
+  // ─── Offerings ──────────────────────────────────────────────────────────
 
   const fetchOfferings = async () => {
     if (!Purchases) return;
@@ -199,39 +217,53 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       const current = offerings?.current;
       const allPackages: any[] = current?.availablePackages ?? [];
 
-      // Find base package — the $rc_monthly or first MONTHLY type
+      // Find each of the 4 packages by identifier (with type fallback for monthly/annual)
       const basePackage =
         allPackages.find((p: any) =>
           p.identifier === PACKAGE_IDS.base ||
           p.packageType === 'MONTHLY'
-        ) ?? allPackages[0] ?? null;
+        ) ?? null;
 
-      // Find additional device package by our custom identifier
+      const baseAnnualPackage =
+        allPackages.find((p: any) =>
+          p.identifier === PACKAGE_IDS.baseAnnual ||
+          p.packageType === 'ANNUAL'
+        ) ?? null;
+
       const additionalDevicePackage =
         allPackages.find((p: any) =>
           p.identifier === PACKAGE_IDS.additionalDevice ||
           p.product?.productIdentifier === PRODUCT_IDS.additionalDevice
         ) ?? null;
 
+      const additionalDeviceAnnualPackage =
+        allPackages.find((p: any) =>
+          p.identifier === PACKAGE_IDS.additionalDeviceAnnual ||
+          p.product?.productIdentifier === PRODUCT_IDS.additionalDeviceAnnual
+        ) ?? null;
+
       setState(prev => ({
         ...prev,
         packages: allPackages,
         basePackage,
+        baseAnnualPackage,
         additionalDevicePackage,
+        additionalDeviceAnnualPackage,
       }));
 
       console.log(
-        '[Subscription] Offerings loaded — base:',
-        basePackage?.identifier ?? 'none',
-        'additional:',
-        additionalDevicePackage?.identifier ?? 'none (not yet created in ASC)'
+        '[Subscription] Offerings loaded —',
+        'base:', basePackage?.identifier ?? 'none',
+        '| baseAnnual:', baseAnnualPackage?.identifier ?? 'none',
+        '| addDevice:', additionalDevicePackage?.identifier ?? 'none',
+        '| addDeviceAnnual:', additionalDeviceAnnualPackage?.identifier ?? 'none'
       );
     } catch (error: any) {
       console.warn('[Subscription] Offerings error:', error?.message || error);
     }
   };
 
-  // ─── Purchase helpers ────────────────────────────────────────────────────
+  // ─── Purchase helpers ───────────────────────────────────────────────────
 
   const executePurchase = async (pkg: any | null, label: string): Promise<boolean> => {
     if (!Purchases) {
@@ -268,54 +300,96 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  // ─── Public purchase functions ───────────────────────────────────────────
+  // Helper: fetch a fresh package by identifier directly from RC if state is stale
+  const fetchPackageByIdentifier = async (
+    packageId: string,
+    productId: string,
+    packageTypeFallback?: 'MONTHLY' | 'ANNUAL'
+  ): Promise<any | null> => {
+    if (!Purchases) return null;
+    try {
+      const offerings = await Purchases.getOfferings();
+      const allPkgs: any[] = offerings?.current?.availablePackages ?? [];
+      return (
+        allPkgs.find((p: any) =>
+          p.identifier === packageId ||
+          p.product?.productIdentifier === productId ||
+          (packageTypeFallback && p.packageType === packageTypeFallback)
+        ) ?? null
+      );
+    } catch {
+      return null;
+    }
+  };
+
+  // ─── Public purchase functions ──────────────────────────────────────────
 
   /**
-   * Purchase the base Pro subscription ($4.99/mo).
+   * Purchase the base Pro monthly subscription ($4.99/mo).
    * Should be called when the user has 0 licensed devices.
    * After success, call DeviceLicenseContext.activateCurrentDevice().
    */
   const purchaseBase = useCallback(async (): Promise<boolean> => {
-    // If package not loaded yet, try to fetch offerings first
     let pkg = state.basePackage;
     if (!pkg && Purchases) {
       await fetchOfferings();
-      // Re-read from state after fetch — use the updated value from RC
-      try {
-        const offerings = await Purchases.getOfferings();
-        const allPkgs: any[] = offerings?.current?.availablePackages ?? [];
-        pkg = allPkgs.find((p: any) =>
-          p.identifier === PACKAGE_IDS.base || p.packageType === 'MONTHLY'
-        ) ?? allPkgs[0] ?? null;
-      } catch { /* use null */ }
+      pkg = await fetchPackageByIdentifier(PACKAGE_IDS.base, PRODUCT_IDS.base, 'MONTHLY');
     }
     return executePurchase(pkg, 'Base Pro');
   }, [state.basePackage]);
 
   /**
-   * Purchase an additional device slot ($2.99/mo).
+   * Purchase the base Pro annual subscription ($49.99/yr).
+   * Should be called when the user has 0 licensed devices.
+   */
+  const purchaseBaseAnnual = useCallback(async (): Promise<boolean> => {
+    let pkg = state.baseAnnualPackage;
+    if (!pkg && Purchases) {
+      await fetchOfferings();
+      pkg = await fetchPackageByIdentifier(
+        PACKAGE_IDS.baseAnnual,
+        PRODUCT_IDS.baseAnnual,
+        'ANNUAL'
+      );
+    }
+    return executePurchase(pkg, 'Base Pro Annual');
+  }, [state.baseAnnualPackage]);
+
+  /**
+   * Purchase an additional device monthly slot ($2.99/mo).
    * Should be called when the user already has at least 1 licensed device.
-   * After success, call DeviceLicenseContext.activateCurrentDevice().
    */
   const purchaseAdditionalDevice = useCallback(async (): Promise<boolean> => {
     let pkg = state.additionalDevicePackage;
     if (!pkg && Purchases) {
-      try {
-        const offerings = await Purchases.getOfferings();
-        const allPkgs: any[] = offerings?.current?.availablePackages ?? [];
-        pkg = allPkgs.find((p: any) =>
-          p.identifier === PACKAGE_IDS.additionalDevice ||
-          p.product?.productIdentifier === PRODUCT_IDS.additionalDevice
-        ) ?? null;
-      } catch { /* use null */ }
+      await fetchOfferings();
+      pkg = await fetchPackageByIdentifier(
+        PACKAGE_IDS.additionalDevice,
+        PRODUCT_IDS.additionalDevice
+      );
     }
     return executePurchase(pkg, 'Additional Device');
   }, [state.additionalDevicePackage]);
 
+  /**
+   * Purchase an additional device annual slot ($29.99/yr).
+   */
+  const purchaseAdditionalDeviceAnnual = useCallback(async (): Promise<boolean> => {
+    let pkg = state.additionalDeviceAnnualPackage;
+    if (!pkg && Purchases) {
+      await fetchOfferings();
+      pkg = await fetchPackageByIdentifier(
+        PACKAGE_IDS.additionalDeviceAnnual,
+        PRODUCT_IDS.additionalDeviceAnnual
+      );
+    }
+    return executePurchase(pkg, 'Additional Device Annual');
+  }, [state.additionalDeviceAnnualPackage]);
+
   /** @deprecated Use purchaseBase() */
   const purchasePro = useCallback(() => purchaseBase(), [purchaseBase]);
 
-  // ─── Restore ─────────────────────────────────────────────────────────────
+  // ─── Restore ────────────────────────────────────────────────────────────
 
   const restorePurchases = useCallback(async (): Promise<boolean> => {
     if (!Purchases) {
@@ -356,12 +430,14 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     [state.isPro],
   );
 
-  // ─── Context value ───────────────────────────────────────────────────────
+  // ─── Context value ──────────────────────────────────────────────────────
 
   const value: SubscriptionContextValue = {
     ...state,
     purchaseBase,
+    purchaseBaseAnnual,
     purchaseAdditionalDevice,
+    purchaseAdditionalDeviceAnnual,
     purchasePro,
     restorePurchases,
     refreshStatus,
@@ -375,7 +451,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   );
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// ─── Hook ───────────────────────────────────────────────────────────────────
 
 export function useSubscription(): SubscriptionContextValue {
   const context = useContext(SubscriptionContext);

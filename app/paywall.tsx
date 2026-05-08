@@ -1,5 +1,5 @@
 // app/paywall.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -29,7 +29,7 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
 
-// ─── Feature list ─────────────────────────────────────────────────────────────
+// ─── Feature list ───────────────────────────────────────────────────────────
 
 const PRO_FEATURES = [
   {
@@ -64,7 +64,9 @@ const PRO_FEATURES = [
   },
 ];
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
+type BillingPeriod = 'monthly' | 'annual';
+
+// ─── Screen ─────────────────────────────────────────────────────────────────
 
 export default function PaywallScreen() {
   const router = useRouter();
@@ -85,19 +87,30 @@ export default function PaywallScreen() {
     isPurchasing,
     purchaseError,
     purchaseBaseAndActivate,
+    purchaseBaseAnnualAndActivate,
     purchaseAdditionalAndActivate,
+    purchaseAdditionalAnnualAndActivate,
     restoreAndActivate,
   } = useDeviceLicense();
 
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
+
   const isLoading = rcLoading || deviceLoading;
 
-  // ─── Handlers ───────────────────────────────────────────────────────────
+  // ─── Handlers ────────────────────────────────────────────────────────────
 
   const handlePurchase = async () => {
-    // Route to the correct product based on device count
-    const result = isFirstDevice
-      ? await purchaseBaseAndActivate()
-      : await purchaseAdditionalAndActivate();
+    // Route to the correct product based on device count + billing period
+    let result;
+    if (isFirstDevice) {
+      result = billingPeriod === 'annual'
+        ? await purchaseBaseAnnualAndActivate()
+        : await purchaseBaseAndActivate();
+    } else {
+      result = billingPeriod === 'annual'
+        ? await purchaseAdditionalAnnualAndActivate()
+        : await purchaseAdditionalAndActivate();
+    }
 
     if (result.success) {
       Alert.alert(
@@ -131,9 +144,9 @@ export default function PaywallScreen() {
   const openTerms = () =>
     Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
   const openPrivacy = () =>
-    Linking.openURL('https://texas0418.github.io/MiseApp/');
+    Linking.openURL('https://page4films.com/mise/privacy.html');
 
-  // ─── Already Pro — success state ────────────────────────────────────────
+  // ─── Already Pro — success state ─────────────────────────────────────────
 
   if (isPro) {
     return (
@@ -185,13 +198,25 @@ export default function PaywallScreen() {
 
   // ─── Purchase flow ───────────────────────────────────────────────────────
 
-  // Button label + price change based on whether this is first or additional device
-  const buttonLabel = isFirstDevice
-    ? 'Subscribe to Mise Pro'
-    : 'Add This Device — $' + pricing.additionalDeviceMonthly.toFixed(2) + '/mo';
+  // Compute display price for the selected billing period
+  const displayPrice = isFirstDevice
+    ? (billingPeriod === 'annual' ? pricing.baseAnnual : pricing.baseMonthly)
+    : (billingPeriod === 'annual' ? pricing.additionalDeviceAnnual : pricing.additionalDeviceMonthly);
 
-  const buttonIcon = isFirstDevice ? Crown : Plus;
-  const ButtonIcon = buttonIcon;
+  const displayPeriodLabel = billingPeriod === 'annual' ? 'per year' : 'per month';
+  const displayDeviceLabel = isFirstDevice ? '1 device' : 'this device';
+
+  // Equivalent monthly price for annual (to show savings context)
+  const annualAsMonthly = isFirstDevice
+    ? pricing.baseAnnual / 12
+    : pricing.additionalDeviceAnnual / 12;
+
+  // Button label
+  const buttonLabel = isFirstDevice
+    ? `Subscribe — $${displayPrice.toFixed(2)}/${billingPeriod === 'annual' ? 'yr' : 'mo'}`
+    : `Add Device — $${displayPrice.toFixed(2)}/${billingPeriod === 'annual' ? 'yr' : 'mo'}`;
+
+  const ButtonIcon = isFirstDevice ? Crown : Plus;
 
   const isBusy = isLoading || isPurchasing;
 
@@ -252,33 +277,78 @@ export default function PaywallScreen() {
             </Text>
             <Text style={styles.addDeviceDesc}>
               Your account has an active Mise Pro subscription. Add this device for an
-              additional ${pricing.additionalDeviceMonthly.toFixed(2)}/month.
+              additional ${pricing.additionalDeviceMonthly.toFixed(2)}/month or ${pricing.additionalDeviceAnnual.toFixed(2)}/year.
             </Text>
-            <View style={styles.addDevicePriceRow}>
-              <Text style={styles.addDevicePriceLabel}>Current monthly total</Text>
-              <Text style={styles.addDevicePriceCurrent}>${monthlyPrice.toFixed(2)}/mo</Text>
-            </View>
-            <View style={styles.addDevicePriceRow}>
-              <Text style={styles.addDevicePriceLabel}>After adding this device</Text>
-              <Text style={styles.addDevicePriceNew}>
-                ${(monthlyPrice + pricing.additionalDeviceMonthly).toFixed(2)}/mo
-              </Text>
-            </View>
           </View>
         )}
 
-        {/* ── Pricing card (first device only) ── */}
-        {isFirstDevice && (
-          <View style={styles.pricingCard}>
-            <Text style={styles.priceAmount}>${pricing.baseMonthly.toFixed(2)}</Text>
-            <Text style={styles.pricePeriod}>per month · 1 device</Text>
-            <View style={styles.priceDivider} />
-            <Text style={styles.priceAdditional}>
-              +${pricing.additionalDeviceMonthly.toFixed(2)}/mo per additional device
+        {/* ── Billing period toggle ── */}
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity
+            style={[
+              styles.toggleOption,
+              billingPeriod === 'monthly' && styles.toggleOptionActive,
+            ]}
+            onPress={() => setBillingPeriod('monthly')}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                styles.toggleText,
+                billingPeriod === 'monthly' && styles.toggleTextActive,
+              ]}
+            >
+              Monthly
             </Text>
-            <Text style={styles.priceNote}>Cancel anytime. No long-term commitment.</Text>
-          </View>
-        )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.toggleOption,
+              billingPeriod === 'annual' && styles.toggleOptionActive,
+            ]}
+            onPress={() => setBillingPeriod('annual')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.toggleAnnualWrap}>
+              <Text
+                style={[
+                  styles.toggleText,
+                  billingPeriod === 'annual' && styles.toggleTextActive,
+                ]}
+              >
+                Annual
+              </Text>
+              <View style={styles.savingsBadge}>
+                <Text style={styles.savingsBadgeText}>SAVE 17%</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Pricing card ── */}
+        <View style={styles.pricingCard}>
+          <Text style={styles.priceAmount}>${displayPrice.toFixed(2)}</Text>
+          <Text style={styles.pricePeriod}>{displayPeriodLabel} · {displayDeviceLabel}</Text>
+
+          {billingPeriod === 'annual' && (
+            <Text style={styles.priceEquivalent}>
+              Just ${annualAsMonthly.toFixed(2)}/mo, billed annually
+            </Text>
+          )}
+
+          {isFirstDevice && (
+            <>
+              <View style={styles.priceDivider} />
+              <Text style={styles.priceAdditional}>
+                +${billingPeriod === 'annual'
+                  ? pricing.additionalDeviceAnnual.toFixed(2) + '/yr'
+                  : pricing.additionalDeviceMonthly.toFixed(2) + '/mo'} per additional device
+              </Text>
+            </>
+          )}
+
+          <Text style={styles.priceNote}>Cancel anytime. No long-term commitment.</Text>
+        </View>
 
         {/* ── Error message ── */}
         {purchaseError ? (
@@ -346,7 +416,7 @@ export default function PaywallScreen() {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+// ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: {
@@ -447,19 +517,57 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 20,
   },
-  addDevicePriceRow: {
+
+  // Billing period toggle
+  toggleContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingVertical: 8,
-    borderTopWidth: 0.5,
-    borderTopColor: Colors.border.subtle,
+    backgroundColor: Colors.bg.tertiary,
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 20,
+    gap: 4,
   },
-  addDevicePriceLabel: { fontSize: 13, color: Colors.text.secondary },
-  addDevicePriceCurrent: { fontSize: 13, fontWeight: '600', color: Colors.text.primary },
-  addDevicePriceNew: { fontSize: 13, fontWeight: '700', color: Colors.accent.gold },
+  toggleOption: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleOptionActive: {
+    backgroundColor: Colors.bg.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  toggleAnnualWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  toggleText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text.secondary,
+  },
+  toggleTextActive: {
+    color: Colors.text.primary,
+  },
+  savingsBadge: {
+    backgroundColor: Colors.accent.gold,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  savingsBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: Colors.text.inverse,
+    letterSpacing: 0.3,
+  },
 
   // Pricing card
   pricingCard: {
@@ -473,6 +581,12 @@ const styles = StyleSheet.create({
   },
   priceAmount: { fontSize: 36, fontWeight: '700', color: Colors.accent.gold },
   pricePeriod: { fontSize: 14, color: Colors.text.secondary, marginTop: 2 },
+  priceEquivalent: {
+    fontSize: 12,
+    color: Colors.accent.goldLight,
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
   priceDivider: {
     width: 40,
     height: 1,

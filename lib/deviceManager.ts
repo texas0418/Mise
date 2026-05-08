@@ -1,14 +1,14 @@
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // lib/deviceManager.ts — Device registration & license management
 //
 // Pricing model:
-//   Base: $4.99/mo → 1 device
-//   Each additional device: $2.99/mo
+//   Base: $4.99/mo or $49.99/yr → 1 device
+//   Each additional device: $2.99/mo or $29.99/yr
 //
 // Supabase `devices` table columns:
 //   id, user_id, device_uuid, platform, device_name, model,
 //   is_licensed, license_tier, last_active, created_at, updated_at, deleted_at
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import * as Application from 'expo-application';
@@ -29,9 +29,9 @@ export interface DeviceRecord {
   createdAt: string;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Device UUID — stable identifier for this physical device
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 async function getOrCreateDeviceUuid(): Promise<string> {
   const stored = await AsyncStorage.getItem(DEVICE_ID_KEY);
   if (stored) return stored;
@@ -56,9 +56,9 @@ async function getOrCreateDeviceUuid(): Promise<string> {
   return uuid;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Get device info
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 function getDeviceInfo() {
   return {
     platform: Platform.OS,
@@ -68,9 +68,9 @@ function getDeviceInfo() {
   };
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Register this device (called on first launch after auth)
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 export async function registerDevice(userId: string): Promise<DeviceRecord | null> {
   const deviceUuid = await getOrCreateDeviceUuid();
   const info = getDeviceInfo();
@@ -131,9 +131,9 @@ export async function registerDevice(userId: string): Promise<DeviceRecord | nul
   return rowToDevice(inserted);
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Check if current device is licensed
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 export async function checkDeviceLicense(userId: string): Promise<boolean> {
   const deviceUuid = await getOrCreateDeviceUuid();
 
@@ -148,9 +148,9 @@ export async function checkDeviceLicense(userId: string): Promise<boolean> {
   return data.is_licensed === true;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // List all devices for a user
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 export async function listUserDevices(userId: string): Promise<DeviceRecord[]> {
   const { data, error } = await supabase
     .from('devices')
@@ -163,16 +163,16 @@ export async function listUserDevices(userId: string): Promise<DeviceRecord[]> {
   return data.map(rowToDevice);
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Get current device UUID (for highlighting in UI)
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 export async function getCurrentDeviceUuid(): Promise<string> {
   return getOrCreateDeviceUuid();
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Activate a device (set is_licensed = true)
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 export async function activateDevice(deviceId: string): Promise<boolean> {
   const { error } = await supabase
     .from('devices')
@@ -181,9 +181,9 @@ export async function activateDevice(deviceId: string): Promise<boolean> {
   return !error;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Deactivate a device (set is_licensed = false)
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 export async function deactivateDevice(deviceId: string): Promise<boolean> {
   const { error } = await supabase
     .from('devices')
@@ -192,9 +192,9 @@ export async function deactivateDevice(deviceId: string): Promise<boolean> {
   return !error;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Remove a device entirely (soft delete)
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 export async function removeDevice(deviceId: string): Promise<boolean> {
   const { error } = await supabase
     .from('devices')
@@ -203,9 +203,9 @@ export async function removeDevice(deviceId: string): Promise<boolean> {
   return !error;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Count licensed devices for a user
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 export async function getLicensedDeviceCount(userId: string): Promise<number> {
   const { count, error } = await supabase
     .from('devices')
@@ -218,12 +218,14 @@ export async function getLicensedDeviceCount(userId: string): Promise<number> {
   return count ?? 0;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Pricing helpers
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 export const PRICING = {
   baseMonthly: 4.99,
+  baseAnnual: 49.99,
   additionalDeviceMonthly: 2.99,
+  additionalDeviceAnnual: 29.99,
   baseDevices: 1,
 };
 
@@ -233,10 +235,10 @@ export function calculateMonthlyPrice(licensedDeviceCount: number): number {
   return PRICING.baseMonthly + additionalDevices * PRICING.additionalDeviceMonthly;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Row mapping — Supabase snake_case → app camelCase
 // Note: table uses `model` and `last_active` (not `device_model`/`last_active_at`)
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 function rowToDevice(row: any): DeviceRecord {
   return {
     id: row.id,
