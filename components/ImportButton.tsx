@@ -1,19 +1,25 @@
 /**
  * components/ImportButton.tsx
- * 
+ *
  * Reusable Import Button for Mise App
  * Phase 2, Item 6 — Updated with Pro subscription gating
- * 
+ *
  * A small button (Upload icon + "Import" label) that navigates to the
  * import-data screen with the target entity type. If the user doesn't
  * have a Pro subscription, it redirects to the paywall instead.
+ *
+ * NOTE: Uses useDeviceLicense().isPro as the single source of truth.
+ * useSubscription().requiresPro() only knows about RevenueCat entitlement
+ * and can desync from device license, causing Pro users to see locked
+ * features. DeviceLicenseContext.isPro = (isDeviceLicensed || isRevenueCatPro)
+ * is the correct combined signal.
  */
 
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Upload, Lock } from 'lucide-react-native';
-import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
 
 interface ImportButtonProps {
@@ -27,8 +33,8 @@ interface ImportButtonProps {
 
 export default function ImportButton({ entityKey, variant = 'full', label = 'Import' }: ImportButtonProps) {
   const router = useRouter();
-  const { requiresPro } = useSubscription();
-  const needsPro = requiresPro('spreadsheet_import');
+  const { isPro } = useDeviceLicense();
+  const needsPro = !isPro;
 
   const handlePress = () => {
     if (needsPro) {

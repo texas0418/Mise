@@ -1,19 +1,25 @@
 /**
  * components/AIImportButton.tsx
- * 
+ *
  * Reusable AI Import Button for Mise App
  * Phase 3, Item 12 — Updated with Pro subscription gating
- * 
+ *
  * A sparkle-icon button ("AI Import") that navigates to the AI import
  * screen with the target entity type. If the user doesn't have a Pro
  * subscription, it redirects to the paywall instead.
+ *
+ * NOTE: Uses useDeviceLicense().isPro as the single source of truth.
+ * useSubscription().requiresPro() only knows about RevenueCat entitlement
+ * and can desync from device license, causing Pro users to see locked
+ * features. DeviceLicenseContext.isPro = (isDeviceLicensed || isRevenueCatPro)
+ * is the correct combined signal.
  */
 
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Sparkles, Lock } from 'lucide-react-native';
-import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
 
 interface AIImportButtonProps {
@@ -27,8 +33,8 @@ interface AIImportButtonProps {
 
 export default function AIImportButton({ entityKey, variant = 'full', label = 'AI Import' }: AIImportButtonProps) {
   const router = useRouter();
-  const { requiresPro } = useSubscription();
-  const needsPro = requiresPro('ai_import');
+  const { isPro } = useDeviceLicense();
+  const needsPro = !isPro;
 
   const handlePress = () => {
     if (needsPro) {
