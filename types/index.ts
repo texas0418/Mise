@@ -444,9 +444,9 @@ export interface DirectorMessage {
   sceneNumber?: number;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Script PDF (full script document with annotations)
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 export type ScriptRevisionColor =
   | 'white'
@@ -494,6 +494,81 @@ export interface ScriptAnnotation {
   // Drawing: serialized SVG path data (e.g. "M10,20 L30,40 L50,10")
   pathData?: string;
   strokeWidth?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ----------------------------------------------------------------------------
+// Lighting Diagrams
+// ----------------------------------------------------------------------------
+
+export type LightingElementType =
+  // Lights
+  | 'key-light'
+  | 'fill-light'
+  | 'back-light'
+  | 'hair-light'
+  | 'kicker'
+  | 'practical'
+  // Modifiers
+  | 'bounce'
+  | 'reflector'
+  | 'flag'
+  | 'diffusion'
+  | 'gel'
+  // Set pieces
+  | 'wall'
+  | 'window'
+  | 'prop'
+  // People / camera
+  | 'camera'
+  | 'actor'
+  | 'custom';
+
+export type LightIntensity = 'low' | 'medium' | 'high' | 'max';
+
+export interface LightingElement {
+  id: string;
+  type: LightingElementType;
+  label: string;
+  /** Normalized x position (0–1, relative to canvas width) */
+  x: number;
+  /** Normalized y position (0–1, relative to canvas height) */
+  y: number;
+  /** Rotation in degrees, 0–360 */
+  rotation: number;
+  /** Scale multiplier, default 1 */
+  scale: number;
+  /** Hex color string */
+  color?: string;
+  /** Beam intensity (lights only) */
+  intensity?: LightIntensity;
+  /** Optional notes for this element */
+  notes?: string;
+}
+
+export type LightingTemplateName =
+  | 'blank'
+  | 'three-point'
+  | 'rembrandt'
+  | 'butterfly'
+  | 'split'
+  | 'loop'
+  | 'broad'
+  | 'short-side'
+  | 'backlight-only'
+  | 'natural-window';
+
+export interface LightingDiagram {
+  id: string;
+  projectId: string;
+  title: string;
+  sceneNumber?: number;
+  shotNumber?: string;
+  templateName: LightingTemplateName | string;
+  description?: string;
+  notes?: string;
+  elements: LightingElement[];
   createdAt: string;
   updatedAt: string;
 }
