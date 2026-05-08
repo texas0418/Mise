@@ -16,6 +16,12 @@
  *   - purchaseAdditionalDevice() / purchaseAdditionalDeviceAnnual()  → extra device
  *   - restorePurchases()                                              → restores any active RC subscription
  *   - After any successful purchase, DeviceLicenseContext calls activateCurrentDevice()
+ *
+ * NOTE: This context exposes ONLY the RevenueCat entitlement signal (state.isPro).
+ * For feature gating, components should use useDeviceLicense().isPro instead,
+ * which is the combined truth: (isDeviceLicensed || isRevenueCatPro).
+ * The previous requiresPro() method was removed because it could desync from
+ * the device license and lock Pro users out of features.
  */
 
 import React, {
@@ -39,7 +45,7 @@ try {
   console.log('[Subscription] RevenueCat SDK not installed — running in free mode');
 }
 
-// ─── Constants ──────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const REVENUECAT_IOS_KEY = 'appl_hDSIJdgEdYkPSIavpEfPgjEImCA';
 const REVENUECAT_ANDROID_KEY = '';
@@ -67,7 +73,7 @@ export const PACKAGE_IDS = {
   additionalDeviceAnnual: 'additional_device_annual',
 } as const;
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface SubscriptionState {
   isInitialized: boolean;
@@ -101,34 +107,15 @@ interface SubscriptionContextValue extends SubscriptionState {
   refreshStatus: () => Promise<void>;
   /** @deprecated Use purchaseBase() instead */
   purchasePro: () => Promise<boolean>;
-  /** Returns true if the given feature requires Pro AND the user is not Pro */
-  requiresPro: (feature: ProFeature) => boolean;
 }
-
-export type ProFeature =
-  | 'spreadsheet_import'
-  | 'ai_import'
-  | 'unlimited_projects'
-  | 'csv_templates'
-  | 'import_history'
-  | 'multi_device_sync';
-
-const PRO_FEATURES: Set<ProFeature> = new Set([
-  'spreadsheet_import',
-  'ai_import',
-  'unlimited_projects',
-  'csv_templates',
-  'import_history',
-  'multi_device_sync',
-]);
 
 export const FREE_PROJECT_LIMIT = 2;
 
-// ─── Context ────────────────────────────────────────────────────────────────
+// ─── Context ──────────────────────────────────────────────────────────────────
 
 const SubscriptionContext = createContext<SubscriptionContextValue | null>(null);
 
-// ─── Provider ───────────────────────────────────────────────────────────────
+// ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<SubscriptionState>({
@@ -161,7 +148,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     appState.current = nextState;
   }, []);
 
-  // ─── Initialization ─────────────────────────────────────────────────────
+  // ─── Initialization ─────────────────────────────────────────────────────────
 
   const initializeRevenueCat = async () => {
     if (!Purchases) {
@@ -194,7 +181,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  // ─── Status check ────────────────────────────────────────────────────────
+  // ─── Status check ───────────────────────────────────────────────────────────
 
   const checkSubscriptionStatus = async () => {
     if (!Purchases) return;
@@ -208,7 +195,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  // ─── Offerings ──────────────────────────────────────────────────────────
+  // ─── Offerings ──────────────────────────────────────────────────────────────
 
   const fetchOfferings = async () => {
     if (!Purchases) return;
@@ -263,7 +250,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  // ─── Purchase helpers ───────────────────────────────────────────────────
+  // ─── Purchase helpers ───────────────────────────────────────────────────────
 
   const executePurchase = async (pkg: any | null, label: string): Promise<boolean> => {
     if (!Purchases) {
@@ -322,7 +309,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  // ─── Public purchase functions ──────────────────────────────────────────
+  // ─── Public purchase functions ──────────────────────────────────────────────
 
   /**
    * Purchase the base Pro monthly subscription ($4.99/mo).
@@ -389,7 +376,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   /** @deprecated Use purchaseBase() */
   const purchasePro = useCallback(() => purchaseBase(), [purchaseBase]);
 
-  // ─── Restore ────────────────────────────────────────────────────────────
+  // ─── Restore ────────────────────────────────────────────────────────────────
 
   const restorePurchases = useCallback(async (): Promise<boolean> => {
     if (!Purchases) {
@@ -422,15 +409,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     await Promise.all([checkSubscriptionStatus(), fetchOfferings()]);
   }, []);
 
-  const requiresPro = useCallback(
-    (feature: ProFeature): boolean => {
-      if (state.isPro) return false;
-      return PRO_FEATURES.has(feature);
-    },
-    [state.isPro],
-  );
-
-  // ─── Context value ──────────────────────────────────────────────────────
+  // ─── Context value ──────────────────────────────────────────────────────────
 
   const value: SubscriptionContextValue = {
     ...state,
@@ -441,7 +420,6 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     purchasePro,
     restorePurchases,
     refreshStatus,
-    requiresPro,
   };
 
   return (
@@ -451,7 +429,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   );
 }
 
-// ─── Hook ───────────────────────────────────────────────────────────────────
+// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useSubscription(): SubscriptionContextValue {
   const context = useContext(SubscriptionContext);
