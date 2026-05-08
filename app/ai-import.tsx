@@ -214,7 +214,7 @@ export default function AIImportScreen() {
       Alert.alert(
         'Import Complete',
         `Successfully imported ${parsedRows.length} ${entityConfig.label.toLowerCase()}.`,
-        [{ text: 'Done', onPress: () => router.back() }]
+        [{ text: 'Done', onPress: () => router.dismiss() }]
       );
     } catch (err) {
       Alert.alert('Import Failed', err instanceof Error ? err.message : 'Unknown error');

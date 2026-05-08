@@ -158,7 +158,7 @@ export default function ImportDataScreen() {
       Alert.alert(
         'Import Complete',
         `Successfully imported ${convertedRows.length} ${entityConfig.label.toLowerCase()}.`,
-        [{ text: 'Done', onPress: () => router.back() }]
+        [{ text: 'Done', onPress: () => router.dismiss() }]
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
