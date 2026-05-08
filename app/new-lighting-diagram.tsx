@@ -52,9 +52,9 @@ export default function NewLightingDiagramScreen() {
       setTitle(existingItem.title);
       setSceneNumber(existingItem.sceneNumber?.toString() ?? '');
       setShotNumber(existingItem.shotNumber ?? '');
-      setDescription(existingItem.description);
-      setNotes(existingItem.notes);
-      setTemplateName(existingItem.templateName);
+      setDescription(existingItem.description ?? '');
+      setNotes(existingItem.notes ?? '');
+      setTemplateName(existingItem.templateName as LightingTemplateName);
     }
   }, [existingItem?.id]);
 
@@ -109,7 +109,6 @@ export default function NewLightingDiagramScreen() {
         description: description.trim(),
         templateName: customTmpl ? 'blank' as LightingTemplateName : templateName,
         elements,
-        bgStyle: 'dark',
         notes: notes.trim(),
         createdAt: now,
         updatedAt: now,

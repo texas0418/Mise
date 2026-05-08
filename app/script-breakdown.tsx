@@ -25,7 +25,17 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const timeColor = TIME_COLORS[item.timeOfDay] ?? Colors.text.tertiary;
+  // Normalize possibly-null fields once. Supabase can return null for any
+  // of these even though TypeScript types them as required arrays/strings.
+  const cast = item.cast ?? [];
+  const props = item.props ?? [];
+  const wardrobe = item.wardrobe ?? [];
+  const specialEquipment = item.specialEquipment ?? [];
+  const timeOfDay = item.timeOfDay ?? '';
+  const intExt = item.intExt ?? '';
+  const pageCount = item.pageCount ?? '';
+
+  const timeColor = TIME_COLORS[timeOfDay] ?? Colors.text.tertiary;
 
   const handleDelete = () => {
     Alert.alert('Delete Breakdown', `Remove Sc. ${item.sceneNumber} breakdown?`, [
@@ -48,13 +58,13 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
           <Text style={styles.sceneName}>{item.sceneName}</Text>
           <View style={styles.tagRow}>
             <View style={[styles.tag, { backgroundColor: timeColor + '18' }]}>
-              <Text style={[styles.tagText, { color: timeColor }]}>{item.intExt}</Text>
+              <Text style={[styles.tagText, { color: timeColor }]}>{intExt}</Text>
             </View>
             <View style={[styles.tag, { backgroundColor: timeColor + '18' }]}>
-              <Text style={[styles.tagText, { color: timeColor }]}>{item.timeOfDay.toUpperCase()}</Text>
+              <Text style={[styles.tagText, { color: timeColor }]}>{timeOfDay.toUpperCase()}</Text>
             </View>
             <View style={styles.tag}>
-              <Text style={styles.tagText}>{item.pageCount} pg</Text>
+              <Text style={styles.tagText}>{pageCount} pg</Text>
             </View>
           </View>
         </View>
@@ -74,10 +84,10 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
               <Text style={styles.detailTextSmall} numberOfLines={1}>{item.location}</Text>
             </View>
           ) : null}
-          {item.cast.length > 0 && (
+          {cast.length > 0 && (
             <View style={styles.detailRow}>
               <Users color={Colors.text.tertiary} size={11} />
-              <Text style={styles.detailTextSmall} numberOfLines={1}>{item.cast.join(', ')}</Text>
+              <Text style={styles.detailTextSmall} numberOfLines={1}>{cast.join(', ')}</Text>
             </View>
           )}
         </View>
@@ -93,10 +103,10 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
             </View>
           ) : null}
 
-          {item.cast.length > 0 && (
+          {cast.length > 0 && (
             <View style={styles.detailRow}>
               <Users color={Colors.text.tertiary} size={12} />
-              <Text style={styles.detailText}>{item.cast.join(', ')}</Text>
+              <Text style={styles.detailText}>{cast.join(', ')}</Text>
             </View>
           )}
 
@@ -107,23 +117,23 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
             </View>
           ) : null}
 
-          {item.props.length > 0 && (
+          {props.length > 0 && (
             <View style={styles.detailRow}>
               <Package color={Colors.text.tertiary} size={12} />
-              <Text style={styles.detailText}>{item.props.join(', ')}</Text>
+              <Text style={styles.detailText}>{props.join(', ')}</Text>
             </View>
           )}
 
-          {item.wardrobe.length > 0 && (
+          {wardrobe.length > 0 && (
             <View style={styles.detailBlock}>
               <Text style={styles.detailLabel}>WARDROBE</Text>
-              <Text style={styles.detailText}>{item.wardrobe.join(', ')}</Text>
+              <Text style={styles.detailText}>{wardrobe.join(', ')}</Text>
             </View>
           )}
 
-          {item.specialEquipment.length > 0 && (
+          {specialEquipment.length > 0 && (
             <View style={styles.equipRow}>
-              {item.specialEquipment.map((eq, i) => (
+              {specialEquipment.map((eq, i) => (
                 <View key={i} style={styles.equipBadge}>
                   <Text style={styles.equipText}>{eq}</Text>
                 </View>
@@ -161,7 +171,8 @@ export default function ScriptBreakdownScreen() {
 
   const stats = useMemo(() => {
     const totalPages = breakdowns.reduce((sum, b) => {
-      const parts = b.pageCount.split(' ');
+      const pageCount = b.pageCount ?? '';
+      const parts = pageCount.split(' ');
       const whole = parseInt(parts[0]) || 0;
       return sum + whole;
     }, 0);
