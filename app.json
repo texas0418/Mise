@@ -32,7 +32,7 @@
       [
         "expo-router",
         {
-          "origin": "https://mise.app/"
+          "origin": "https://page4films.com/mise"
         }
       ],
       "expo-font",
@@ -43,7 +43,7 @@
     },
     "extra": {
       "router": {
-        "origin": "https://mise.app/"
+        "origin": "https://page4films.com/mise"
       },
       "eas": {
         "projectId": "6a75685c-6bce-4dfa-874d-a1c1601b4aa2"
