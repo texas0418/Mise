@@ -11,10 +11,14 @@
 //
 // Each function:
 //   1. Triggers the RevenueCat purchase (App Store transaction)
-//   2. On success, marks this device as licensed in Supabase
-//   3. Updates all local state atomically
+//   2. If signed in with a registered device, marks the device as licensed in Supabase
+//   3. If anonymous (not signed in), the entitlement lives only on the Apple ID via RC.
+//      When the user later signs in, the existing legacy-RC bridge below auto-activates
+//      the device row that gets created on first sign-in.
+//   4. Updates all local state atomically
 //
 // Legacy RevenueCat subscribers are auto-grandfathered on first load.
+// The same mechanism handles "bought anonymously, then signed in" with no extra code.
 // ----------------------------------------------------------------------------
 
 import { useEffect, useState, useCallback } from 'react';
@@ -42,6 +46,10 @@ import {
 export interface PurchaseResult {
   success: boolean;
   error?: string;
+  // True when the purchase succeeded but the device could not be linked to a
+  // user account (because no one is signed in). The caller should prompt the
+  // user to sign in so the device can be registered and added to their license.
+  needsSignIn?: boolean;
 }
 
 export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() => {
@@ -69,16 +77,24 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
 
   // ----------------------------------------------------------------------------
   // Initialize on auth
+  //
+  // Note: when there is no signed-in user we still want a device UUID locally
+  // so future calls can reference "this device," but we do NOT create a Supabase
+  // row. The devices table requires user_id NOT NULL, so the row is created
+  // lazily on first sign-in.
   // ----------------------------------------------------------------------------
   useEffect(() => {
     if (isAuthenticated && userId) {
       initialize(userId);
     } else {
+      // Anonymous mode: clear server-backed state, keep local device UUID.
       setIsDeviceLicensed(false);
       setCurrentDevice(null);
       setDevices([]);
       setLicensedCount(0);
       setIsLoading(false);
+      // Cache the UUID even when logged out so it's ready when they sign in.
+      getCurrentDeviceUuid().then(setCurrentDeviceUuid).catch(() => {});
     }
   }, [isAuthenticated, userId]);
 
@@ -94,11 +110,19 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
 
   // ----------------------------------------------------------------------------
   // RevenueCat legacy bridge
-  // Auto-activate device for grandfathered RC subscribers
+  //
+  // Auto-activate this device when:
+  //   - RC says the Apple ID has an active entitlement
+  //   - The device row exists in Supabase (i.e. user is signed in)
+  //   - The device row is not yet marked licensed
+  //
+  // This handles two cases with one mechanism:
+  //   1. Grandfathered RC subscribers on the old subscription model
+  //   2. New users who bought anonymously, then signed in
   // ----------------------------------------------------------------------------
   useEffect(() => {
     if (isRevenueCatPro && userId && currentDevice && !currentDevice.isLicensed) {
-      console.log('[DeviceLicense] Legacy RC subscriber — auto-activating device');
+      console.log('[DeviceLicense] RC entitlement detected — auto-activating device');
       setIsLegacySubscriber(true);
       activateCurrentDevice();
     }
@@ -166,40 +190,51 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
   }, [currentDevice, userId]);
 
   // ----------------------------------------------------------------------------
-  // Internal: shared purchase wrapper (RC purchase + Supabase activation)
+  // Internal: shared purchase wrapper (RC purchase + optional Supabase activation)
+  //
+  // Purchase ALWAYS proceeds, regardless of auth state. RevenueCat captures the
+  // entitlement on the Apple ID. If the user is signed in with a registered
+  // device, we also flip is_licensed in Supabase. If not, the entitlement lives
+  // only on the Apple ID via RC, and isPro stays true via the OR with
+  // isRevenueCatPro. The caller is told via needsSignIn=true so they can prompt.
   // ----------------------------------------------------------------------------
   const purchaseAndActivate = useCallback(async (
     rcPurchaseFn: () => Promise<boolean>,
     label: string
   ): Promise<PurchaseResult> => {
-    if (!userId || !currentDevice) {
-      return { success: false, error: 'Not signed in or device not registered' };
-    }
-
     setIsPurchasing(true);
     setPurchaseError(null);
 
     try {
-      // Step 1: RevenueCat purchase (App Store transaction)
+      // Step 1: RevenueCat purchase (App Store transaction). No auth required.
       const rcSuccess = await rcPurchaseFn();
       if (!rcSuccess) {
-        // User may have cancelled — don't show an error for that
+        // User cancelled, package missing, or RC error — RC has already set its
+        // own error state. Don't surface a Mise-side error for cancellations.
         setIsPurchasing(false);
         return { success: false };
       }
 
-      // Step 2: Mark device as licensed in Supabase
-      const activated = await activateCurrentDevice();
-      if (!activated) {
-        const err = 'Payment successful but device activation failed. Please contact support.';
-        setPurchaseError(err);
+      // Step 2: If signed in with a registered device, link the entitlement to
+      // the device row in Supabase. If not, the purchase is still successful.
+      if (userId && currentDevice) {
+        const activated = await activateCurrentDevice();
+        if (!activated) {
+          // RC purchase went through, but Supabase write failed. Pro is still
+          // active on this device via the RC entitlement, so don't treat this
+          // as a hard failure — log it and let the legacy-RC bridge retry on
+          // next foreground.
+          console.warn(`[DeviceLicense] ${label} purchase OK but device activation failed — will retry on foreground`);
+        }
         setIsPurchasing(false);
-        return { success: false, error: err };
+        return { success: true };
       }
 
-      console.log(`[DeviceLicense] ${label} purchase + activation complete`);
+      // Anonymous purchase path: success, but the user should sign in so
+      // multi-device, sync, and crew invites work.
+      console.log(`[DeviceLicense] ${label} purchase complete (anonymous) — sign-in required for device linking`);
       setIsPurchasing(false);
-      return { success: true };
+      return { success: true, needsSignIn: true };
     } catch (e: any) {
       const err = e?.message || 'Purchase failed';
       setPurchaseError(err);
@@ -240,12 +275,12 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
 
   // ----------------------------------------------------------------------------
   // PUBLIC: Restore purchases + activate if entitled
+  //
+  // Restore is allowed regardless of auth state. RC will surface the entitlement
+  // tied to the Apple ID. If the user is signed in, we also flip the Supabase
+  // device row.
   // ----------------------------------------------------------------------------
   const restoreAndActivate = useCallback(async (): Promise<PurchaseResult> => {
-    if (!userId || !currentDevice) {
-      return { success: false, error: 'Not signed in or device not registered' };
-    }
-
     setIsPurchasing(true);
     setPurchaseError(null);
 
@@ -256,12 +291,18 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
         return { success: false, error: 'No active subscription found' };
       }
 
-      // Subscription found — activate this device
-      const activated = await activateCurrentDevice();
+      // Subscription found — if signed in with a registered device, activate it.
+      if (userId && currentDevice) {
+        const activated = await activateCurrentDevice();
+        setIsPurchasing(false);
+        return activated
+          ? { success: true }
+          : { success: true }; // RC entitlement is enough; legacy bridge will retry
+      }
+
+      // Anonymous restore: Pro is active on this device via the RC entitlement.
       setIsPurchasing(false);
-      return activated
-        ? { success: true }
-        : { success: false, error: 'Subscription restored but device activation failed' };
+      return { success: true, needsSignIn: true };
     } catch (e: any) {
       const err = e?.message || 'Restore failed';
       setPurchaseError(err);
@@ -322,7 +363,7 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
   // Derived values
   // ----------------------------------------------------------------------------
 
-  // isPro = device licensed in Supabase OR active RC entitlement (legacy)
+  // isPro = device licensed in Supabase OR active RC entitlement (legacy + anon)
   const isPro = isDeviceLicensed || isRevenueCatPro;
 
   // Which purchase function to call — smart picker for the paywall
