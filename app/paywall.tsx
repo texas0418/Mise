@@ -99,6 +99,30 @@ export default function PaywallScreen() {
 
   // ─── Handlers ────────────────────────────────────────────────────────────
 
+  // Shown after a successful anonymous purchase or restore. Lets the user
+  // continue using Pro on this device immediately, or sign in so the device
+  // can be linked to their account for sync and crew collaboration.
+  const promptSignInAfterPurchase = (titleSuccess: string, bodySuccess: string) => {
+    Alert.alert(
+      titleSuccess,
+      `${bodySuccess}\n\nSign in to sync across your devices and invite your crew. You can also do this later from Settings.`,
+      [
+        {
+          text: 'Not Now',
+          style: 'cancel',
+          onPress: () => router.back(),
+        },
+        {
+          text: 'Sign In',
+          onPress: () => {
+            router.back();
+            router.push('/auth/sign-up');
+          },
+        },
+      ],
+    );
+  };
+
   const handlePurchase = async () => {
     // Route to the correct product based on device count + billing period
     let result;
@@ -113,11 +137,18 @@ export default function PaywallScreen() {
     }
 
     if (result.success) {
-      Alert.alert(
-        'Welcome to Pro!',
-        'This device is now licensed. All features are unlocked.',
-        [{ text: 'Continue', onPress: () => router.back() }]
-      );
+      if (result.needsSignIn) {
+        promptSignInAfterPurchase(
+          'Welcome to Pro!',
+          'This device is now licensed. All features are unlocked.',
+        );
+      } else {
+        Alert.alert(
+          'Welcome to Pro!',
+          'This device is now licensed. All features are unlocked.',
+          [{ text: 'Continue', onPress: () => router.back() }],
+        );
+      }
     } else if (result.error) {
       Alert.alert('Purchase Failed', result.error);
     }
@@ -128,11 +159,18 @@ export default function PaywallScreen() {
     const result = await restoreAndActivate();
 
     if (result.success) {
-      Alert.alert(
-        'Restored!',
-        'Your subscription and device license have been restored.',
-        [{ text: 'Continue', onPress: () => router.back() }]
-      );
+      if (result.needsSignIn) {
+        promptSignInAfterPurchase(
+          'Restored!',
+          'Your subscription has been restored on this device.',
+        );
+      } else {
+        Alert.alert(
+          'Restored!',
+          'Your subscription and device license have been restored.',
+          [{ text: 'Continue', onPress: () => router.back() }],
+        );
+      }
     } else {
       Alert.alert(
         'Nothing to Restore',
