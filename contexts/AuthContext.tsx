@@ -1,7 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
+import { Platform } from 'react-native';
 import createContextHook from '@nkzw/create-context-hook';
 import { supabase } from '@/lib/supabase';
 import type { Session, User } from '@supabase/supabase-js';
+
+// ---------------------------------------------------------------------------
+// Native Apple Sign In — only available on iOS
+// ---------------------------------------------------------------------------
+let AppleAuthentication: any = null;
+try {
+  if (Platform.OS === 'ios') {
+    AppleAuthentication = require('expo-apple-authentication');
+  }
+} catch {
+  // expo-apple-authentication not installed or not on iOS
+}
 
 // ---------------------------------------------------------------------------
 // Auth Context — provides authentication state and actions to the entire app.
@@ -22,14 +35,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   // Restore session on mount + listen for auth state changes
   // -----------------------------------------------------------------------
   useEffect(() => {
-    // 1. Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
     });
 
-    // 2. Listen for sign in, sign out, token refresh
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
@@ -88,15 +99,68 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   );
 
   // -----------------------------------------------------------------------
-  // Sign in with Apple (required for App Store apps with auth)
-  // Uses Supabase's built-in Apple OAuth provider.
-  // Requires Apple Sign In capability in Xcode + Supabase Auth config.
+  // Sign in with Apple — NATIVE iOS flow
+  //
+  // Uses expo-apple-authentication to present the native Apple Sign In
+  // dialog, gets an identity token, then passes it to Supabase via
+  // signInWithIdToken().
+  //
+  // The old OAuth redirect approach (signInWithOAuth) does NOT work on
+  // native iOS apps because there is no browser to handle the redirect.
+  // This was the cause of the App Store rejection (Guideline 2.1a).
+  //
+  // Requirements:
+  //   1. expo-apple-authentication installed (npx expo install expo-apple-authentication)
+  //   2. app.json: ios.usesAppleSignIn = true
+  //   3. "expo-apple-authentication" in app.json plugins array
+  //   4. Apple Sign In enabled in Supabase Auth > Providers dashboard
   // -----------------------------------------------------------------------
   const signInWithApple = useCallback(async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'apple',
+    if (!AppleAuthentication) {
+      throw new Error('Apple Sign In is only available on iOS devices.');
+    }
+
+    // Check if Apple Sign In is available on this device
+    const isAvailable = await AppleAuthentication.isAvailableAsync();
+    if (!isAvailable) {
+      throw new Error('Apple Sign In is not available on this device. Please use email sign in.');
+    }
+
+    // Present the native Apple Sign In dialog
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
     });
+
+    if (!credential.identityToken) {
+      throw new Error('Apple Sign In did not return an identity token. Please try again.');
+    }
+
+    // Pass the Apple identity token to Supabase
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: 'apple',
+      token: credential.identityToken,
+    });
+
     if (error) throw error;
+
+    // Apple only provides the user's name on the very first sign-in.
+    // Capture it and store it in the Supabase user profile.
+    if (credential.fullName?.givenName || credential.fullName?.familyName) {
+      const displayName = [
+        credential.fullName?.givenName,
+        credential.fullName?.familyName,
+      ].filter(Boolean).join(' ');
+
+      if (displayName) {
+        await supabase.auth.updateUser({
+          data: { display_name: displayName },
+        });
+      }
+    }
+
     return data;
   }, []);
 
