@@ -17,7 +17,13 @@
       "supportsTablet": true,
       "requireFullScreen": false,
       "bundleIdentifier": "com.mise.film-director-suite",
-      "usesAppleSignIn": true
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Mise needs access to your photo library to attach reference images to shots, mood boards, lookbook items, and location scouts in your film projects.",
+        "NSPhotoLibraryAddUsageDescription": "Mise saves exported lighting diagrams and production documents to your photo library.",
+        "NSCameraUsageDescription": "Mise uses your camera to photograph shot lists, scripts, and location photos for your film projects.",
+        "NSLocationWhenInUseUsageDescription": "Mise uses your location to auto-populate weather data and map coordinates for your filming locations."
+      }
     },
     "android": {
       "adaptiveIcon": {
