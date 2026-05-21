@@ -10,9 +10,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { User, Lock, LogOut } from 'lucide-react-native';
+import { User, Lock, LogOut, Trash2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import Colors from '@/constants/colors';
 
 export default function ProfileScreen() {
@@ -26,6 +27,7 @@ export default function ProfileScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const handleSaveProfile = useCallback(async () => {
     setSavingProfile(true);
@@ -81,6 +83,67 @@ export default function ProfileScreen() {
       },
     ]);
   }, [signOut, router]);
+
+  const handleDeleteAccount = useCallback(async () => {
+    Alert.alert(
+      'Delete Account',
+      'This will permanently delete your account and all your production data from our servers. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete My Account',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Are you sure?',
+              'All your projects, shots, budgets, lighting diagrams, and other data will be permanently deleted. This action is irreversible.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Yes, Delete Everything',
+                  style: 'destructive',
+                  onPress: async () => {
+                    setDeleting(true);
+                    try {
+                      const userId = user?.id;
+                      if (!userId) throw new Error('No user ID found.');
+
+                      // Delete all user data from every table
+                      const tables = [
+                        'shots', 'schedule_days', 'crew_members', 'takes',
+                        'scene_breakdowns', 'location_scouts', 'budget_items',
+                        'continuity_notes', 'vfx_shots', 'festival_submissions',
+                        'production_notes', 'mood_board_items', 'call_sheet_entries',
+                        'director_credits', 'shot_references', 'wrap_reports',
+                        'location_weather', 'blocking_notes', 'color_references',
+                        'time_entries', 'script_sides', 'cast_members',
+                        'lookbook_items', 'director_statements', 'scene_selects',
+                        'director_messages', 'script_annotations', 'script_pdfs',
+                        'projects',
+                      ];
+
+                      for (const table of tables) {
+                        await supabase.from(table).delete().eq('user_id', userId);
+                      }
+
+                      // Sign out and navigate to sign-in
+                      await signOut();
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                      router.replace('/auth/sign-in');
+                    } catch (error: any) {
+                      Alert.alert('Error', error.message || 'Failed to delete account. Please contact support at hello@mise.app.');
+                    } finally {
+                      setDeleting(false);
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  }, [user, signOut, router]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -157,13 +220,36 @@ export default function ProfileScreen() {
         <LogOut color={Colors.status.error} size={18} />
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
+
+      {/* Delete account */}
+      <View style={styles.dangerZone}>
+        <Text style={styles.dangerTitle}>Danger Zone</Text>
+        <Text style={styles.dangerDesc}>
+          Permanently delete your account and all production data from our servers. This cannot be undone.
+        </Text>
+        <TouchableOpacity
+          style={[styles.deleteButton, deleting && styles.buttonDisabled]}
+          onPress={handleDeleteAccount}
+          activeOpacity={0.7}
+          disabled={deleting}
+        >
+          {deleting ? (
+            <ActivityIndicator color={Colors.status.error} size="small" />
+          ) : (
+            <>
+              <Trash2 color={Colors.status.error} size={16} />
+              <Text style={styles.deleteText}>Delete Account</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg.primary },
-  content: { padding: 20, paddingBottom: 40 },
+  content: { padding: 20, paddingBottom: 60 },
   section: { marginBottom: 32 },
   sectionTitle: { fontSize: 12, fontWeight: '600', color: Colors.text.secondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
   infoRow: { backgroundColor: Colors.bg.card, borderRadius: 10, padding: 14, borderWidth: 0.5, borderColor: Colors.border.subtle },
@@ -176,6 +262,11 @@ const styles = StyleSheet.create({
   saveButton: { backgroundColor: Colors.accent.gold, borderRadius: 10, padding: 14, alignItems: 'center' },
   buttonDisabled: { opacity: 0.6 },
   saveButtonText: { fontSize: 14, fontWeight: '700', color: Colors.text.inverse },
-  signOutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.bg.card, borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: Colors.border.subtle },
+  signOutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.bg.card, borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: Colors.border.subtle, marginBottom: 32 },
   signOutText: { fontSize: 16, fontWeight: '600', color: Colors.status.error },
+  dangerZone: { borderTopWidth: 0.5, borderTopColor: Colors.status.error + '33', paddingTop: 24 },
+  dangerTitle: { fontSize: 12, fontWeight: '700', color: Colors.status.error, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },
+  dangerDesc: { fontSize: 13, color: Colors.text.tertiary, lineHeight: 19, marginBottom: 16 },
+  deleteButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: Colors.status.error + '44', backgroundColor: Colors.status.error + '0A' },
+  deleteText: { fontSize: 15, fontWeight: '600', color: Colors.status.error },
 });
