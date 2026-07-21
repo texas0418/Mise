@@ -43,6 +43,7 @@ function AnnotationChip({ annotation }: { annotation: SideAnnotation }) {
   );
 }
 
+// eslint-disable-next-line complexity -- tracked in #15
 function SideCard({ side, index, isExpanded, onPress, onEdit, onDelete, linkedShotCount }: {
   side: ScriptSide;
   index: number;

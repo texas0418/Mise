@@ -145,6 +145,7 @@ function BudgetCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   );
 }
 
+// eslint-disable-next-line complexity -- tracked in #3
 export default function BudgetScreen() {
   const { activeProject, activeProjectId, deleteBudgetItem, addBudgetItem, addBudgetItemBulk } = useProjects();
   const budget = useProjectBudget(activeProjectId);

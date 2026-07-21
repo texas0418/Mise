@@ -29,6 +29,7 @@ const REVISION_COLORS: Record<ScriptRevisionColor, { bg: string; text: string; l
 // ---------------------------------------------------------------------------
 // Script Card
 // ---------------------------------------------------------------------------
+// eslint-disable-next-line complexity -- tracked in #17
 function ScriptCard({
   item,
   isExpanded,

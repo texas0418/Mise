@@ -254,6 +254,7 @@ export async function pullRemoteChanges(userId: string): Promise<{ tables: numbe
   return { tables: SYNCABLE_TABLES.length, records: totalRecords };
 }
 
+// eslint-disable-next-line complexity -- tracked in #23
 async function pullTableChanges(config: TableConfig, userId: string): Promise<number> {
   const lastSync = await getLastSyncTime(config.table);
 

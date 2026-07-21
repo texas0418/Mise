@@ -69,6 +69,7 @@ export default function SyncStatusIndicator({
   }, [pendingCount, isSyncing]);
 
   // ── Derive display props ─────────────────────────────────────────────────
+  // eslint-disable-next-line complexity -- tracked in #20
   const getDisplay = () => {
     if (!isSyncEnabled) {
       return {

@@ -67,6 +67,7 @@ interface DragState {
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
+// eslint-disable-next-line max-lines-per-function, complexity -- tracked in #16
 export default function ScriptViewerScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();

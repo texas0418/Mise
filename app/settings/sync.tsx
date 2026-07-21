@@ -83,6 +83,7 @@ function StatusCard({
     pulseAnim.setValue(1);
   }, [pendingCount, isSyncing]);
 
+  // eslint-disable-next-line complexity -- tracked in #18
   const getStatusConfig = () => {
     if (!isAuthenticated || !isSyncEnabled) {
       return {
@@ -223,6 +224,7 @@ function ActionButton({
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line complexity -- tracked in #19
 export default function SyncSettingsScreen() {
   const router = useRouter();
   const {

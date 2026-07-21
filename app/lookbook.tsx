@@ -110,7 +110,7 @@ function DirectorStatementSection({ statement, onSave }: {
       <TouchableOpacity style={styles.statementHeader} onPress={() => setExpanded(!expanded)}>
         <View style={styles.statementHeaderLeft}>
           <PenLine color={Colors.accent.gold} size={16} />
-          <Text style={styles.statementTitle}>Director's Statement</Text>
+          <Text style={styles.statementTitle}>Director&apos;s Statement</Text>
         </View>
         {expanded ? <ChevronUp color={Colors.text.tertiary} size={16} /> : <ChevronDown color={Colors.text.tertiary} size={16} />}
       </TouchableOpacity>
@@ -141,7 +141,7 @@ function DirectorStatementSection({ statement, onSave }: {
               {statement?.text ? (
                 <Text style={styles.statementText}>{statement.text}</Text>
               ) : (
-                <Text style={styles.statementPlaceholder}>Tap to write your director's statement...</Text>
+                <Text style={styles.statementPlaceholder}>Tap to write your director&apos;s statement...</Text>
               )}
               <Text style={styles.tapToEdit}>Tap to edit</Text>
             </TouchableOpacity>
@@ -226,7 +226,7 @@ export default function LookbookScreen() {
           <View>
             <View style={styles.lookbookHeader}>
               <Text style={styles.lookbookTitle}>{activeProject?.title || 'Untitled'}</Text>
-              <Text style={styles.lookbookSubtitle}>Director's Lookbook</Text>
+              <Text style={styles.lookbookSubtitle}>Director&apos;s Lookbook</Text>
             </View>
             <DirectorStatementSection statement={statement} onSave={handleSaveStatement} />
           </View>
@@ -235,7 +235,7 @@ export default function LookbookScreen() {
           <View style={styles.emptyContainer}>
             <Eye color={Colors.text.tertiary} size={48} />
             <Text style={styles.emptyTitle}>Empty lookbook</Text>
-            <Text style={styles.emptySubtitle}>Add visual references to define your film's world</Text>
+            <Text style={styles.emptySubtitle}>Add visual references to define your film&apos;s world</Text>
           </View>
         }
       />

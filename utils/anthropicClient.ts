@@ -84,6 +84,7 @@ const DEFAULT_TIMEOUT_MS = 60000; // 60 seconds
 /**
  * Send a completion request to the Anthropic API.
  */
+// eslint-disable-next-line complexity -- tracked in #24
 export async function sendCompletion(
   request: AnthropicRequest,
   config?: Partial<ClientConfig>
