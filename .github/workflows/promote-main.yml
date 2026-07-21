@@ -28,6 +28,11 @@ jobs:
   secrets:
     name: secrets
     runs-on: ubuntu-latest
+    # gitleaks-action lists the PR's commits via the API; this repo's default
+    # GITHUB_TOKEN is restricted, so grant read access explicitly.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
