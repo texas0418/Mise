@@ -40,6 +40,7 @@ export function subscribeToChanges(userId: string, queryClient: QueryClient): vo
   activeChannel = channel;
 }
 
+// eslint-disable-next-line complexity -- tracked in #22
 async function handleRealtimeEvent(
   payload: RealtimePostgresChangesPayload<Record<string, any>>,
   config: TableConfig,

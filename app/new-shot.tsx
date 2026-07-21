@@ -16,6 +16,7 @@ const STATUS_OPTIONS: { value: ShotStatus; label: string; color: string }[] = [
   { value: 'approved', label: 'Approved', color: Colors.status.active },
 ];
 
+// eslint-disable-next-line complexity -- tracked in #10
 export default function NewShotScreen() {
   const router = useRouter();
   const { addShot, updateShot, activeProjectId, activeProject } = useProjects();

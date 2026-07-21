@@ -62,6 +62,7 @@ export default function NewWrapReportScreen() {
     ngTakes: takes.filter(t => t.isNG).length,
   }), [takes]);
 
+  // eslint-disable-next-line complexity -- tracked in #11
   const handleSave = () => {
     if (!activeProjectId) { Alert.alert('No Project', 'Select a project first.'); return; }
 

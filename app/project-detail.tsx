@@ -34,6 +34,7 @@ const SHOT_STATUS_COLORS: Record<ShotStatus, string> = {
   approved: Colors.status.active,
 };
 
+// eslint-disable-next-line complexity -- tracked in #13
 export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { projects, deleteProject, selectProject } = useProjects();

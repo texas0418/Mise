@@ -489,7 +489,7 @@ function ColumnMappingCard({ mapping, entityConfig, previewValues, isExpanded, u
       {!isExpanded && previewValues.filter(v => v).length > 0 && (
         <View style={styles.previewRow}>
           {previewValues.filter(v => v).slice(0, 2).map((val, i) => (
-            <Text key={i} style={styles.previewValue} numberOfLines={1}>"{val}"</Text>
+            <Text key={i} style={styles.previewValue} numberOfLines={1}>&quot;{val}&quot;</Text>
           ))}
         </View>
       )}
@@ -507,7 +507,7 @@ function ColumnMappingCard({ mapping, entityConfig, previewValues, isExpanded, u
               activeOpacity={0.7}
             >
               <X color={Colors.status.error} size={14} />
-              <Text style={[styles.fieldOptionText, { color: Colors.status.error }]}>Don't import this column</Text>
+              <Text style={[styles.fieldOptionText, { color: Colors.status.error }]}>Don&apos;t import this column</Text>
             </TouchableOpacity>
           )}
 

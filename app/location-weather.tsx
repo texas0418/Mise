@@ -397,6 +397,7 @@ function ProjectLocationSection({ locationName, address, latitude, longitude, ex
 
 // ─── Main screen ───
 
+// eslint-disable-next-line complexity -- tracked in #7
 export default function LocationWeatherScreen() {
   const { activeProject, locations } = useProjects();
   const { isTablet, contentPadding } = useLayout();

@@ -79,7 +79,7 @@ export default function V2MigrationFlow({ onComplete }: Props) {
           </View>
           <Text style={s.title}>Sync Your Data</Text>
           <Text style={s.desc}>
-            You're signed in! Would you like to upload your existing projects
+            You&apos;re signed in! Would you like to upload your existing projects
             to the cloud? This enables multi-device sync.
           </Text>
           <Text style={s.note}>

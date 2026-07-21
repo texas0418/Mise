@@ -68,6 +68,7 @@ type BillingPeriod = 'monthly' | 'annual';
 
 // ─── Screen ─────────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line max-lines-per-function, complexity -- tracked in #12
 export default function PaywallScreen() {
   const router = useRouter();
 
@@ -202,7 +203,7 @@ export default function PaywallScreen() {
             <Crown color={Colors.accent.gold} size={48} />
           </View>
 
-          <Text style={styles.successTitle}>You're a Pro!</Text>
+          <Text style={styles.successTitle}>You&apos;re a Pro!</Text>
 
           <Text style={styles.successSubtitle}>
             {isLegacySubscriber

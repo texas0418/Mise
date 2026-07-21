@@ -197,6 +197,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   // ─── Offerings ──────────────────────────────────────────────────────────────
 
+  // eslint-disable-next-line complexity -- tracked in #21
   const fetchOfferings = async () => {
     if (!Purchases) return;
     try {

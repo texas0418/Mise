@@ -37,7 +37,7 @@ export default function PermissionGate({ resource, children }: Props) {
         </View>
         <Text style={styles.blockedTitle}>Access Restricted</Text>
         <Text style={styles.blockedDesc}>
-          Your role ({roleLabel}) doesn't have access to this tool.
+          Your role ({roleLabel}) doesn&apos;t have access to this tool.
           Contact the project owner or director to request access.
         </Text>
       </View>

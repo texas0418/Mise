@@ -83,7 +83,7 @@ export default function InviteScreen() {
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
       <Text style={s.title}>Invite to {activeProject?.title || 'Project'}</Text>
-      <Text style={s.subtitle}>They'll get an invitation to join with the role you assign.</Text>
+      <Text style={s.subtitle}>They&apos;ll get an invitation to join with the role you assign.</Text>
 
       {/* Email */}
       <View style={s.field}>

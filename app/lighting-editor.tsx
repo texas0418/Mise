@@ -248,6 +248,7 @@ function ToolbarSection({
 
 // ─── Main Editor ─────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line max-lines-per-function, complexity -- tracked in #6
 export default function LightingEditorScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();

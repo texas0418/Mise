@@ -241,7 +241,7 @@ export default function NewScriptSideScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.label}>Director's Notes</Text>
+        <Text style={styles.label}>Director&apos;s Notes</Text>
         <TextInput style={[styles.input, styles.textArea]} value={notes} onChangeText={setNotes}
           placeholder="Any additional notes for this scene..." placeholderTextColor={Colors.text.tertiary} multiline numberOfLines={3} />
 

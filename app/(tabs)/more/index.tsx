@@ -103,6 +103,7 @@ function ToolSection({ title, tools }: { title: string; tools: ToolItem[] }) {
   );
 }
 
+// eslint-disable-next-line complexity -- tracked in #1
 export default function MoreScreen() {
   const { activeProject } = useProjects();
   useSubscription(); // kept for RC SDK initialization
