@@ -21,6 +21,7 @@ const STATUS_CONFIG: Record<CastStatus, { label: string; color: string }> = {
 
 const STATUS_ORDER: CastStatus[] = ['wishlist', 'auditioned', 'in-talks', 'confirmed', 'wrapped'];
 
+// eslint-disable-next-line complexity -- tracked in #4
 function CastCard({ member, index, onEdit, onDelete, onStatusChange }: {
   member: CastMember;
   index: number;
@@ -170,7 +171,7 @@ function CastCard({ member, index, onEdit, onDelete, onStatusChange }: {
             {/* Performance Notes */}
             {member.performanceNotes ? (
               <View style={styles.detailBlock}>
-                <Text style={styles.detailLabel}>DIRECTOR'S PERFORMANCE NOTES</Text>
+                <Text style={styles.detailLabel}>DIRECTOR&apos;S PERFORMANCE NOTES</Text>
                 <Text style={styles.detailText}>{member.performanceNotes}</Text>
               </View>
             ) : null}

@@ -8,6 +8,7 @@ import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { SceneSelect, SelectRating } from '@/types';
 
+// eslint-disable-next-line complexity -- tracked in #9
 export default function NewSelectScreen() {
   const { activeProjectId, addSceneSelect, updateSceneSelect } = useProjects();
   const selects = useProjectSelects(activeProjectId);

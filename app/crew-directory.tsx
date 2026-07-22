@@ -124,6 +124,7 @@ function CrewCard({ member, isExpanded, onPress, onEdit, onDelete }: {
   );
 }
 
+// eslint-disable-next-line complexity -- tracked in #5
 export default function CrewDirectoryScreen() {
   const { crew, deleteCrewMember } = useProjects();
   const router = useRouter();

@@ -6,7 +6,8 @@
     "start": "bunx expo start --tunnel",
     "start-web": "bunx expo start --web --tunnel",
     "start-web-dev": "DEBUG=expo* bunx expo start --web --tunnel",
-    "lint": "expo lint",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "android": "expo run:android",
     "ios": "expo run:ios"
   },

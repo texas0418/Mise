@@ -11,6 +11,7 @@ import AIImportButton from '@/components/AIImportButton';
 import { LocationScout } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 
+// eslint-disable-next-line complexity -- tracked in #8
 function LocationCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: LocationScout;
   isExpanded: boolean;

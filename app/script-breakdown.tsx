@@ -18,6 +18,7 @@ const TIME_COLORS: Record<string, string> = {
   'magic-hour': '#F472B6',
 };
 
+// eslint-disable-next-line complexity -- tracked in #14
 function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: SceneBreakdown;
   isExpanded: boolean;

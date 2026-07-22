@@ -103,6 +103,145 @@ function ToolSection({ title, tools }: { title: string; tools: ToolItem[] }) {
   );
 }
 
+// ─── Account section sub-components ────────────────────────────────
+// Presentational views over the Account section; MoreScreen owns the hooks
+// and handlers and composes these. Each grabs its own router (like ToolCard).
+
+function AccountIdentityCard({
+  isAuthenticated, user,
+}: {
+  isAuthenticated: boolean;
+  user: { email?: string | null; user_metadata?: { display_name?: string } } | null;
+}) {
+  const router = useRouter();
+  if (isAuthenticated) {
+    return (
+      <TouchableOpacity style={styles.subscriptionCard} onPress={() => router.push('/auth/profile' as never)} activeOpacity={0.7}>
+        <View style={[styles.subIconWrap, { backgroundColor: '#34D39918' }]}>
+          <UserCircle color="#34D399" size={22} />
+        </View>
+        <View style={styles.subTextWrap}>
+          <Text style={styles.subTitle}>{user?.user_metadata?.display_name || 'My Account'}</Text>
+          <Text style={styles.subSubtitle}>{user?.email || 'Signed in'}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+  return (
+    <TouchableOpacity style={styles.subscriptionCard} onPress={() => router.push('/auth/sign-in' as never)} activeOpacity={0.7}>
+      <View style={[styles.subIconWrap, { backgroundColor: '#60A5FA18' }]}>
+        <LogIn color="#60A5FA" size={22} />
+      </View>
+      <View style={styles.subTextWrap}>
+        <Text style={styles.subTitle}>Sign In</Text>
+        <Text style={styles.subSubtitle}>Sync across devices & collaborate</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function AuthedSettingsGroup({ hasProject }: { hasProject: boolean }) {
+  const router = useRouter();
+  return (
+    <View style={styles.settingsGroup}>
+      <TouchableOpacity style={styles.settingsRow} onPress={() => router.push('/settings/sync' as never)} activeOpacity={0.7}>
+        <Cloud color={Colors.text.secondary} size={18} />
+        <Text style={styles.settingsRowText}>Sync Settings</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.settingsRow} onPress={() => router.push('/settings/devices' as never)} activeOpacity={0.7}>
+        <Smartphone color={Colors.text.secondary} size={18} />
+        <Text style={styles.settingsRowText}>My Devices</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.settingsRowLast, !hasProject && styles.settingsRowDisabled]}
+        onPress={() => { if (hasProject) router.push('/project/team' as never); }}
+        activeOpacity={hasProject ? 0.7 : 1}
+      >
+        <Users2 color={hasProject ? Colors.text.secondary : Colors.text.tertiary} size={18} />
+        <Text style={[styles.settingsRowText, !hasProject && styles.settingsRowTextDisabled]}>
+          Project Team
+        </Text>
+        {!hasProject && <Text style={styles.settingsRowHint}>Open a project first</Text>}
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function ProStatusCard({ isPro }: { isPro: boolean }) {
+  const router = useRouter();
+  return (
+    <TouchableOpacity style={styles.subscriptionCard} onPress={() => router.push('/paywall' as never)} activeOpacity={0.7}>
+      <View style={[styles.subIconWrap, isPro ? styles.subIconPro : styles.subIconFree]}>
+        <Crown color={isPro ? Colors.accent.gold : Colors.text.tertiary} size={22} />
+      </View>
+      <View style={styles.subTextWrap}>
+        <Text style={styles.subTitle}>{isPro ? 'Mise Pro' : 'Upgrade to Pro'}</Text>
+        <Text style={styles.subSubtitle}>
+          {isPro ? 'All premium features unlocked' : 'Unlock import, AI tools & more'}
+        </Text>
+      </View>
+      {!isPro && (
+        <View style={styles.proBadge}>
+          <Text style={styles.proBadgeText}>PRO</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+}
+
+function ManageSubscriptionGroup() {
+  return (
+    <View style={styles.settingsGroup}>
+      <TouchableOpacity
+        style={styles.settingsRowLast}
+        onPress={() => Linking.openURL('https://apps.apple.com/account/subscriptions')}
+        activeOpacity={0.7}
+      >
+        <Shield color={Colors.text.secondary} size={18} />
+        <Text style={styles.settingsRowText}>Manage Subscription</Text>
+        <ExternalLink color={Colors.text.tertiary} size={14} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function RestorePrivacyGroup({
+  isPurchasing, onRestore,
+}: {
+  isPurchasing: boolean;
+  onRestore: () => void;
+}) {
+  return (
+    <View style={styles.settingsGroup}>
+      <TouchableOpacity
+        style={styles.settingsRow}
+        onPress={onRestore}
+        activeOpacity={0.7}
+        disabled={isPurchasing}
+      >
+        {isPurchasing ? (
+          <ActivityIndicator size="small" color={Colors.text.secondary} />
+        ) : (
+          <RotateCcw color={Colors.text.secondary} size={18} />
+        )}
+        <Text style={[styles.settingsRowText, isPurchasing && { opacity: 0.5 }]}>
+          {isPurchasing ? 'Restoring…' : 'Restore Purchases'}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.settingsRowLast}
+        onPress={() => Linking.openURL('https://texas0418.github.io/MiseApp/')}
+        activeOpacity={0.7}
+      >
+        <Shield color={Colors.text.secondary} size={18} />
+        <Text style={styles.settingsRowText}>Privacy Policy</Text>
+        <ExternalLink color={Colors.text.tertiary} size={14} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function MoreScreen() {
   const { activeProject } = useProjects();
   useSubscription(); // kept for RC SDK initialization
@@ -144,116 +283,15 @@ export default function MoreScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>
 
-        {/* ── Sign In / Profile ── */}
-        {isAuthenticated ? (
-          <TouchableOpacity style={styles.subscriptionCard} onPress={() => router.push('/auth/profile' as never)} activeOpacity={0.7}>
-            <View style={[styles.subIconWrap, { backgroundColor: '#34D39918' }]}>
-              <UserCircle color="#34D399" size={22} />
-            </View>
-            <View style={styles.subTextWrap}>
-              <Text style={styles.subTitle}>{user?.user_metadata?.display_name || 'My Account'}</Text>
-              <Text style={styles.subSubtitle}>{user?.email || 'Signed in'}</Text>
-            </View>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={styles.subscriptionCard} onPress={() => router.push('/auth/sign-in' as never)} activeOpacity={0.7}>
-            <View style={[styles.subIconWrap, { backgroundColor: '#60A5FA18' }]}>
-              <LogIn color="#60A5FA" size={22} />
-            </View>
-            <View style={styles.subTextWrap}>
-              <Text style={styles.subTitle}>Sign In</Text>
-              <Text style={styles.subSubtitle}>Sync across devices & collaborate</Text>
-            </View>
-          </TouchableOpacity>
-        )}
+        <AccountIdentityCard isAuthenticated={isAuthenticated} user={user} />
 
-        {/* ── Sync / Devices / Team ── */}
-        {isAuthenticated && (
-          <View style={styles.settingsGroup}>
-            <TouchableOpacity style={styles.settingsRow} onPress={() => router.push('/settings/sync' as never)} activeOpacity={0.7}>
-              <Cloud color={Colors.text.secondary} size={18} />
-              <Text style={styles.settingsRowText}>Sync Settings</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.settingsRow} onPress={() => router.push('/settings/devices' as never)} activeOpacity={0.7}>
-              <Smartphone color={Colors.text.secondary} size={18} />
-              <Text style={styles.settingsRowText}>My Devices</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.settingsRowLast, !activeProject && styles.settingsRowDisabled]}
-              onPress={() => { if (activeProject) router.push('/project/team' as never); }}
-              activeOpacity={activeProject ? 0.7 : 1}
-            >
-              <Users2 color={activeProject ? Colors.text.secondary : Colors.text.tertiary} size={18} />
-              <Text style={[styles.settingsRowText, !activeProject && styles.settingsRowTextDisabled]}>
-                Project Team
-              </Text>
-              {!activeProject && <Text style={styles.settingsRowHint}>Open a project first</Text>}
-            </TouchableOpacity>
-          </View>
-        )}
+        {isAuthenticated && <AuthedSettingsGroup hasProject={!!activeProject} />}
 
-        {/* ── Pro Status / Upgrade ── */}
-        <TouchableOpacity style={styles.subscriptionCard} onPress={() => router.push('/paywall' as never)} activeOpacity={0.7}>
-          <View style={[styles.subIconWrap, isPro ? styles.subIconPro : styles.subIconFree]}>
-            <Crown color={isPro ? Colors.accent.gold : Colors.text.tertiary} size={22} />
-          </View>
-          <View style={styles.subTextWrap}>
-            <Text style={styles.subTitle}>{isPro ? 'Mise Pro' : 'Upgrade to Pro'}</Text>
-            <Text style={styles.subSubtitle}>
-              {isPro ? 'All premium features unlocked' : 'Unlock import, AI tools & more'}
-            </Text>
-          </View>
-          {!isPro && (
-            <View style={styles.proBadge}>
-              <Text style={styles.proBadgeText}>PRO</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        <ProStatusCard isPro={isPro} />
 
-        {/* ── Manage Subscription (Pro only) ── */}
-        {isPro && (
-          <View style={styles.settingsGroup}>
-            <TouchableOpacity
-              style={styles.settingsRowLast}
-              onPress={() => Linking.openURL('https://apps.apple.com/account/subscriptions')}
-              activeOpacity={0.7}
-            >
-              <Shield color={Colors.text.secondary} size={18} />
-              <Text style={styles.settingsRowText}>Manage Subscription</Text>
-              <ExternalLink color={Colors.text.tertiary} size={14} />
-            </TouchableOpacity>
-          </View>
-        )}
+        {isPro && <ManageSubscriptionGroup />}
 
-        {/* ── Restore Purchases + Privacy Policy ── */}
-        <View style={styles.settingsGroup}>
-          <TouchableOpacity
-            style={styles.settingsRow}
-            onPress={handleRestore}
-            activeOpacity={0.7}
-            disabled={isPurchasing}
-          >
-            {isPurchasing ? (
-              <ActivityIndicator size="small" color={Colors.text.secondary} />
-            ) : (
-              <RotateCcw color={Colors.text.secondary} size={18} />
-            )}
-            <Text style={[styles.settingsRowText, isPurchasing && { opacity: 0.5 }]}>
-              {isPurchasing ? 'Restoring…' : 'Restore Purchases'}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.settingsRowLast}
-            onPress={() => Linking.openURL('https://texas0418.github.io/MiseApp/')}
-            activeOpacity={0.7}
-          >
-            <Shield color={Colors.text.secondary} size={18} />
-            <Text style={styles.settingsRowText}>Privacy Policy</Text>
-            <ExternalLink color={Colors.text.tertiary} size={14} />
-          </TouchableOpacity>
-        </View>
-
+        <RestorePrivacyGroup isPurchasing={isPurchasing} onRestore={handleRestore} />
       </View>
     </ScrollView>
   );

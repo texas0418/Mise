@@ -192,7 +192,7 @@ export default function NewCastMemberScreen() {
         <TextInput style={[styles.input, styles.textArea]} value={availability} onChangeText={setAvailability}
           placeholder="Available dates, conflicts, hard outs..." placeholderTextColor={Colors.text.tertiary} multiline numberOfLines={3} />
 
-        <Text style={styles.sectionTitle}>Director's Notes</Text>
+        <Text style={styles.sectionTitle}>Director&apos;s Notes</Text>
 
         <Text style={styles.label}>Performance Notes</Text>
         <TextInput style={[styles.input, styles.textArea]} value={performanceNotes} onChangeText={setPerformanceNotes}

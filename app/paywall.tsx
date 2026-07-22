@@ -66,6 +66,261 @@ const PRO_FEATURES = [
 
 type BillingPeriod = 'monthly' | 'annual';
 
+type PricingTiers = {
+  baseMonthly: number;
+  baseAnnual: number;
+  additionalDeviceMonthly: number;
+  additionalDeviceAnnual: number;
+};
+
+// ─── Pricing math ─────────────────────────────────────────────────────────────
+
+// Pure derivation of the display strings/values for the selected billing period
+// and device slot. Kept out of the component so the screen stays under the
+// complexity limit and this stays unit-testable.
+function computePricing(
+  isFirstDevice: boolean,
+  billingPeriod: BillingPeriod,
+  pricing: PricingTiers,
+) {
+  const isAnnual = billingPeriod === 'annual';
+  const displayPrice = isFirstDevice
+    ? (isAnnual ? pricing.baseAnnual : pricing.baseMonthly)
+    : (isAnnual ? pricing.additionalDeviceAnnual : pricing.additionalDeviceMonthly);
+  const displayPeriodLabel = isAnnual ? 'per year' : 'per month';
+  const displayDeviceLabel = isFirstDevice ? '1 device' : 'this device';
+  const annualAsMonthly = isFirstDevice
+    ? pricing.baseAnnual / 12
+    : pricing.additionalDeviceAnnual / 12;
+  const priceSuffix = isAnnual ? 'yr' : 'mo';
+  const buttonLabel = isFirstDevice
+    ? `Subscribe — $${displayPrice.toFixed(2)}/${priceSuffix}`
+    : `Add Device — $${displayPrice.toFixed(2)}/${priceSuffix}`;
+  const ButtonIcon = isFirstDevice ? Crown : Plus;
+  return {
+    displayPrice, displayPeriodLabel, displayDeviceLabel,
+    annualAsMonthly, buttonLabel, ButtonIcon,
+  };
+}
+
+// ─── Presentational sub-components ────────────────────────────────────────────
+// State/handlers live in PaywallScreen; these are pure views over props and
+// share the `styles` object defined below.
+
+function PaywallSuccess({
+  isLegacySubscriber, licensedCount, monthlyPrice, onClose, onContinue, onManageDevices,
+}: {
+  isLegacySubscriber: boolean;
+  licensedCount: number;
+  monthlyPrice: number;
+  onClose: () => void;
+  onContinue: () => void;
+  onManageDevices: () => void;
+}) {
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.closeButton}
+        onPress={onClose}
+        activeOpacity={0.7}
+      >
+        <X color={Colors.text.secondary} size={24} />
+      </TouchableOpacity>
+
+      <View style={styles.successContainer}>
+        <View style={styles.successIconWrap}>
+          <Crown color={Colors.accent.gold} size={48} />
+        </View>
+
+        <Text style={styles.successTitle}>You&apos;re a Pro!</Text>
+
+        <Text style={styles.successSubtitle}>
+          {isLegacySubscriber
+            ? 'Your existing subscription has been applied to this device.'
+            : `${licensedCount} device${licensedCount !== 1 ? 's' : ''} licensed · $${monthlyPrice.toFixed(2)}/mo`}
+        </Text>
+
+        <TouchableOpacity
+          style={styles.primaryButton}
+          onPress={onContinue}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.primaryButtonText}>Continue</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.manageButton}
+          onPress={onManageDevices}
+          activeOpacity={0.7}
+        >
+          <Smartphone color={Colors.text.secondary} size={14} />
+          <Text style={styles.manageButtonText}>Manage Devices</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+function FeatureList() {
+  return (
+    <View style={styles.featureList}>
+      {PRO_FEATURES.map((feature, index) => {
+        const Icon = feature.icon;
+        return (
+          <View key={index} style={styles.featureRow}>
+            <View style={styles.featureIconWrap}>
+              <Icon color={Colors.accent.gold} size={20} />
+            </View>
+            <View style={styles.featureTextWrap}>
+              <Text style={styles.featureTitle}>{feature.title}</Text>
+              <Text style={styles.featureDesc}>{feature.description}</Text>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+function AddDeviceCard({
+  licensedCount, pricing,
+}: {
+  licensedCount: number;
+  pricing: PricingTiers;
+}) {
+  return (
+    <View style={styles.addDeviceCard}>
+      <Smartphone color={Colors.accent.gold} size={32} style={{ marginBottom: 12 }} />
+      <Text style={styles.addDeviceTitle}>
+        {licensedCount} device{licensedCount !== 1 ? 's' : ''} already licensed
+      </Text>
+      <Text style={styles.addDeviceDesc}>
+        Your account has an active Mise Pro subscription. Add this device for an
+        additional ${pricing.additionalDeviceMonthly.toFixed(2)}/month or ${pricing.additionalDeviceAnnual.toFixed(2)}/year.
+      </Text>
+    </View>
+  );
+}
+
+function BillingToggle({
+  billingPeriod, onSelect,
+}: {
+  billingPeriod: BillingPeriod;
+  onSelect: (period: BillingPeriod) => void;
+}) {
+  return (
+    <View style={styles.toggleContainer}>
+      <TouchableOpacity
+        style={[
+          styles.toggleOption,
+          billingPeriod === 'monthly' && styles.toggleOptionActive,
+        ]}
+        onPress={() => onSelect('monthly')}
+        activeOpacity={0.8}
+      >
+        <Text
+          style={[
+            styles.toggleText,
+            billingPeriod === 'monthly' && styles.toggleTextActive,
+          ]}
+        >
+          Monthly
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.toggleOption,
+          billingPeriod === 'annual' && styles.toggleOptionActive,
+        ]}
+        onPress={() => onSelect('annual')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.toggleAnnualWrap}>
+          <Text
+            style={[
+              styles.toggleText,
+              billingPeriod === 'annual' && styles.toggleTextActive,
+            ]}
+          >
+            Annual
+          </Text>
+          <View style={styles.savingsBadge}>
+            <Text style={styles.savingsBadgeText}>SAVE 17%</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function PricingCard({
+  displayPrice, displayPeriodLabel, displayDeviceLabel,
+  billingPeriod, isFirstDevice, annualAsMonthly, pricing,
+}: {
+  displayPrice: number;
+  displayPeriodLabel: string;
+  displayDeviceLabel: string;
+  billingPeriod: BillingPeriod;
+  isFirstDevice: boolean;
+  annualAsMonthly: number;
+  pricing: PricingTiers;
+}) {
+  return (
+    <View style={styles.pricingCard}>
+      <Text style={styles.priceAmount}>${displayPrice.toFixed(2)}</Text>
+      <Text style={styles.pricePeriod}>{displayPeriodLabel} · {displayDeviceLabel}</Text>
+
+      {billingPeriod === 'annual' && (
+        <Text style={styles.priceEquivalent}>
+          Just ${annualAsMonthly.toFixed(2)}/mo, billed annually
+        </Text>
+      )}
+
+      {isFirstDevice && (
+        <>
+          <View style={styles.priceDivider} />
+          <Text style={styles.priceAdditional}>
+            +${billingPeriod === 'annual'
+              ? pricing.additionalDeviceAnnual.toFixed(2) + '/yr'
+              : pricing.additionalDeviceMonthly.toFixed(2) + '/mo'} per additional device
+          </Text>
+        </>
+      )}
+
+      <Text style={styles.priceNote}>Cancel anytime. No long-term commitment.</Text>
+    </View>
+  );
+}
+
+function LegalFooter({
+  onTerms, onPrivacy,
+}: {
+  onTerms: () => void;
+  onPrivacy: () => void;
+}) {
+  return (
+    <View style={styles.legalFooter}>
+      <Text style={styles.legalText}>
+        Payment will be charged to your Apple ID account at confirmation of purchase.
+        Subscription automatically renews unless canceled at least 24 hours before the
+        end of the current period. You can manage and cancel your subscriptions in your
+        App Store account settings.
+      </Text>
+      <View style={styles.legalLinks}>
+        <TouchableOpacity onPress={onTerms} style={styles.legalLink}>
+          <Text style={styles.legalLinkText}>Terms of Use</Text>
+          <ExternalLink color={Colors.text.tertiary} size={10} />
+        </TouchableOpacity>
+        <Text style={styles.legalDot}>·</Text>
+        <TouchableOpacity onPress={onPrivacy} style={styles.legalLink}>
+          <Text style={styles.legalLinkText}>Privacy Policy</Text>
+          <ExternalLink color={Colors.text.tertiary} size={10} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 // ─── Screen ─────────────────────────────────────────────────────────────────
 
 export default function PaywallScreen() {
@@ -188,73 +443,26 @@ export default function PaywallScreen() {
 
   if (isPro) {
     return (
-      <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-        >
-          <X color={Colors.text.secondary} size={24} />
-        </TouchableOpacity>
-
-        <View style={styles.successContainer}>
-          <View style={styles.successIconWrap}>
-            <Crown color={Colors.accent.gold} size={48} />
-          </View>
-
-          <Text style={styles.successTitle}>You're a Pro!</Text>
-
-          <Text style={styles.successSubtitle}>
-            {isLegacySubscriber
-              ? 'Your existing subscription has been applied to this device.'
-              : `${licensedCount} device${licensedCount !== 1 ? 's' : ''} licensed · $${monthlyPrice.toFixed(2)}/mo`}
-          </Text>
-
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => router.back()}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.primaryButtonText}>Continue</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.manageButton}
-            onPress={() => {
-              router.back();
-              router.push('/settings/devices');
-            }}
-            activeOpacity={0.7}
-          >
-            <Smartphone color={Colors.text.secondary} size={14} />
-            <Text style={styles.manageButtonText}>Manage Devices</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <PaywallSuccess
+        isLegacySubscriber={isLegacySubscriber}
+        licensedCount={licensedCount}
+        monthlyPrice={monthlyPrice}
+        onClose={() => router.back()}
+        onContinue={() => router.back()}
+        onManageDevices={() => {
+          router.back();
+          router.push('/settings/devices');
+        }}
+      />
     );
   }
 
   // ─── Purchase flow ───────────────────────────────────────────────────────
 
-  // Compute display price for the selected billing period
-  const displayPrice = isFirstDevice
-    ? (billingPeriod === 'annual' ? pricing.baseAnnual : pricing.baseMonthly)
-    : (billingPeriod === 'annual' ? pricing.additionalDeviceAnnual : pricing.additionalDeviceMonthly);
-
-  const displayPeriodLabel = billingPeriod === 'annual' ? 'per year' : 'per month';
-  const displayDeviceLabel = isFirstDevice ? '1 device' : 'this device';
-
-  // Equivalent monthly price for annual (to show savings context)
-  const annualAsMonthly = isFirstDevice
-    ? pricing.baseAnnual / 12
-    : pricing.additionalDeviceAnnual / 12;
-
-  // Button label
-  const buttonLabel = isFirstDevice
-    ? `Subscribe — $${displayPrice.toFixed(2)}/${billingPeriod === 'annual' ? 'yr' : 'mo'}`
-    : `Add Device — $${displayPrice.toFixed(2)}/${billingPeriod === 'annual' ? 'yr' : 'mo'}`;
-
-  const ButtonIcon = isFirstDevice ? Crown : Plus;
+  const {
+    displayPrice, displayPeriodLabel, displayDeviceLabel,
+    annualAsMonthly, buttonLabel, ButtonIcon,
+  } = computePricing(isFirstDevice, billingPeriod, pricing);
 
   const isBusy = isLoading || isPurchasing;
 
@@ -287,106 +495,26 @@ export default function PaywallScreen() {
         </View>
 
         {/* ── Feature list (only show on first device) ── */}
-        {isFirstDevice && (
-          <View style={styles.featureList}>
-            {PRO_FEATURES.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <View key={index} style={styles.featureRow}>
-                  <View style={styles.featureIconWrap}>
-                    <Icon color={Colors.accent.gold} size={20} />
-                  </View>
-                  <View style={styles.featureTextWrap}>
-                    <Text style={styles.featureTitle}>{feature.title}</Text>
-                    <Text style={styles.featureDesc}>{feature.description}</Text>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
+        {isFirstDevice && <FeatureList />}
 
         {/* ── Additional device context card ── */}
         {!isFirstDevice && (
-          <View style={styles.addDeviceCard}>
-            <Smartphone color={Colors.accent.gold} size={32} style={{ marginBottom: 12 }} />
-            <Text style={styles.addDeviceTitle}>
-              {licensedCount} device{licensedCount !== 1 ? 's' : ''} already licensed
-            </Text>
-            <Text style={styles.addDeviceDesc}>
-              Your account has an active Mise Pro subscription. Add this device for an
-              additional ${pricing.additionalDeviceMonthly.toFixed(2)}/month or ${pricing.additionalDeviceAnnual.toFixed(2)}/year.
-            </Text>
-          </View>
+          <AddDeviceCard licensedCount={licensedCount} pricing={pricing} />
         )}
 
         {/* ── Billing period toggle ── */}
-        <View style={styles.toggleContainer}>
-          <TouchableOpacity
-            style={[
-              styles.toggleOption,
-              billingPeriod === 'monthly' && styles.toggleOptionActive,
-            ]}
-            onPress={() => setBillingPeriod('monthly')}
-            activeOpacity={0.8}
-          >
-            <Text
-              style={[
-                styles.toggleText,
-                billingPeriod === 'monthly' && styles.toggleTextActive,
-              ]}
-            >
-              Monthly
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.toggleOption,
-              billingPeriod === 'annual' && styles.toggleOptionActive,
-            ]}
-            onPress={() => setBillingPeriod('annual')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.toggleAnnualWrap}>
-              <Text
-                style={[
-                  styles.toggleText,
-                  billingPeriod === 'annual' && styles.toggleTextActive,
-                ]}
-              >
-                Annual
-              </Text>
-              <View style={styles.savingsBadge}>
-                <Text style={styles.savingsBadgeText}>SAVE 17%</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        </View>
+        <BillingToggle billingPeriod={billingPeriod} onSelect={setBillingPeriod} />
 
         {/* ── Pricing card ── */}
-        <View style={styles.pricingCard}>
-          <Text style={styles.priceAmount}>${displayPrice.toFixed(2)}</Text>
-          <Text style={styles.pricePeriod}>{displayPeriodLabel} · {displayDeviceLabel}</Text>
-
-          {billingPeriod === 'annual' && (
-            <Text style={styles.priceEquivalent}>
-              Just ${annualAsMonthly.toFixed(2)}/mo, billed annually
-            </Text>
-          )}
-
-          {isFirstDevice && (
-            <>
-              <View style={styles.priceDivider} />
-              <Text style={styles.priceAdditional}>
-                +${billingPeriod === 'annual'
-                  ? pricing.additionalDeviceAnnual.toFixed(2) + '/yr'
-                  : pricing.additionalDeviceMonthly.toFixed(2) + '/mo'} per additional device
-              </Text>
-            </>
-          )}
-
-          <Text style={styles.priceNote}>Cancel anytime. No long-term commitment.</Text>
-        </View>
+        <PricingCard
+          displayPrice={displayPrice}
+          displayPeriodLabel={displayPeriodLabel}
+          displayDeviceLabel={displayDeviceLabel}
+          billingPeriod={billingPeriod}
+          isFirstDevice={isFirstDevice}
+          annualAsMonthly={annualAsMonthly}
+          pricing={pricing}
+        />
 
         {/* ── Error message ── */}
         {purchaseError ? (
@@ -430,25 +558,7 @@ export default function PaywallScreen() {
         </TouchableOpacity>
 
         {/* ── Legal ── */}
-        <View style={styles.legalFooter}>
-          <Text style={styles.legalText}>
-            Payment will be charged to your Apple ID account at confirmation of purchase.
-            Subscription automatically renews unless canceled at least 24 hours before the
-            end of the current period. You can manage and cancel your subscriptions in your
-            App Store account settings.
-          </Text>
-          <View style={styles.legalLinks}>
-            <TouchableOpacity onPress={openTerms} style={styles.legalLink}>
-              <Text style={styles.legalLinkText}>Terms of Use</Text>
-              <ExternalLink color={Colors.text.tertiary} size={10} />
-            </TouchableOpacity>
-            <Text style={styles.legalDot}>·</Text>
-            <TouchableOpacity onPress={openPrivacy} style={styles.legalLink}>
-              <Text style={styles.legalLinkText}>Privacy Policy</Text>
-              <ExternalLink color={Colors.text.tertiary} size={10} />
-            </TouchableOpacity>
-          </View>
-        </View>
+        <LegalFooter onTerms={openTerms} onPrivacy={openPrivacy} />
       </ScrollView>
     </View>
   );

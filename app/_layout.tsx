@@ -21,6 +21,7 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
+// eslint-disable-next-line max-lines-per-function -- tracked in #2
 export default function RootLayout() {
   const [checked, setChecked] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
