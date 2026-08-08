@@ -8,6 +8,7 @@ import { useLayout } from '@/utils/useLayout';
 import { pickImage } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { CastMember, CastStatus } from '@/types';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 const STATUS_OPTIONS: { value: CastStatus; label: string }[] = [
   { value: 'wishlist', label: 'Wishlist' },
@@ -116,7 +117,7 @@ export default function NewCastMemberScreen() {
         {/* Headshot picker */}
         <TouchableOpacity style={styles.headshotPicker} onPress={handlePickHeadshot}>
           {headshot ? (
-            <Image source={{ uri: headshot }} style={styles.headshotPreview} contentFit="cover" />
+            <Image source={{ uri: resolvePhotoUri(headshot) }} style={styles.headshotPreview} contentFit="cover" />
           ) : (
             <View style={styles.headshotPlaceholder}>
               <Camera color={Colors.text.tertiary} size={28} />

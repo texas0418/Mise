@@ -8,6 +8,7 @@ import { useLayout } from '@/utils/useLayout';
 import { pickImage } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { LookbookItem, LookbookSectionType } from '@/types';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 const SECTION_OPTIONS: { value: LookbookSectionType; label: string }[] = [
   { value: 'tone', label: 'Tone & Mood' },
@@ -119,7 +120,7 @@ export default function NewLookbookItemScreen() {
         <Text style={styles.label}>Reference Image</Text>
         <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
           {imageUrl ? (
-            <Image source={{ uri: imageUrl }} style={styles.imagePreview} contentFit="cover" />
+            <Image source={{ uri: resolvePhotoUri(imageUrl) }} style={styles.imagePreview} contentFit="cover" />
           ) : (
             <View style={styles.imagePlaceholder}>
               <Camera color={Colors.text.tertiary} size={24} />

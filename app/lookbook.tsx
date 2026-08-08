@@ -8,6 +8,7 @@ import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { LookbookItem, LookbookSectionType, DirectorStatement } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 const SECTION_CONFIG: Record<LookbookSectionType, { label: string; icon: React.ElementType; color: string }> = {
   'tone': { label: 'Tone & Mood', icon: Sparkles, color: '#FBBF24' },
@@ -38,7 +39,7 @@ function LookbookCard({ item, isExpanded, onPress, onEdit, onDelete }: {
       activeOpacity={0.7}
     >
       {item.imageUrl && (
-        <Image source={{ uri: item.imageUrl }} style={styles.cardImage} contentFit="cover" />
+        <Image source={{ uri: resolvePhotoUri(item.imageUrl) }} style={styles.cardImage} contentFit="cover" />
       )}
       {item.colorHex && (
         <View style={[styles.colorSwatch, { backgroundColor: item.colorHex }]} />

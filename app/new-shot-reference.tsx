@@ -6,6 +6,7 @@ import { ImagePlus } from 'lucide-react-native';
 import { useProjects, useProjectShotReferences } from '@/contexts/ProjectContext';
 import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 export default function NewShotReferenceScreen() {
   const router = useRouter();
@@ -76,7 +77,7 @@ export default function NewShotReferenceScreen() {
       <Text style={styles.label}>Image</Text>
       {imageUrl ? (
         <View style={styles.imagePreviewWrap}>
-          <Image source={{ uri: imageUrl }} style={styles.imagePreview} contentFit="cover" />
+          <Image source={{ uri: resolvePhotoUri(imageUrl) }} style={styles.imagePreview} contentFit="cover" />
           <TouchableOpacity style={styles.changePhotoBtn} onPress={() => {
             showImagePickerOptions((uri) => setImageUrl(uri));
           }}>
