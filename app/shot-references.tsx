@@ -8,6 +8,7 @@ import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { ShotReference } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 function ReferenceCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: ShotReference;
@@ -32,7 +33,7 @@ function ReferenceCard({ item, isExpanded, onPress, onEdit, onDelete }: {
       {/* Image + overlay */}
       <View style={styles.imageWrap}>
         {item.imageUrl ? (
-          <Image source={{ uri: item.imageUrl }} style={[styles.refImage, isExpanded && styles.refImageExpanded]} contentFit="cover" />
+          <Image source={{ uri: resolvePhotoUri(item.imageUrl) }} style={[styles.refImage, isExpanded && styles.refImageExpanded]} contentFit="cover" />
         ) : (
           <View style={[styles.refImagePlaceholder, isExpanded && styles.refImageExpanded]}>
             <ImageIcon color={Colors.text.tertiary} size={32} />

@@ -15,6 +15,7 @@ import {
   hasCompletedOnboarding,
   completeOnboarding,
 } from "@/utils/onboarding";
+import { hasRunPhotoMigration, runPhotoMigration } from "@/lib/photoMigration";
 import OnboardingFlow from "@/components/OnboardingFlow";
 
 SplashScreen.preventAutoHideAsync();
@@ -27,11 +28,25 @@ export default function RootLayout() {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    hasCompletedOnboarding().then((done) => {
+    (async () => {
+      // Runs before the providers mount, so the stores read already-migrated
+      // photo references rather than a stale in-memory copy.
+      try {
+        if (!(await hasRunPhotoMigration())) {
+          const { rescued, lost } = await runPhotoMigration();
+          if (rescued || lost) {
+            console.log(`[photoMigration] rescued ${rescued}, cleared ${lost}`);
+          }
+        }
+      } catch (e) {
+        console.warn("[photoMigration] skipped:", e);
+      }
+
+      const done = await hasCompletedOnboarding();
       setShowOnboarding(!done);
       setChecked(true);
       SplashScreen.hideAsync();
-    });
+    })();
   }, []);
 
   const handleOnboardingComplete = useCallback(async () => {

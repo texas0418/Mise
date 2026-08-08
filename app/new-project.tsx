@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useProjects } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { ProjectStatus } from '@/types';
-import { PROJECT_STATUSES, GENRES } from '@/mocks/data';
+import { PROJECT_STATUSES, GENRES } from '@/constants/filmData';
 import { generateBudgetTemplate, TEMPLATE_LINE_COUNT } from '@/utils/budgetTemplate';
 
 // eslint-disable-next-line complexity -- form with one field per Project property

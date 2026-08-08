@@ -140,6 +140,8 @@ export interface ContinuityNote {
   description: string;
   details: string;
   timestamp: string;
+  /** Stored via persistPhoto — resolve with resolvePhotoUri before rendering. */
+  photoUrl?: string;
 }
 
 export interface VFXShot {
