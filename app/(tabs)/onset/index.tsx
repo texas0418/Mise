@@ -1,7 +1,8 @@
 import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, TextInput, Keyboard, TouchableWithoutFeedback, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, TextInput, Keyboard, TouchableWithoutFeedback, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Plus, CircleDot, CircleCheck, CircleX, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { Plus, CircleDot, CircleCheck, CircleX, AlertCircle, ChevronDown, ChevronUp, Trash2 } from 'lucide-react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectTakes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
@@ -104,8 +105,15 @@ function CompactSlate({
 }
 
 // ─── Take Card ───────────────────────────────────────────────────
-function TakeCard({ take, onToggleCircle }: { take: Take; onToggleCircle: (take: Take) => void }) {
+function TakeCard({ take, onToggleCircle, onToggleNG, onEdit, onDelete }: {
+  take: Take;
+  onToggleCircle: (take: Take) => void;
+  onToggleNG: (take: Take) => void;
+  onEdit: (take: Take) => void;
+  onDelete: (take: Take) => void;
+}) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const swipeableRef = useRef<Swipeable>(null);
 
   const handleCircle = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -119,42 +127,63 @@ function TakeCard({ take, onToggleCircle }: { take: Take; onToggleCircle: (take:
   const time = new Date(take.timestamp);
   const timeStr = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
+  const renderRightActions = () => (
+    <TouchableOpacity
+      style={styles.deleteAction}
+      onPress={() => { swipeableRef.current?.close(); onDelete(take); }}
+      activeOpacity={0.7}
+    >
+      <Trash2 color="#fff" size={18} />
+      <Text style={styles.deleteActionText}>Delete</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
-      <View style={[
-        styles.takeCard,
-        take.isCircled && styles.takeCardCircled,
-        take.isNG && styles.takeCardNG,
-      ]}>
-        <TouchableOpacity style={styles.circleBtn} onPress={handleCircle} activeOpacity={0.7}>
-          {take.isCircled ? (
-            <CircleCheck color={Colors.status.active} size={26} />
-          ) : take.isNG ? (
-            <CircleX color={Colors.status.error} size={26} />
-          ) : (
-            <CircleDot color={Colors.text.tertiary} size={26} />
-          )}
-        </TouchableOpacity>
-        <View style={styles.takeInfo}>
-          <View style={styles.takeHeader}>
-            <Text style={styles.takeLabel}>Sc.{take.sceneNumber} / {take.shotNumber}</Text>
-            <View style={styles.takeBadge}>
-              <Text style={styles.takeBadgeText}>T{take.takeNumber}</Text>
+      <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
+        <TouchableOpacity
+          style={[
+            styles.takeCard,
+            take.isCircled && styles.takeCardCircled,
+            take.isNG && styles.takeCardNG,
+          ]}
+          onPress={() => onEdit(take)}
+          activeOpacity={0.7}
+          testID={`take-card-${take.id}`}
+        >
+          {/* Circle and NG are the two calls made at the moment of the take,
+              so both are one tap from the log rather than behind the form. */}
+          <TouchableOpacity style={styles.circleBtn} onPress={handleCircle} activeOpacity={0.7}>
+            {take.isCircled ? (
+              <CircleCheck color={Colors.status.active} size={26} />
+            ) : (
+              <CircleDot color={Colors.text.tertiary} size={26} />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.circleBtn} onPress={() => onToggleNG(take)} activeOpacity={0.7}>
+            <CircleX color={take.isNG ? Colors.status.error : Colors.text.tertiary} size={22} />
+          </TouchableOpacity>
+          <View style={styles.takeInfo}>
+            <View style={styles.takeHeader}>
+              <Text style={styles.takeLabel}>Sc.{take.sceneNumber} / {take.shotNumber}</Text>
+              <View style={styles.takeBadge}>
+                <Text style={styles.takeBadgeText}>T{take.takeNumber}</Text>
+              </View>
             </View>
+            {take.notes ? (
+              <Text style={styles.takeNotes} numberOfLines={2}>{take.notes}</Text>
+            ) : null}
           </View>
-          {take.notes ? (
-            <Text style={styles.takeNotes} numberOfLines={2}>{take.notes}</Text>
-          ) : null}
-        </View>
-        <Text style={styles.takeTime}>{timeStr}</Text>
-      </View>
+          <Text style={styles.takeTime}>{timeStr}</Text>
+        </TouchableOpacity>
+      </Swipeable>
     </Animated.View>
   );
 }
 
 // ─── Main Screen ─────────────────────────────────────────────────
 export default function OnSetScreen() {
-  const { activeProject, activeProjectId, updateTake } = useProjects();
+  const { activeProject, activeProjectId, addTake, updateTake, deleteTake } = useProjects();
   const takes = useProjectTakes(activeProjectId);
   const router = useRouter();
 
@@ -174,17 +203,79 @@ export default function OnSetScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  // The take number is mirrored in a ref and advanced synchronously on clap.
+  // Reading it from state instead would mean two claps landing in the same tick
+  // both see the pre-render value and log the same take number twice.
+  const takeRef = useRef(take);
+  const setTakeValue = useCallback((value: string) => {
+    takeRef.current = value;
+    setTake(value);
+  }, []);
+
+  // A new setup starts back at take 1. Without this the take number carries
+  // over from the previous shot and every slate reads wrong.
+  const handleSceneChange = useCallback((value: string) => {
+    setScene(value);
+    setTakeValue('1');
+  }, [setTakeValue]);
+
+  const handleShotChange = useCallback((value: string) => {
+    setShot(value);
+    setTakeValue('1');
+  }, [setTakeValue]);
+
+  // CLAP is the log. Previously it flashed and buzzed and wrote nothing, so a
+  // director had to retype the same scene/shot/take into a modal for every
+  // take of the day (#41).
   const handleClap = useCallback(() => {
+    if (!activeProjectId) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
+    const takeNumber = parseInt(takeRef.current, 10) || 1;
+    addTake({
+      id: `${Date.now()}-${takeNumber}`,
+      projectId: activeProjectId,
+      sceneNumber: parseInt(scene, 10) || 1,
+      shotNumber: shot.trim() || '1',
+      takeNumber,
+      isCircled: false,
+      isNG: false,
+      notes: '',
+      timestamp: new Date().toISOString(),
+    });
+
+    // Roll straight into the next take, the way a slate is actually used.
+    setTakeValue(String(takeNumber + 1));
+
     setIsClapped(true);
     setTimeout(() => setIsClapped(false), 1500);
-  }, []);
+  }, [activeProjectId, scene, shot, addTake, setTakeValue]);
 
   const incrementTake = useCallback(() => {
     Keyboard.dismiss();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setTake(prev => String((parseInt(prev, 10) || 0) + 1));
-  }, []);
+    setTakeValue(String((parseInt(takeRef.current, 10) || 0) + 1));
+  }, [setTakeValue]);
+
+  const handleDeleteTake = useCallback((t: Take) => {
+    Alert.alert(
+      'Delete Take',
+      `Delete take ${t.takeNumber} of Sc.${t.sceneNumber}/${t.shotNumber}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteTake(t.id) },
+      ],
+    );
+  }, [deleteTake]);
+
+  const handleEditTake = useCallback((t: Take) => {
+    router.push(`/log-take?id=${t.id}` as never);
+  }, [router]);
+
+  const handleToggleNG = useCallback((t: Take) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    updateTake({ ...t, isNG: !t.isNG, isCircled: t.isNG ? t.isCircled : false });
+  }, [updateTake]);
 
   const sortedTakes = useMemo(() => {
     return [...takes].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -196,8 +287,10 @@ export default function OnSetScreen() {
     ng: takes.filter(t => t.isNG).length,
   }), [takes]);
 
+  // Circle and NG are mutually exclusive, matching the log-take form — a take
+  // cannot be both the print and no good.
   const handleToggleCircle = useCallback((t: Take) => {
-    updateTake({ ...t, isCircled: !t.isCircled });
+    updateTake({ ...t, isCircled: !t.isCircled, isNG: t.isCircled ? t.isNG : false });
   }, [updateTake]);
 
   if (!activeProject) {
@@ -241,7 +334,7 @@ export default function OnSetScreen() {
       {!slateCollapsed && (
         <CompactSlate
           scene={scene} shot={shot} take={take}
-          onSceneChange={setScene} onShotChange={setShot} onTakeChange={setTake}
+          onSceneChange={handleSceneChange} onShotChange={handleShotChange} onTakeChange={setTakeValue}
           onClap={handleClap} onNextTake={incrementTake}
           projectTitle={activeProject.title} director={activeProject.director || 'Director'}
           timestamp={timestamp} isClapped={isClapped}
@@ -269,7 +362,13 @@ export default function OnSetScreen() {
         data={sortedTakes}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <TakeCard take={item} onToggleCircle={handleToggleCircle} />
+          <TakeCard
+            take={item}
+            onToggleCircle={handleToggleCircle}
+            onToggleNG={handleToggleNG}
+            onEdit={handleEditTake}
+            onDelete={handleDeleteTake}
+          />
         )}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
@@ -277,14 +376,14 @@ export default function OnSetScreen() {
           <View style={styles.emptyInner}>
             <CircleDot color={Colors.text.tertiary} size={40} />
             <Text style={styles.emptyTitle}>No takes logged</Text>
-            <Text style={styles.emptySubtitle}>Log takes to track your shoot progress</Text>
+            <Text style={styles.emptySubtitle}>Hit CLAP to log your first take</Text>
           </View>
         }
       />
 
       <TouchableOpacity 
         style={styles.fab} 
-        onPress={() => router.push('/log-take' as never)} 
+        onPress={() => router.push(`/log-take?scene=${encodeURIComponent(scene)}&shot=${encodeURIComponent(shot)}&take=${encodeURIComponent(take)}` as never)} 
         activeOpacity={0.8}
       >
         <Plus color={Colors.text.inverse} size={24} />
@@ -357,6 +456,9 @@ const styles = StyleSheet.create({
   takeBadgeText: { fontSize: 10, fontWeight: '700' as const, color: Colors.accent.gold },
   takeNotes: { fontSize: 11, color: Colors.text.secondary, marginTop: 3, lineHeight: 16 },
   takeTime: { fontSize: 10, color: Colors.text.tertiary, fontVariant: ['tabular-nums'], marginLeft: 8 },
+
+  deleteAction: { backgroundColor: Colors.status.error, justifyContent: 'center', alignItems: 'center', width: 72, borderRadius: 12, marginBottom: 6, marginLeft: 8 },
+  deleteActionText: { color: '#fff', fontSize: 10, fontWeight: '600' as const, marginTop: 3 },
 
   // Empty states
   emptyContainer: { flex: 1, backgroundColor: Colors.bg.primary, justifyContent: 'center', alignItems: 'center', padding: 40 },
