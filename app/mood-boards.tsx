@@ -8,6 +8,7 @@ import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { MoodBoardItem } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
   item: MoodBoardItem;
@@ -48,7 +49,7 @@ function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
   if (item.type === 'reference' && item.imageUrl) {
     return (
       <TouchableOpacity style={[styles.refCard, selectedBorder]} onPress={onPress} activeOpacity={0.7}>
-        <Image source={{ uri: item.imageUrl }} style={styles.refImage} contentFit="cover" />
+        <Image source={{ uri: resolvePhotoUri(item.imageUrl) }} style={styles.refImage} contentFit="cover" />
         <View style={styles.refOverlay}>
           <Text style={styles.refLabel}>{item.label}</Text>
         </View>

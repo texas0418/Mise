@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectContinuity } from '@/contexts/ProjectContext';
 import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 export default function NewContinuityScreen() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function NewContinuityScreen() {
       setShotNumber(existingItem.shotNumber);
       setDescription(existingItem.description);
       setDetails(existingItem.details || '');
-      setPhotoUrl((existingItem as any).photoUrl || null);
+      setPhotoUrl(existingItem.photoUrl ?? null);
     }
   }, [existingItem?.id]);
 
@@ -121,7 +122,7 @@ export default function NewContinuityScreen() {
 
         {photoUrl ? (
           <View style={styles.photoContainer}>
-            <Image source={{ uri: photoUrl }} style={styles.photoPreview} resizeMode="cover" />
+            <Image source={{ uri: resolvePhotoUri(photoUrl) }} style={styles.photoPreview} resizeMode="cover" />
             <View style={styles.photoActions}>
               <TouchableOpacity onPress={handleAddPhoto} style={styles.photoChangeBtn}>
                 <Camera color={Colors.accent.gold} size={14} />

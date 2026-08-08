@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectLocations } from '@/contexts/ProjectContext';
 import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 export default function NewLocationScreen() {
   const router = useRouter();
@@ -188,7 +189,7 @@ export default function NewLocationScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
           {photoUrls.map((uri, i) => (
             <View key={i} style={styles.photoThumb}>
-              <Image source={{ uri }} style={styles.photoImage} contentFit="cover" />
+              <Image source={{ uri: resolvePhotoUri(uri) }} style={styles.photoImage} contentFit="cover" />
               <TouchableOpacity style={styles.photoRemove} onPress={() => handleRemovePhoto(i)}>
                 <X color="#fff" size={12} />
               </TouchableOpacity>
