@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectShots, useProjectLightingDiagrams } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { ShotType, ShotMovement, ShotStatus } from '@/types';
-import { SHOT_TYPES, SHOT_MOVEMENTS } from '@/mocks/data';
+import { SHOT_TYPES, SHOT_MOVEMENTS } from '@/constants/filmData';
 import { Lightbulb } from 'lucide-react-native';
 
 const STATUS_OPTIONS: { value: ShotStatus; label: string; color: string }[] = [

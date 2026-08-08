@@ -1,8 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, LogIn, UserCircle, Smartphone, Cloud, ScrollText, Lightbulb } from 'lucide-react-native';
+import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, Trash2, LogIn, UserCircle, Smartphone, Cloud, ScrollText, Lightbulb } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { useProjects } from '@/contexts/ProjectContext';
+import { SAMPLE_PROJECT_IDS, removeSampleData } from '@/lib/dataMigration';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -205,6 +207,22 @@ function ManageSubscriptionGroup() {
   );
 }
 
+// Shown only to installs seeded by a build that shipped sample data (#35).
+// Once cleared it never appears again, so it costs nothing on a clean install.
+function SampleDataGroup({ onRemove }: { onRemove: () => void }) {
+  return (
+    <View style={styles.settingsGroup}>
+      <TouchableOpacity style={styles.settingsRowLast} onPress={onRemove} activeOpacity={0.7}>
+        <Trash2 color={Colors.status.error} size={18} />
+        <Text style={[styles.settingsRowText, { color: Colors.status.error }]}>
+          Remove Sample Data
+        </Text>
+        <Text style={styles.settingsRowHint}>Demo projects</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 function RestorePrivacyGroup({
   isPurchasing, onRestore,
 }: {
@@ -243,11 +261,32 @@ function RestorePrivacyGroup({
 }
 
 export default function MoreScreen() {
-  const { activeProject } = useProjects();
+  const { activeProject, projects } = useProjects();
   useSubscription(); // kept for RC SDK initialization
   const { isPro, restoreAndActivate, isPurchasing } = useDeviceLicense();
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const hasSampleData = projects.some(p => SAMPLE_PROJECT_IDS.includes(p.id));
+
+  const handleRemoveSampleData = () => {
+    Alert.alert(
+      'Remove Sample Data',
+      'This deletes the demo projects that shipped with an earlier version, and everything attached to them. Your own projects are not affected.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            await removeSampleData();
+            queryClient.invalidateQueries();
+          },
+        },
+      ],
+    );
+  };
 
   const handleRestore = async () => {
     const result = await restoreAndActivate();
@@ -290,6 +329,8 @@ export default function MoreScreen() {
         <ProStatusCard isPro={isPro} />
 
         {isPro && <ManageSubscriptionGroup />}
+
+        {hasSampleData && <SampleDataGroup onRemove={handleRemoveSampleData} />}
 
         <RestorePrivacyGroup isPurchasing={isPurchasing} onRestore={handleRestore} />
       </View>
