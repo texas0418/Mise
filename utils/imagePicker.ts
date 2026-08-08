@@ -1,5 +1,10 @@
 import * as ImagePicker from 'expo-image-picker';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
+import { persistPhoto } from '@/utils/photoStorage';
+
+// Both pickers return a URI in the app's cache directory, which iOS reclaims
+// under storage pressure. persistPhoto copies it somewhere durable and returns
+// the value to store; render it with resolvePhotoUri. See utils/photoStorage.ts.
 
 export async function pickImage(): Promise<string | null> {
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -15,7 +20,7 @@ export async function pickImage(): Promise<string | null> {
   });
 
   if (!result.canceled && result.assets.length > 0) {
-    return result.assets[0].uri;
+    return persistPhoto(result.assets[0].uri);
   }
   return null;
 }
@@ -33,7 +38,7 @@ export async function takePhoto(): Promise<string | null> {
   });
 
   if (!result.canceled && result.assets.length > 0) {
-    return result.assets[0].uri;
+    return persistPhoto(result.assets[0].uri);
   }
   return null;
 }

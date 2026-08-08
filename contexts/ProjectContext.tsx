@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import {
@@ -76,6 +76,32 @@ async function saveToStorage<T>(key: string, data: T[]): Promise<T[]> {
 }
 
 // ---------------------------------------------------------------------------
+// Serialized writes
+//
+// Each storage key owns a promise chain. Every mutation runs as a step on that
+// chain and reads its base state *inside* the step, so two mutations issued in
+// the same tick see each other's result instead of both deriving from the same
+// stale render snapshot and the second silently discarding the first.
+// The chain also guarantees the underlying setItem calls land in issue order.
+// ---------------------------------------------------------------------------
+const writeChains = new Map<string, Promise<void>>();
+
+function serializeWrite(storageKey: string, step: () => Promise<void>): Promise<void> {
+  const previous = writeChains.get(storageKey) ?? Promise.resolve();
+  const next = previous.then(step);
+  // Store a settled-either-way handle so one failed step can't stall the chain.
+  writeChains.set(storageKey, next.catch(() => undefined));
+  return next;
+}
+
+type EnqueueMutation = (
+  table: string,
+  recordId: string,
+  action: 'insert' | 'update' | 'delete',
+  data: Record<string, any> | null,
+) => Promise<void>;
+
+// ---------------------------------------------------------------------------
 // useEntityStore — now accepts supabaseTable to enqueue mutations for sync.
 // The enqueueMutation function is passed in so this hook doesn't call useSync
 // directly (useSync is called once in the parent createContextHook).
@@ -85,46 +111,91 @@ function useEntityStore<T extends { id: string }>(
   storageKey: string,
   fallback: T[],
   supabaseTable: string,
-  enqueueMutation: (table: string, recordId: string, action: 'insert' | 'update' | 'delete', data: Record<string, any> | null) => Promise<void>,
+  enqueueMutation: EnqueueMutation,
 ) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: [queryKey],
     queryFn: () => loadFromStorage<T>(storageKey, fallback),
+    // This store is the only writer of its storage key, so the cache is
+    // authoritative once loaded. Without this, every mutation re-reads
+    // AsyncStorage and a focus refetch can briefly revert an optimistic write.
+    // The sync engine still calls invalidateQueries after a remote pull.
+    staleTime: Infinity,
   });
 
-  const saveMutation = useMutation({
-    mutationFn: (data: T[]) => saveToStorage(storageKey, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [queryKey] }),
-  });
-
-  const items = query.data ?? [];
+  // Apply `updater` to the freshest known list, persist it, then enqueue the
+  // matching sync operations. Returns a promise callers may ignore.
+  const mutate = useCallback((
+    updater: (prev: T[]) => T[],
+    sync: (next: T[]) => Promise<void>,
+  ) => serializeWrite(storageKey, async () => {
+    // ensureQueryData resolves from cache when loaded and awaits the initial
+    // storage read otherwise, so a mutation fired during startup can't write
+    // an empty list over real data.
+    const prev = await queryClient.ensureQueryData<T[]>({
+      queryKey: [queryKey],
+      queryFn: () => loadFromStorage<T>(storageKey, fallback),
+    });
+    const next = updater(prev);
+    queryClient.setQueryData([queryKey], next);
+    await saveToStorage(storageKey, next);
+    await sync(next);
+  }), [queryClient, queryKey, storageKey, fallback]);
 
   const add = useCallback((item: T) => {
-    saveMutation.mutate([...items, item]);
-    enqueueMutation(supabaseTable, item.id, 'insert', item as any);
-  }, [items, supabaseTable]);
+    void mutate(
+      prev => [...prev, item],
+      () => enqueueMutation(supabaseTable, item.id, 'insert', item as any),
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
 
   const addBulk = useCallback((newItems: T[]) => {
-    saveMutation.mutate([...items, ...newItems]);
-    // Enqueue each item individually for sync
-    for (const item of newItems) {
-      enqueueMutation(supabaseTable, item.id, 'insert', item as any);
-    }
-  }, [items, supabaseTable]);
+    if (newItems.length === 0) return;
+    void mutate(
+      prev => [...prev, ...newItems],
+      async () => {
+        // Enqueue each item individually for sync
+        for (const item of newItems) {
+          await enqueueMutation(supabaseTable, item.id, 'insert', item as any);
+        }
+      },
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
 
   const update = useCallback((item: T) => {
-    saveMutation.mutate(items.map(i => i.id === item.id ? item : i));
-    enqueueMutation(supabaseTable, item.id, 'update', item as any);
-  }, [items, supabaseTable]);
+    void mutate(
+      prev => prev.map(i => i.id === item.id ? item : i),
+      () => enqueueMutation(supabaseTable, item.id, 'update', item as any),
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
+
+  // Single write for a batch of edits. Callers that would otherwise loop over
+  // `update` should use this — one persisted array instead of N.
+  const updateMany = useCallback((updatedItems: T[]) => {
+    if (updatedItems.length === 0) return;
+    void mutate(
+      prev => {
+        const byId = new Map(updatedItems.map(i => [i.id, i]));
+        return prev.map(i => byId.get(i.id) ?? i);
+      },
+      async () => {
+        for (const item of updatedItems) {
+          await enqueueMutation(supabaseTable, item.id, 'update', item as any);
+        }
+      },
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
 
   const remove = useCallback((id: string) => {
-    saveMutation.mutate(items.filter(i => i.id !== id));
-    enqueueMutation(supabaseTable, id, 'delete', null);
-  }, [items, supabaseTable]);
+    void mutate(
+      prev => prev.filter(i => i.id !== id),
+      () => enqueueMutation(supabaseTable, id, 'delete', null),
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
 
-  return { items, add, addBulk, update, remove, isLoading: query.isLoading };
+  return { items: query.data ?? [], add, addBulk, update, updateMany, remove, isLoading: query.isLoading };
 }
 
 export const [ProjectProvider, useProjects] = createContextHook(() => {
@@ -219,7 +290,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     isLoading, selectProject,
 
     addProject: projectStore.add, updateProject: projectStore.update, deleteProject: projectStore.remove,
-    addShot: shotStore.add, updateShot: shotStore.update, deleteShot: shotStore.remove,
+    addShot: shotStore.add, updateShot: shotStore.update, updateShots: shotStore.updateMany, deleteShot: shotStore.remove,
     addScheduleDay: scheduleStore.add, updateScheduleDay: scheduleStore.update, deleteScheduleDay: scheduleStore.remove,
     addCrewMember: crewStore.add, updateCrewMember: crewStore.update, deleteCrewMember: crewStore.remove,
     addTake: takeStore.add, updateTake: takeStore.update,

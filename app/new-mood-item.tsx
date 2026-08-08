@@ -8,6 +8,7 @@ import { useProjects, useProjectMoodBoard } from '@/contexts/ProjectContext';
 import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { MoodBoardItemType } from '@/types';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 const TYPE_OPTIONS: { label: string; value: MoodBoardItemType }[] = [
   { label: 'Color Swatch', value: 'color' },
@@ -125,7 +126,7 @@ export default function NewMoodItemScreen() {
           <Text style={styles.label}>Image</Text>
           {imageUrl ? (
             <View style={styles.imagePreviewWrap}>
-              <Image source={{ uri: imageUrl }} style={styles.imagePreview} contentFit="cover" />
+              <Image source={{ uri: resolvePhotoUri(imageUrl) }} style={styles.imagePreview} contentFit="cover" />
               <TouchableOpacity style={styles.changePhotoBtn} onPress={() => {
                 showImagePickerOptions((uri) => setImageUrl(uri));
               }}>
