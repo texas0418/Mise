@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert 
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectTimeEntries } from '@/contexts/ProjectContext';
-import { DEPARTMENTS } from '@/mocks/data';
+import { DEPARTMENTS } from '@/constants/filmData';
 import Colors from '@/constants/colors';
 import { Department } from '@/types';
 

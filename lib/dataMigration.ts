@@ -12,8 +12,18 @@ import { SYNCABLE_TABLES } from '@/lib/syncConfig';
 
 const MIGRATION_KEY = 'mise_data_migration_v2';
 
-// Sample project IDs from mocks/data.ts
-const SAMPLE_PROJECT_IDS = ['1', '2'];
+// IDs of the fictional projects that shipped as seeded sample data before #35.
+// These are literals rather than an import because the sample records they came
+// from have been deleted; they exist only to recognise and clean up installs
+// that were seeded by an earlier build.
+//
+// This list previously read ['1', '2'], which stopped matching when the samples
+// moved to UUIDs — so sample detection had been silently failing.
+export const SAMPLE_PROJECT_IDS = [
+  'f47ac10b-58cc-4372-a567-0e02b2c3d479', // "The Last Light"
+  'b8e1f2a3-c4d5-6789-bcde-f01234567891', // "Echoes of Tomorrow"
+  'c9f2a3b4-d5e6-789a-cdef-012345678902', // "Paper Cranes"
+];
 
 export async function hasRunDataMigration(): Promise<boolean> {
   try {

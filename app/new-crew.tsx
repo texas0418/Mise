@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useProjects } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { Department } from '@/types';
-import { DEPARTMENTS } from '@/mocks/data';
+import { DEPARTMENTS } from '@/constants/filmData';
 
 export default function NewCrewScreen() {
   const router = useRouter();

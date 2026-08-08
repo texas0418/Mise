@@ -10,16 +10,6 @@ import {
   CastMember, LookbookItem, DirectorStatement, SceneSelect, DirectorMessage,
   ScriptPDF, ScriptAnnotation, LightingDiagram
 } from '@/types';
-import {
-  SAMPLE_PROJECTS, SAMPLE_SHOTS, SAMPLE_SCHEDULE, SAMPLE_CREW,
-  SAMPLE_TAKES, SAMPLE_SCENE_BREAKDOWNS, SAMPLE_LOCATIONS, SAMPLE_BUDGET,
-  SAMPLE_CONTINUITY, SAMPLE_VFX, SAMPLE_FESTIVALS, SAMPLE_NOTES,
-  SAMPLE_MOOD_BOARD, SAMPLE_CREDITS, SAMPLE_SHOT_REFERENCES,
-  SAMPLE_WRAP_REPORTS, SAMPLE_LOCATION_WEATHER, SAMPLE_BLOCKING_NOTES,
-  SAMPLE_COLOR_REFERENCES, SAMPLE_TIME_ENTRIES, SAMPLE_SCRIPT_SIDES,
-  SAMPLE_CAST, SAMPLE_LOOKBOOK, SAMPLE_DIRECTOR_STATEMENT,
-  SAMPLE_SELECTS, SAMPLE_MESSAGES
-} from '@/mocks/data';
 import { useSync } from '@/contexts/SyncContext';
 
 const STORAGE_KEYS = {
@@ -55,6 +45,9 @@ const STORAGE_KEYS = {
   lightingDiagrams: 'mise_lighting_diagrams',
 };
 
+// Reading never writes. This previously persisted its fallback on a storage
+// miss, which is the mechanism that seeded fictional sample records into real
+// user storage before the user had tapped anything (#35).
 async function loadFromStorage<T>(key: string, fallback: T[]): Promise<T[]> {
   const safeFallback = fallback ?? ([] as T[]);
   try {
@@ -63,9 +56,6 @@ async function loadFromStorage<T>(key: string, fallback: T[]): Promise<T[]> {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) return parsed;
       await AsyncStorage.removeItem(key);
-    }
-    if (safeFallback.length > 0) {
-      await AsyncStorage.setItem(key, JSON.stringify(safeFallback));
     }
     return safeFallback;
   } catch (e) {
@@ -214,32 +204,32 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   // Get enqueueMutation from SyncContext — if sync is disabled, this is a no-op
   const { enqueueMutation } = useSync();
 
-  const projectStore = useEntityStore<Project>('projects', STORAGE_KEYS.projects, SAMPLE_PROJECTS, 'projects', enqueueMutation);
-  const shotStore = useEntityStore<Shot>('shots', STORAGE_KEYS.shots, SAMPLE_SHOTS, 'shots', enqueueMutation);
-  const scheduleStore = useEntityStore<ScheduleDay>('schedule', STORAGE_KEYS.schedule, SAMPLE_SCHEDULE, 'schedule_days', enqueueMutation);
-  const crewStore = useEntityStore<CrewMember>('crew', STORAGE_KEYS.crew, SAMPLE_CREW, 'crew_members', enqueueMutation);
-  const takeStore = useEntityStore<Take>('takes', STORAGE_KEYS.takes, SAMPLE_TAKES, 'takes', enqueueMutation);
-  const breakdownStore = useEntityStore<SceneBreakdown>('sceneBreakdowns', STORAGE_KEYS.sceneBreakdowns, SAMPLE_SCENE_BREAKDOWNS, 'scene_breakdowns', enqueueMutation);
-  const locationStore = useEntityStore<LocationScout>('locations', STORAGE_KEYS.locations, SAMPLE_LOCATIONS, 'location_scouts', enqueueMutation);
-  const budgetStore = useEntityStore<BudgetItem>('budget', STORAGE_KEYS.budget, SAMPLE_BUDGET, 'budget_items', enqueueMutation);
-  const continuityStore = useEntityStore<ContinuityNote>('continuity', STORAGE_KEYS.continuity, SAMPLE_CONTINUITY, 'continuity_notes', enqueueMutation);
-  const vfxStore = useEntityStore<VFXShot>('vfx', STORAGE_KEYS.vfx, SAMPLE_VFX, 'vfx_shots', enqueueMutation);
-  const festivalStore = useEntityStore<FestivalSubmission>('festivals', STORAGE_KEYS.festivals, SAMPLE_FESTIVALS, 'festival_submissions', enqueueMutation);
-  const noteStore = useEntityStore<ProductionNote>('notes', STORAGE_KEYS.notes, SAMPLE_NOTES, 'production_notes', enqueueMutation);
-  const moodBoardStore = useEntityStore<MoodBoardItem>('moodBoard', STORAGE_KEYS.moodBoard, SAMPLE_MOOD_BOARD, 'mood_board_items', enqueueMutation);
-  const creditStore = useEntityStore<DirectorCredit>('credits', STORAGE_KEYS.credits, SAMPLE_CREDITS, 'director_credits', enqueueMutation);
-  const shotRefStore = useEntityStore<ShotReference>('shotReferences', STORAGE_KEYS.shotReferences, SAMPLE_SHOT_REFERENCES, 'shot_references', enqueueMutation);
-  const wrapReportStore = useEntityStore<WrapReport>('wrapReports', STORAGE_KEYS.wrapReports, SAMPLE_WRAP_REPORTS, 'wrap_reports', enqueueMutation);
-  const locationWeatherStore = useEntityStore<LocationWeather>('locationWeather', STORAGE_KEYS.locationWeather, SAMPLE_LOCATION_WEATHER, 'location_weather', enqueueMutation);
-  const blockingStore = useEntityStore<BlockingNote>('blockingNotes', STORAGE_KEYS.blockingNotes, SAMPLE_BLOCKING_NOTES, 'blocking_notes', enqueueMutation);
-  const colorRefStore = useEntityStore<ColorReference>('colorReferences', STORAGE_KEYS.colorReferences, SAMPLE_COLOR_REFERENCES, 'color_references', enqueueMutation);
-  const timeEntryStore = useEntityStore<TimeEntry>('timeEntries', STORAGE_KEYS.timeEntries, SAMPLE_TIME_ENTRIES, 'time_entries', enqueueMutation);
-  const scriptSideStore = useEntityStore<ScriptSide>('scriptSides', STORAGE_KEYS.scriptSides, SAMPLE_SCRIPT_SIDES, 'script_sides', enqueueMutation);
-  const castStore = useEntityStore<CastMember>('cast', STORAGE_KEYS.cast, SAMPLE_CAST, 'cast_members', enqueueMutation);
-  const lookbookStore = useEntityStore<LookbookItem>('lookbook', STORAGE_KEYS.lookbook, SAMPLE_LOOKBOOK, 'lookbook_items', enqueueMutation);
-  const directorStatementStore = useEntityStore<DirectorStatement>('directorStatement', STORAGE_KEYS.directorStatement, SAMPLE_DIRECTOR_STATEMENT, 'director_statements', enqueueMutation);
-  const selectStore = useEntityStore<SceneSelect>('selects', STORAGE_KEYS.selects, SAMPLE_SELECTS, 'scene_selects', enqueueMutation);
-  const messageStore = useEntityStore<DirectorMessage>('messages', STORAGE_KEYS.messages, SAMPLE_MESSAGES, 'director_messages', enqueueMutation);
+  const projectStore = useEntityStore<Project>('projects', STORAGE_KEYS.projects, [], 'projects', enqueueMutation);
+  const shotStore = useEntityStore<Shot>('shots', STORAGE_KEYS.shots, [], 'shots', enqueueMutation);
+  const scheduleStore = useEntityStore<ScheduleDay>('schedule', STORAGE_KEYS.schedule, [], 'schedule_days', enqueueMutation);
+  const crewStore = useEntityStore<CrewMember>('crew', STORAGE_KEYS.crew, [], 'crew_members', enqueueMutation);
+  const takeStore = useEntityStore<Take>('takes', STORAGE_KEYS.takes, [], 'takes', enqueueMutation);
+  const breakdownStore = useEntityStore<SceneBreakdown>('sceneBreakdowns', STORAGE_KEYS.sceneBreakdowns, [], 'scene_breakdowns', enqueueMutation);
+  const locationStore = useEntityStore<LocationScout>('locations', STORAGE_KEYS.locations, [], 'location_scouts', enqueueMutation);
+  const budgetStore = useEntityStore<BudgetItem>('budget', STORAGE_KEYS.budget, [], 'budget_items', enqueueMutation);
+  const continuityStore = useEntityStore<ContinuityNote>('continuity', STORAGE_KEYS.continuity, [], 'continuity_notes', enqueueMutation);
+  const vfxStore = useEntityStore<VFXShot>('vfx', STORAGE_KEYS.vfx, [], 'vfx_shots', enqueueMutation);
+  const festivalStore = useEntityStore<FestivalSubmission>('festivals', STORAGE_KEYS.festivals, [], 'festival_submissions', enqueueMutation);
+  const noteStore = useEntityStore<ProductionNote>('notes', STORAGE_KEYS.notes, [], 'production_notes', enqueueMutation);
+  const moodBoardStore = useEntityStore<MoodBoardItem>('moodBoard', STORAGE_KEYS.moodBoard, [], 'mood_board_items', enqueueMutation);
+  const creditStore = useEntityStore<DirectorCredit>('credits', STORAGE_KEYS.credits, [], 'director_credits', enqueueMutation);
+  const shotRefStore = useEntityStore<ShotReference>('shotReferences', STORAGE_KEYS.shotReferences, [], 'shot_references', enqueueMutation);
+  const wrapReportStore = useEntityStore<WrapReport>('wrapReports', STORAGE_KEYS.wrapReports, [], 'wrap_reports', enqueueMutation);
+  const locationWeatherStore = useEntityStore<LocationWeather>('locationWeather', STORAGE_KEYS.locationWeather, [], 'location_weather', enqueueMutation);
+  const blockingStore = useEntityStore<BlockingNote>('blockingNotes', STORAGE_KEYS.blockingNotes, [], 'blocking_notes', enqueueMutation);
+  const colorRefStore = useEntityStore<ColorReference>('colorReferences', STORAGE_KEYS.colorReferences, [], 'color_references', enqueueMutation);
+  const timeEntryStore = useEntityStore<TimeEntry>('timeEntries', STORAGE_KEYS.timeEntries, [], 'time_entries', enqueueMutation);
+  const scriptSideStore = useEntityStore<ScriptSide>('scriptSides', STORAGE_KEYS.scriptSides, [], 'script_sides', enqueueMutation);
+  const castStore = useEntityStore<CastMember>('cast', STORAGE_KEYS.cast, [], 'cast_members', enqueueMutation);
+  const lookbookStore = useEntityStore<LookbookItem>('lookbook', STORAGE_KEYS.lookbook, [], 'lookbook_items', enqueueMutation);
+  const directorStatementStore = useEntityStore<DirectorStatement>('directorStatement', STORAGE_KEYS.directorStatement, [], 'director_statements', enqueueMutation);
+  const selectStore = useEntityStore<SceneSelect>('selects', STORAGE_KEYS.selects, [], 'scene_selects', enqueueMutation);
+  const messageStore = useEntityStore<DirectorMessage>('messages', STORAGE_KEYS.messages, [], 'director_messages', enqueueMutation);
   const scriptPDFStore = useEntityStore<ScriptPDF>('scriptPDFs', STORAGE_KEYS.scriptPDFs, [], 'script_pdfs', enqueueMutation);
   const scriptAnnotationStore = useEntityStore<ScriptAnnotation>('scriptAnnotations', STORAGE_KEYS.scriptAnnotations, [], 'script_annotations', enqueueMutation);
   const lightingDiagramStore = useEntityStore<LightingDiagram>('lightingDiagrams', STORAGE_KEYS.lightingDiagrams, [], 'lighting_diagrams', enqueueMutation);
