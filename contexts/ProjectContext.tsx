@@ -293,7 +293,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     addShot: shotStore.add, updateShot: shotStore.update, updateShots: shotStore.updateMany, deleteShot: shotStore.remove,
     addScheduleDay: scheduleStore.add, updateScheduleDay: scheduleStore.update, deleteScheduleDay: scheduleStore.remove,
     addCrewMember: crewStore.add, updateCrewMember: crewStore.update, deleteCrewMember: crewStore.remove,
-    addTake: takeStore.add, updateTake: takeStore.update,
+    addTake: takeStore.add, updateTake: takeStore.update, deleteTake: takeStore.remove,
     addBreakdown: breakdownStore.add, updateBreakdown: breakdownStore.update, deleteBreakdown: breakdownStore.remove,
     addLocation: locationStore.add, updateLocation: locationStore.update, deleteLocation: locationStore.remove,
     addBudgetItem: budgetStore.add, updateBudgetItem: budgetStore.update, deleteBudgetItem: budgetStore.remove,
