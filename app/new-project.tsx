@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
-import { useRouter } from 'expo-router';
-import { X, ChevronDown } from 'lucide-react-native';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
@@ -9,15 +9,24 @@ import { ProjectStatus } from '@/types';
 import { PROJECT_STATUSES, GENRES } from '@/constants/filmData';
 import { generateBudgetTemplate, TEMPLATE_LINE_COUNT } from '@/utils/budgetTemplate';
 
+// eslint-disable-next-line complexity -- form with one field per Project property
 export default function NewProjectScreen() {
   const router = useRouter();
-  const { addProject, addBudgetItemBulk } = useProjects();
+  const { projects, addProject, updateProject, addBudgetItemBulk } = useProjects();
+
+  const params = useLocalSearchParams<{ id?: string }>();
+  const editId = params.id;
+  const existingItem = editId ? projects.find(p => p.id === editId) : null;
+  const isEditing = !!existingItem;
 
   const [title, setTitle] = useState('');
   const [logline, setLogline] = useState('');
   const [genre, setGenre] = useState('Drama');
   const [format, setFormat] = useState('Short Film');
   const [status, setStatus] = useState<ProjectStatus>('development');
+  const [director, setDirector] = useState('');
+  const [producer, setProducer] = useState('');
+  const [budget, setBudget] = useState('');
   const [prefillBudget, setPrefillBudget] = useState(false);
   const [showGenres, setShowGenres] = useState(false);
   const [showStatuses, setShowStatuses] = useState(false);
@@ -25,31 +34,64 @@ export default function NewProjectScreen() {
 
   const formats = ['Short Film', 'Feature Film', 'Documentary', 'Music Video', 'Web Series', 'Commercial'];
 
+  // Pre-fill when editing
+  useEffect(() => {
+    if (existingItem) {
+      setTitle(existingItem.title ?? '');
+      setLogline(existingItem.logline ?? '');
+      setGenre(existingItem.genre || 'Drama');
+      setFormat(existingItem.format || 'Short Film');
+      setStatus(existingItem.status ?? 'development');
+      setDirector(existingItem.director ?? '');
+      setProducer(existingItem.producer ?? '');
+      setBudget(existingItem.budget != null ? String(existingItem.budget) : '');
+    }
+  }, [existingItem?.id]);
+
   const handleSave = useCallback(() => {
     if (!title.trim()) {
       Alert.alert('Missing Title', 'Please enter a project title.');
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    const projectId = Date.now().toString();
-    addProject({
-      id: projectId,
+
+    const parsedBudget = budget.trim() ? Number(budget.replace(/[^0-9.]/g, '')) : undefined;
+    const fields = {
       title: title.trim(),
       logline: logline.trim(),
       genre,
       status,
       format,
+      director: director.trim() || undefined,
+      producer: producer.trim() || undefined,
+      budget: Number.isFinite(parsedBudget) ? parsedBudget : undefined,
+    };
+
+    if (isEditing) {
+      // Spread the existing record first so fields this form does not collect
+      // — imageUrl, createdAt — survive the edit.
+      updateProject({ ...existingItem!, ...fields });
+      router.back();
+      return;
+    }
+
+    const projectId = Date.now().toString();
+    addProject({
+      id: projectId,
+      ...fields,
       createdAt: new Date().toISOString().split('T')[0],
     });
     if (prefillBudget) {
-      const items = generateBudgetTemplate(projectId);
-      addBudgetItemBulk(items);
+      addBudgetItemBulk(generateBudgetTemplate(projectId));
     }
     router.back();
-  }, [title, logline, genre, status, format, prefillBudget, addProject, addBudgetItemBulk, router]);
+  }, [title, logline, genre, status, format, director, producer, budget, prefillBudget,
+      isEditing, existingItem, addProject, updateProject, addBudgetItemBulk, router]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <Stack.Screen options={{ title: isEditing ? 'Edit Project' : 'New Project' }} />
+
       <View style={styles.field}>
         <Text style={styles.label}>Title</Text>
         <TextInput
@@ -139,21 +181,61 @@ export default function NewProjectScreen() {
         )}
       </View>
 
-      <View style={styles.switchRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.switchLabel}>Pre-fill Budget Template</Text>
-          <Text style={styles.switchHint}>{TEMPLATE_LINE_COUNT} industry-standard line items</Text>
-        </View>
-        <Switch
-          value={prefillBudget}
-          onValueChange={setPrefillBudget}
-          trackColor={{ true: Colors.accent.gold, false: Colors.bg.elevated }}
-          thumbColor={Colors.text.primary}
+      <View style={styles.field}>
+        <Text style={styles.label}>Director</Text>
+        <TextInput
+          style={styles.input}
+          value={director}
+          onChangeText={setDirector}
+          placeholder="Directed by"
+          placeholderTextColor={Colors.text.tertiary}
+          autoCapitalize="words"
         />
       </View>
 
+      <View style={styles.field}>
+        <Text style={styles.label}>Producer</Text>
+        <TextInput
+          style={styles.input}
+          value={producer}
+          onChangeText={setProducer}
+          placeholder="Produced by"
+          placeholderTextColor={Colors.text.tertiary}
+          autoCapitalize="words"
+        />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Total Budget</Text>
+        <TextInput
+          style={styles.input}
+          value={budget}
+          onChangeText={setBudget}
+          placeholder="45000"
+          placeholderTextColor={Colors.text.tertiary}
+          keyboardType="numeric"
+        />
+      </View>
+
+      {/* Creating only — re-running this on an edit would duplicate all
+          {TEMPLATE_LINE_COUNT} line items on top of the existing budget. */}
+      {!isEditing && (
+        <View style={styles.switchRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.switchLabel}>Pre-fill Budget Template</Text>
+            <Text style={styles.switchHint}>{TEMPLATE_LINE_COUNT} industry-standard line items</Text>
+          </View>
+          <Switch
+            value={prefillBudget}
+            onValueChange={setPrefillBudget}
+            trackColor={{ true: Colors.accent.gold, false: Colors.bg.elevated }}
+            thumbColor={Colors.text.primary}
+          />
+        </View>
+      )}
+
       <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-project-button">
-        <Text style={styles.saveButtonText}>Create Project</Text>
+        <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Create Project'}</Text>
       </TouchableOpacity>
     </ScrollView>
   );
