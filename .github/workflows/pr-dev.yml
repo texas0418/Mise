@@ -21,6 +21,13 @@ jobs:
         run: npx eslint .
       - name: LLM slop check
         run: bash scripts/ci/slop-check.sh
+      # Typecheck and lint both pass on a graph that Metro cannot actually
+      # resolve — that is how a missing peer dependency shipped unnoticed (#55).
+      # Bundling is the only check that walks the real import graph.
+      - name: Bundle iOS
+        run: npx expo export --platform ios --output-dir /tmp/expo-export-ios
+      - name: Bundle Android
+        run: npx expo export --platform android --output-dir /tmp/expo-export-android
 
   secrets:
     name: secrets
