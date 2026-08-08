@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import {
@@ -10,16 +10,6 @@ import {
   CastMember, LookbookItem, DirectorStatement, SceneSelect, DirectorMessage,
   ScriptPDF, ScriptAnnotation, LightingDiagram
 } from '@/types';
-import {
-  SAMPLE_PROJECTS, SAMPLE_SHOTS, SAMPLE_SCHEDULE, SAMPLE_CREW,
-  SAMPLE_TAKES, SAMPLE_SCENE_BREAKDOWNS, SAMPLE_LOCATIONS, SAMPLE_BUDGET,
-  SAMPLE_CONTINUITY, SAMPLE_VFX, SAMPLE_FESTIVALS, SAMPLE_NOTES,
-  SAMPLE_MOOD_BOARD, SAMPLE_CREDITS, SAMPLE_SHOT_REFERENCES,
-  SAMPLE_WRAP_REPORTS, SAMPLE_LOCATION_WEATHER, SAMPLE_BLOCKING_NOTES,
-  SAMPLE_COLOR_REFERENCES, SAMPLE_TIME_ENTRIES, SAMPLE_SCRIPT_SIDES,
-  SAMPLE_CAST, SAMPLE_LOOKBOOK, SAMPLE_DIRECTOR_STATEMENT,
-  SAMPLE_SELECTS, SAMPLE_MESSAGES
-} from '@/mocks/data';
 import { useSync } from '@/contexts/SyncContext';
 
 const STORAGE_KEYS = {
@@ -55,6 +45,9 @@ const STORAGE_KEYS = {
   lightingDiagrams: 'mise_lighting_diagrams',
 };
 
+// Reading never writes. This previously persisted its fallback on a storage
+// miss, which is the mechanism that seeded fictional sample records into real
+// user storage before the user had tapped anything (#35).
 async function loadFromStorage<T>(key: string, fallback: T[]): Promise<T[]> {
   const safeFallback = fallback ?? ([] as T[]);
   try {
@@ -63,9 +56,6 @@ async function loadFromStorage<T>(key: string, fallback: T[]): Promise<T[]> {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) return parsed;
       await AsyncStorage.removeItem(key);
-    }
-    if (safeFallback.length > 0) {
-      await AsyncStorage.setItem(key, JSON.stringify(safeFallback));
     }
     return safeFallback;
   } catch (e) {
@@ -86,6 +76,32 @@ async function saveToStorage<T>(key: string, data: T[]): Promise<T[]> {
 }
 
 // ---------------------------------------------------------------------------
+// Serialized writes
+//
+// Each storage key owns a promise chain. Every mutation runs as a step on that
+// chain and reads its base state *inside* the step, so two mutations issued in
+// the same tick see each other's result instead of both deriving from the same
+// stale render snapshot and the second silently discarding the first.
+// The chain also guarantees the underlying setItem calls land in issue order.
+// ---------------------------------------------------------------------------
+const writeChains = new Map<string, Promise<void>>();
+
+function serializeWrite(storageKey: string, step: () => Promise<void>): Promise<void> {
+  const previous = writeChains.get(storageKey) ?? Promise.resolve();
+  const next = previous.then(step);
+  // Store a settled-either-way handle so one failed step can't stall the chain.
+  writeChains.set(storageKey, next.catch(() => undefined));
+  return next;
+}
+
+type EnqueueMutation = (
+  table: string,
+  recordId: string,
+  action: 'insert' | 'update' | 'delete',
+  data: Record<string, any> | null,
+) => Promise<void>;
+
+// ---------------------------------------------------------------------------
 // useEntityStore — now accepts supabaseTable to enqueue mutations for sync.
 // The enqueueMutation function is passed in so this hook doesn't call useSync
 // directly (useSync is called once in the parent createContextHook).
@@ -95,46 +111,91 @@ function useEntityStore<T extends { id: string }>(
   storageKey: string,
   fallback: T[],
   supabaseTable: string,
-  enqueueMutation: (table: string, recordId: string, action: 'insert' | 'update' | 'delete', data: Record<string, any> | null) => Promise<void>,
+  enqueueMutation: EnqueueMutation,
 ) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: [queryKey],
     queryFn: () => loadFromStorage<T>(storageKey, fallback),
+    // This store is the only writer of its storage key, so the cache is
+    // authoritative once loaded. Without this, every mutation re-reads
+    // AsyncStorage and a focus refetch can briefly revert an optimistic write.
+    // The sync engine still calls invalidateQueries after a remote pull.
+    staleTime: Infinity,
   });
 
-  const saveMutation = useMutation({
-    mutationFn: (data: T[]) => saveToStorage(storageKey, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [queryKey] }),
-  });
-
-  const items = query.data ?? [];
+  // Apply `updater` to the freshest known list, persist it, then enqueue the
+  // matching sync operations. Returns a promise callers may ignore.
+  const mutate = useCallback((
+    updater: (prev: T[]) => T[],
+    sync: (next: T[]) => Promise<void>,
+  ) => serializeWrite(storageKey, async () => {
+    // ensureQueryData resolves from cache when loaded and awaits the initial
+    // storage read otherwise, so a mutation fired during startup can't write
+    // an empty list over real data.
+    const prev = await queryClient.ensureQueryData<T[]>({
+      queryKey: [queryKey],
+      queryFn: () => loadFromStorage<T>(storageKey, fallback),
+    });
+    const next = updater(prev);
+    queryClient.setQueryData([queryKey], next);
+    await saveToStorage(storageKey, next);
+    await sync(next);
+  }), [queryClient, queryKey, storageKey, fallback]);
 
   const add = useCallback((item: T) => {
-    saveMutation.mutate([...items, item]);
-    enqueueMutation(supabaseTable, item.id, 'insert', item as any);
-  }, [items, supabaseTable]);
+    void mutate(
+      prev => [...prev, item],
+      () => enqueueMutation(supabaseTable, item.id, 'insert', item as any),
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
 
   const addBulk = useCallback((newItems: T[]) => {
-    saveMutation.mutate([...items, ...newItems]);
-    // Enqueue each item individually for sync
-    for (const item of newItems) {
-      enqueueMutation(supabaseTable, item.id, 'insert', item as any);
-    }
-  }, [items, supabaseTable]);
+    if (newItems.length === 0) return;
+    void mutate(
+      prev => [...prev, ...newItems],
+      async () => {
+        // Enqueue each item individually for sync
+        for (const item of newItems) {
+          await enqueueMutation(supabaseTable, item.id, 'insert', item as any);
+        }
+      },
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
 
   const update = useCallback((item: T) => {
-    saveMutation.mutate(items.map(i => i.id === item.id ? item : i));
-    enqueueMutation(supabaseTable, item.id, 'update', item as any);
-  }, [items, supabaseTable]);
+    void mutate(
+      prev => prev.map(i => i.id === item.id ? item : i),
+      () => enqueueMutation(supabaseTable, item.id, 'update', item as any),
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
+
+  // Single write for a batch of edits. Callers that would otherwise loop over
+  // `update` should use this — one persisted array instead of N.
+  const updateMany = useCallback((updatedItems: T[]) => {
+    if (updatedItems.length === 0) return;
+    void mutate(
+      prev => {
+        const byId = new Map(updatedItems.map(i => [i.id, i]));
+        return prev.map(i => byId.get(i.id) ?? i);
+      },
+      async () => {
+        for (const item of updatedItems) {
+          await enqueueMutation(supabaseTable, item.id, 'update', item as any);
+        }
+      },
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
 
   const remove = useCallback((id: string) => {
-    saveMutation.mutate(items.filter(i => i.id !== id));
-    enqueueMutation(supabaseTable, id, 'delete', null);
-  }, [items, supabaseTable]);
+    void mutate(
+      prev => prev.filter(i => i.id !== id),
+      () => enqueueMutation(supabaseTable, id, 'delete', null),
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
 
-  return { items, add, addBulk, update, remove, isLoading: query.isLoading };
+  return { items: query.data ?? [], add, addBulk, update, updateMany, remove, isLoading: query.isLoading };
 }
 
 export const [ProjectProvider, useProjects] = createContextHook(() => {
@@ -143,32 +204,32 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   // Get enqueueMutation from SyncContext — if sync is disabled, this is a no-op
   const { enqueueMutation } = useSync();
 
-  const projectStore = useEntityStore<Project>('projects', STORAGE_KEYS.projects, SAMPLE_PROJECTS, 'projects', enqueueMutation);
-  const shotStore = useEntityStore<Shot>('shots', STORAGE_KEYS.shots, SAMPLE_SHOTS, 'shots', enqueueMutation);
-  const scheduleStore = useEntityStore<ScheduleDay>('schedule', STORAGE_KEYS.schedule, SAMPLE_SCHEDULE, 'schedule_days', enqueueMutation);
-  const crewStore = useEntityStore<CrewMember>('crew', STORAGE_KEYS.crew, SAMPLE_CREW, 'crew_members', enqueueMutation);
-  const takeStore = useEntityStore<Take>('takes', STORAGE_KEYS.takes, SAMPLE_TAKES, 'takes', enqueueMutation);
-  const breakdownStore = useEntityStore<SceneBreakdown>('sceneBreakdowns', STORAGE_KEYS.sceneBreakdowns, SAMPLE_SCENE_BREAKDOWNS, 'scene_breakdowns', enqueueMutation);
-  const locationStore = useEntityStore<LocationScout>('locations', STORAGE_KEYS.locations, SAMPLE_LOCATIONS, 'location_scouts', enqueueMutation);
-  const budgetStore = useEntityStore<BudgetItem>('budget', STORAGE_KEYS.budget, SAMPLE_BUDGET, 'budget_items', enqueueMutation);
-  const continuityStore = useEntityStore<ContinuityNote>('continuity', STORAGE_KEYS.continuity, SAMPLE_CONTINUITY, 'continuity_notes', enqueueMutation);
-  const vfxStore = useEntityStore<VFXShot>('vfx', STORAGE_KEYS.vfx, SAMPLE_VFX, 'vfx_shots', enqueueMutation);
-  const festivalStore = useEntityStore<FestivalSubmission>('festivals', STORAGE_KEYS.festivals, SAMPLE_FESTIVALS, 'festival_submissions', enqueueMutation);
-  const noteStore = useEntityStore<ProductionNote>('notes', STORAGE_KEYS.notes, SAMPLE_NOTES, 'production_notes', enqueueMutation);
-  const moodBoardStore = useEntityStore<MoodBoardItem>('moodBoard', STORAGE_KEYS.moodBoard, SAMPLE_MOOD_BOARD, 'mood_board_items', enqueueMutation);
-  const creditStore = useEntityStore<DirectorCredit>('credits', STORAGE_KEYS.credits, SAMPLE_CREDITS, 'director_credits', enqueueMutation);
-  const shotRefStore = useEntityStore<ShotReference>('shotReferences', STORAGE_KEYS.shotReferences, SAMPLE_SHOT_REFERENCES, 'shot_references', enqueueMutation);
-  const wrapReportStore = useEntityStore<WrapReport>('wrapReports', STORAGE_KEYS.wrapReports, SAMPLE_WRAP_REPORTS, 'wrap_reports', enqueueMutation);
-  const locationWeatherStore = useEntityStore<LocationWeather>('locationWeather', STORAGE_KEYS.locationWeather, SAMPLE_LOCATION_WEATHER, 'location_weather', enqueueMutation);
-  const blockingStore = useEntityStore<BlockingNote>('blockingNotes', STORAGE_KEYS.blockingNotes, SAMPLE_BLOCKING_NOTES, 'blocking_notes', enqueueMutation);
-  const colorRefStore = useEntityStore<ColorReference>('colorReferences', STORAGE_KEYS.colorReferences, SAMPLE_COLOR_REFERENCES, 'color_references', enqueueMutation);
-  const timeEntryStore = useEntityStore<TimeEntry>('timeEntries', STORAGE_KEYS.timeEntries, SAMPLE_TIME_ENTRIES, 'time_entries', enqueueMutation);
-  const scriptSideStore = useEntityStore<ScriptSide>('scriptSides', STORAGE_KEYS.scriptSides, SAMPLE_SCRIPT_SIDES, 'script_sides', enqueueMutation);
-  const castStore = useEntityStore<CastMember>('cast', STORAGE_KEYS.cast, SAMPLE_CAST, 'cast_members', enqueueMutation);
-  const lookbookStore = useEntityStore<LookbookItem>('lookbook', STORAGE_KEYS.lookbook, SAMPLE_LOOKBOOK, 'lookbook_items', enqueueMutation);
-  const directorStatementStore = useEntityStore<DirectorStatement>('directorStatement', STORAGE_KEYS.directorStatement, SAMPLE_DIRECTOR_STATEMENT, 'director_statements', enqueueMutation);
-  const selectStore = useEntityStore<SceneSelect>('selects', STORAGE_KEYS.selects, SAMPLE_SELECTS, 'scene_selects', enqueueMutation);
-  const messageStore = useEntityStore<DirectorMessage>('messages', STORAGE_KEYS.messages, SAMPLE_MESSAGES, 'director_messages', enqueueMutation);
+  const projectStore = useEntityStore<Project>('projects', STORAGE_KEYS.projects, [], 'projects', enqueueMutation);
+  const shotStore = useEntityStore<Shot>('shots', STORAGE_KEYS.shots, [], 'shots', enqueueMutation);
+  const scheduleStore = useEntityStore<ScheduleDay>('schedule', STORAGE_KEYS.schedule, [], 'schedule_days', enqueueMutation);
+  const crewStore = useEntityStore<CrewMember>('crew', STORAGE_KEYS.crew, [], 'crew_members', enqueueMutation);
+  const takeStore = useEntityStore<Take>('takes', STORAGE_KEYS.takes, [], 'takes', enqueueMutation);
+  const breakdownStore = useEntityStore<SceneBreakdown>('sceneBreakdowns', STORAGE_KEYS.sceneBreakdowns, [], 'scene_breakdowns', enqueueMutation);
+  const locationStore = useEntityStore<LocationScout>('locations', STORAGE_KEYS.locations, [], 'location_scouts', enqueueMutation);
+  const budgetStore = useEntityStore<BudgetItem>('budget', STORAGE_KEYS.budget, [], 'budget_items', enqueueMutation);
+  const continuityStore = useEntityStore<ContinuityNote>('continuity', STORAGE_KEYS.continuity, [], 'continuity_notes', enqueueMutation);
+  const vfxStore = useEntityStore<VFXShot>('vfx', STORAGE_KEYS.vfx, [], 'vfx_shots', enqueueMutation);
+  const festivalStore = useEntityStore<FestivalSubmission>('festivals', STORAGE_KEYS.festivals, [], 'festival_submissions', enqueueMutation);
+  const noteStore = useEntityStore<ProductionNote>('notes', STORAGE_KEYS.notes, [], 'production_notes', enqueueMutation);
+  const moodBoardStore = useEntityStore<MoodBoardItem>('moodBoard', STORAGE_KEYS.moodBoard, [], 'mood_board_items', enqueueMutation);
+  const creditStore = useEntityStore<DirectorCredit>('credits', STORAGE_KEYS.credits, [], 'director_credits', enqueueMutation);
+  const shotRefStore = useEntityStore<ShotReference>('shotReferences', STORAGE_KEYS.shotReferences, [], 'shot_references', enqueueMutation);
+  const wrapReportStore = useEntityStore<WrapReport>('wrapReports', STORAGE_KEYS.wrapReports, [], 'wrap_reports', enqueueMutation);
+  const locationWeatherStore = useEntityStore<LocationWeather>('locationWeather', STORAGE_KEYS.locationWeather, [], 'location_weather', enqueueMutation);
+  const blockingStore = useEntityStore<BlockingNote>('blockingNotes', STORAGE_KEYS.blockingNotes, [], 'blocking_notes', enqueueMutation);
+  const colorRefStore = useEntityStore<ColorReference>('colorReferences', STORAGE_KEYS.colorReferences, [], 'color_references', enqueueMutation);
+  const timeEntryStore = useEntityStore<TimeEntry>('timeEntries', STORAGE_KEYS.timeEntries, [], 'time_entries', enqueueMutation);
+  const scriptSideStore = useEntityStore<ScriptSide>('scriptSides', STORAGE_KEYS.scriptSides, [], 'script_sides', enqueueMutation);
+  const castStore = useEntityStore<CastMember>('cast', STORAGE_KEYS.cast, [], 'cast_members', enqueueMutation);
+  const lookbookStore = useEntityStore<LookbookItem>('lookbook', STORAGE_KEYS.lookbook, [], 'lookbook_items', enqueueMutation);
+  const directorStatementStore = useEntityStore<DirectorStatement>('directorStatement', STORAGE_KEYS.directorStatement, [], 'director_statements', enqueueMutation);
+  const selectStore = useEntityStore<SceneSelect>('selects', STORAGE_KEYS.selects, [], 'scene_selects', enqueueMutation);
+  const messageStore = useEntityStore<DirectorMessage>('messages', STORAGE_KEYS.messages, [], 'director_messages', enqueueMutation);
   const scriptPDFStore = useEntityStore<ScriptPDF>('scriptPDFs', STORAGE_KEYS.scriptPDFs, [], 'script_pdfs', enqueueMutation);
   const scriptAnnotationStore = useEntityStore<ScriptAnnotation>('scriptAnnotations', STORAGE_KEYS.scriptAnnotations, [], 'script_annotations', enqueueMutation);
   const lightingDiagramStore = useEntityStore<LightingDiagram>('lightingDiagrams', STORAGE_KEYS.lightingDiagrams, [], 'lighting_diagrams', enqueueMutation);
@@ -229,7 +290,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     isLoading, selectProject,
 
     addProject: projectStore.add, updateProject: projectStore.update, deleteProject: projectStore.remove,
-    addShot: shotStore.add, updateShot: shotStore.update, deleteShot: shotStore.remove,
+    addShot: shotStore.add, updateShot: shotStore.update, updateShots: shotStore.updateMany, deleteShot: shotStore.remove,
     addScheduleDay: scheduleStore.add, updateScheduleDay: scheduleStore.update, deleteScheduleDay: scheduleStore.remove,
     addCrewMember: crewStore.add, updateCrewMember: crewStore.update, deleteCrewMember: crewStore.remove,
     addTake: takeStore.add, updateTake: takeStore.update, deleteTake: takeStore.remove,

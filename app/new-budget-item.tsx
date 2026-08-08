@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectBudget } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { BudgetCategory } from '@/types';
-import { BUDGET_CATEGORIES } from '@/mocks/data';
+import { BUDGET_CATEGORIES } from '@/constants/filmData';
 
 export default function NewBudgetItemScreen() {
   const router = useRouter();

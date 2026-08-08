@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useProjects, useProjectColorReferences } from '@/contexts/ProjectContext';
-import { LUT_STYLES } from '@/mocks/data';
+import { LUT_STYLES } from '@/constants/filmData';
 import Colors from '@/constants/colors';
 import { LUTStyle } from '@/types';
 

@@ -6,7 +6,7 @@ import { useProjects, useProjectColorReferences } from '@/contexts/ProjectContex
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { ColorReference, LUTStyle } from '@/types';
-import { LUT_STYLES } from '@/mocks/data';
+import { LUT_STYLES } from '@/constants/filmData';
 import PermissionGate from '@/contexts/PermissionGate';
 
 function ColorSwatch({ color, size = 24 }: { color: string; size?: number }) {

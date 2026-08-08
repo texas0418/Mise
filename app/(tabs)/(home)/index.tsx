@@ -180,7 +180,19 @@ export default function ProjectsScreen() {
           <View style={styles.emptyContainer}>
             <Film color={Colors.text.tertiary} size={48} />
             <Text style={styles.emptyTitle}>No projects yet</Text>
-            <Text style={styles.emptySubtitle}>Start your first film project</Text>
+            <Text style={styles.emptySubtitle}>
+              Every tool in Mise works on a project. Start with the title and
+              you can fill in the rest later.
+            </Text>
+            <TouchableOpacity
+              style={styles.emptyCta}
+              onPress={() => router.push('/new-project' as never)}
+              activeOpacity={0.8}
+              testID="empty-create-project-button"
+            >
+              <Plus color={Colors.text.inverse} size={18} />
+              <Text style={styles.emptyCtaText}>Create Your First Project</Text>
+            </TouchableOpacity>
           </View>
         }
       />
@@ -361,7 +373,25 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     fontSize: 14,
     color: Colors.text.secondary,
-    marginTop: 4,
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 24,
+  },
+  emptyCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 22,
+    borderRadius: 12,
+    backgroundColor: Colors.accent.gold,
+  },
+  emptyCtaText: {
+    fontSize: 15,
+    fontWeight: '700' as const,
+    color: Colors.text.inverse,
   },
   fab: {
     position: 'absolute',

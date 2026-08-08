@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert,
 import { useRouter } from 'expo-router';
 import { Send, Zap } from 'lucide-react-native';
 import { useProjects } from '@/contexts/ProjectContext';
-import { MESSAGE_TEMPLATES } from '@/mocks/data';
+import { MESSAGE_TEMPLATES } from '@/constants/filmData';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { DirectorMessage, MessagePriority, MessageCategory } from '@/types';

@@ -53,7 +53,7 @@ function ShotRow({ shot, onCycleStatus }: { shot: Shot; onCycleStatus: () => voi
 }
 
 export default function ShotChecklistScreen() {
-  const { activeProjectId, updateShot } = useProjects();
+  const { activeProjectId, updateShot, updateShots } = useProjects();
   const shots = useProjectShots(activeProjectId);
   const { isTablet, contentPadding } = useLayout();
   const router = useRouter();
@@ -70,15 +70,15 @@ export default function ShotChecklistScreen() {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Reset', style: 'destructive', onPress: () => {
-          shots.forEach(shot => {
-            if (shot.status !== 'planned') {
-              updateShot({ ...shot, status: 'planned' });
-            }
-          });
+          updateShots(
+            shots
+              .filter(shot => shot.status !== 'planned')
+              .map(shot => ({ ...shot, status: 'planned' as const })),
+          );
         },
       },
     ]);
-  }, [shots, updateShot]);
+  }, [shots, updateShots]);
 
   const toggleScene = useCallback((sceneNumber: number) => {
     setCollapsedScenes(prev => {

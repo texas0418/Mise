@@ -9,6 +9,7 @@ import ImportButton from '@/components/ImportButton';
 import AIImportButton from '@/components/AIImportButton';
 import { ContinuityNote } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 function ContinuityCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: ContinuityNote;
@@ -19,7 +20,7 @@ function ContinuityCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }) {
   const time = new Date(item.timestamp);
   const timeStr = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  const photoUrl = (item as any).photoUrl;
+  const photoUrl = item.photoUrl;
 
   const handleDelete = () => {
     Alert.alert('Delete Note', `Remove continuity note for Sc.${item.sceneNumber}/${item.shotNumber}?`, [
@@ -48,7 +49,7 @@ function ContinuityCard({ item, isExpanded, onPress, onEdit, onDelete }: {
         <View style={styles.headerRight}>
           {!isExpanded && photoUrl && (
             <View style={styles.photoThumb}>
-              <Image source={{ uri: photoUrl }} style={styles.photoThumbImg} />
+              <Image source={{ uri: resolvePhotoUri(photoUrl) }} style={styles.photoThumbImg} />
             </View>
           )}
           {isExpanded ? <ChevronUp color={Colors.text.tertiary} size={14} /> : <ChevronDown color={Colors.text.tertiary} size={14} />}
@@ -60,7 +61,7 @@ function ContinuityCard({ item, isExpanded, onPress, onEdit, onDelete }: {
         <View style={styles.expandedBody}>
           {/* Photo */}
           {photoUrl && (
-            <Image source={{ uri: photoUrl }} style={styles.photoFull} resizeMode="cover" />
+            <Image source={{ uri: resolvePhotoUri(photoUrl) }} style={styles.photoFull} resizeMode="cover" />
           )}
 
           {/* Details */}
@@ -100,7 +101,7 @@ export default function ContinuityScreen() {
   }, [notes]);
 
   // Count notes with photos
-  const photoCount = notes.filter((n: any) => n.photoUrl).length;
+  const photoCount = notes.filter(n => n.photoUrl).length;
 
   if (!activeProject) {
     return (

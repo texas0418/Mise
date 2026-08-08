@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Stack } from 'expo-router';
 import { Aperture } from 'lucide-react-native';
 import Colors from '@/constants/colors';
-import { LENS_DATA } from '@/mocks/data';
+import { LENS_DATA } from '@/constants/filmData';
 import PermissionGate from '@/contexts/PermissionGate';
 
 const SENSOR_SIZES = [
