@@ -308,6 +308,42 @@ export interface CastCallTime {
   createdAt: string;
 }
 
+/**
+ * The call sheet's header block for one shoot day.
+ *
+ * Deliberately not fields on `ScheduleDay`: a shoot day is a scheduling
+ * record, while hospital directions and walkie channels are facts about the
+ * document issued for it. One row per day, created the first time anything is
+ * filled in — an absent row simply means those sections are blank.
+ */
+export interface CallSheetDetails {
+  id: string;
+  projectId: string;
+  scheduleDayId: string;
+
+  /** Safety. The nearest hospital is the line that matters when nothing else does. */
+  hospitalName?: string;
+  hospitalAddress?: string;
+  hospitalPhone?: string;
+  safetyNotes?: string;
+
+  parkingNotes?: string;
+  basecampNotes?: string;
+  crewParkNotes?: string;
+  nearestBathroom?: string;
+  walkieChannels?: string;
+  cateringLocation?: string;
+  breakfastTime?: string;
+  lunchTime?: string;
+  companyMoves?: string;
+
+  /** Bumped on reissue, so crew can tell which sheet is current. */
+  version: number;
+  /** When this version was issued. Absent until it has been. */
+  issuedAt?: string;
+  createdAt: string;
+}
+
 export interface CallSheetEntry {
   id: string;
   projectId: string;

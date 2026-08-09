@@ -1,14 +1,16 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { ClipboardList, MapPin, Clock, Users, Drama, AlertCircle, Plus, ChevronDown, ChevronUp, Pencil, Trash2, Calendar } from 'lucide-react-native';
+import { ClipboardList, MapPin, Clock, Users, Drama, ShieldAlert, AlertCircle, Plus, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import {
   useProjects, useProjectSchedule, useProjectCrew, useProjectScenes,
-  useProjectCast, useDayCastCallTimes, AssignedCrew,
+  useProjectCast, useDayCastCallTimes, useCallSheetDetails, AssignedCrew,
 } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import { formatEighths } from '@/utils/eighths';
-import { sceneRows, dayTotals, sceneListLabel, resolveDayScenes, castRows } from '@/utils/callSheet';
+import {
+  sceneRows, dayTotals, sceneListLabel, resolveDayScenes, castRows, detailSummaryLines,
+} from '@/utils/callSheet';
 import Colors from '@/constants/colors';
 import { ScheduleDay, Scene, CastMember, CastCallTime } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -152,7 +154,47 @@ function CastTable({ day, cast, scenes, onSetCastTime }: {
   );
 }
 
-function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPress, onEdit, onDelete, onSetCallTime, onSetCastTime }: {
+/**
+ * Safety and logistics, shown read-only on the card.
+ *
+ * The document prints these; if the card did not, the screen and the PDF would
+ * disagree again — which is the exact fault the scene table was fixing. Editing
+ * lives on the details screen, behind the button below.
+ */
+function DetailsSummary({ dayId }: { dayId: string }) {
+  const details = useCallSheetDetails(dayId);
+  const lines = detailSummaryLines(details);
+
+  if (lines.length === 0) {
+    return (
+      <View style={styles.detailSection}>
+        <Text style={styles.detailLabel}>SAFETY &amp; LOGISTICS</Text>
+        <Text style={styles.castEmpty}>
+          Nothing set. Hospital, parking and walkie channels print on the sheet once added.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.detailSection} testID={`call-sheet-summary-${dayId}`}>
+      <View style={styles.sceneHeaderRow}>
+        <Text style={styles.detailLabel}>SAFETY &amp; LOGISTICS</Text>
+        <Text style={styles.sceneTotals}>
+          {details?.issuedAt ? `Issued v${details.version}` : 'Draft'}
+        </Text>
+      </View>
+      {lines.map(([label, value]) => (
+        <View key={label} style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>{label}</Text>
+          <Text style={styles.summaryValue}>{value}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPress, onEdit, onDelete, onSetCallTime, onSetCastTime, onEditDetails }: {
   day: ScheduleDay;
   crew: AssignedCrew[];
   scenes: Scene[];
@@ -164,6 +206,7 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
   onDelete: () => void;
   onSetCallTime: (assignmentId: string, callTime: string) => void;
   onSetCastTime: (dayId: string, castMemberId: string, field: CastTimeField, value: string) => void;
+  onEditDetails: () => void;
 }) {
   const dateObj = new Date(day.date + 'T00:00:00');
   const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -277,11 +320,23 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
 
           <CastTable day={day} cast={cast} scenes={scenes} onSetCastTime={onSetCastTime} />
 
+          <DetailsSummary dayId={day.id} />
+
           {/* Actions */}
           <View style={styles.cardActions}>
             <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onEditDetails}
+              style={styles.editBtn}
+              accessibilityRole="button"
+              accessibilityLabel={`Safety and logistics for day ${day.dayNumber}`}
+              testID={`call-sheet-details-${day.id}`}
+            >
+              <ShieldAlert color={Colors.accent.gold} size={15} />
+              <Text style={styles.editBtnText}>Details</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
@@ -370,6 +425,7 @@ export default function CallSheetsScreen() {
             onDelete={() => deleteScheduleDay(item.id)}
             onSetCallTime={setCallTime}
             onSetCastTime={setCastTime}
+            onEditDetails={() => router.push(`/call-sheet-details?dayId=${item.id}` as never)}
           />
         )}
         contentContainerStyle={[styles.list, {
@@ -464,6 +520,9 @@ const styles = StyleSheet.create({
   crewRole: { fontSize: 12, color: Colors.text.secondary },
   crewCall: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold, fontVariant: ['tabular-nums'] },
   crewCallInput: { paddingVertical: 2, paddingHorizontal: 4, borderRadius: 4, backgroundColor: Colors.bg.elevated, minWidth: 68 },
+  summaryRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 4 },
+  summaryLabel: { fontSize: 10, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5, width: 96 },
+  summaryValue: { flex: 1, fontSize: 12, color: Colors.text.secondary, lineHeight: 17 },
   // Cast
   castSection: { padding: 14, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   castEmpty: { fontSize: 11, color: Colors.text.tertiary, lineHeight: 16 },

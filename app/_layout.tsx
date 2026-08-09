@@ -281,6 +281,13 @@ export default function RootLayout() {
                     options={{ title: "Call Sheets" }}
                   />
                   <Stack.Screen
+                    name="call-sheet-details"
+                    options={{
+                      ...FORM_MODAL_OPTIONS,
+                      title: "Call Sheet Details",
+                    }}
+                  />
+                  <Stack.Screen
                     name="crew-directory"
                     options={{ title: "Crew Directory" }}
                   />
