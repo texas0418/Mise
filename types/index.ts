@@ -63,6 +63,16 @@ export interface ScheduleDay {
   projectId: string;
   date: string;
   dayNumber: number;
+  /**
+   * Scenes scheduled for this day. Optional because days created before
+   * scenes existed are backfilled by parsing `scenes` below.
+   */
+  sceneIds?: string[];
+  /**
+   * Legacy free-text scene list ("Sc. 1, 5, 8"). Kept in sync with `sceneIds`
+   * so call sheets, exports and the project summary keep rendering while the
+   * links spread. Derived, not authoritative.
+   */
   scenes: string;
   location: string;
   callTime: string;
