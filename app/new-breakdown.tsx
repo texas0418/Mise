@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -117,7 +118,8 @@ export default function NewBreakdownScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Scene' : 'New Scene' }} />
 
       <View style={styles.projectLabel}>
@@ -233,6 +235,7 @@ export default function NewBreakdownScreen() {
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Scene Breakdown'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

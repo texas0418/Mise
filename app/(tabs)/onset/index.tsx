@@ -73,13 +73,13 @@ function CompactSlate({
             <View style={styles.slateCell}>
               <Text style={styles.slateCellLabel}>SCENE</Text>
               <TextInput style={styles.slateCellValue} value={scene} onChangeText={onSceneChange}
-                keyboardType="default" textAlign="center" returnKeyType="done" onSubmitEditing={Keyboard.dismiss} />
+                keyboardType="numbers-and-punctuation" textAlign="center" returnKeyType="done" onSubmitEditing={Keyboard.dismiss} />
             </View>
             <View style={styles.slateDivider} />
             <View style={styles.slateCell}>
               <Text style={styles.slateCellLabel}>SHOT</Text>
               <TextInput style={styles.slateCellValue} value={shot} onChangeText={onShotChange}
-                keyboardType="default" textAlign="center" returnKeyType="done" onSubmitEditing={Keyboard.dismiss} />
+                keyboardType="numbers-and-punctuation" textAlign="center" returnKeyType="done" onSubmitEditing={Keyboard.dismiss} />
             </View>
             <View style={styles.slateDivider} />
             <View style={styles.slateCell}>

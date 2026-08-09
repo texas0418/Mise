@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { CircleCheck, CircleX, Trash2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -148,7 +149,8 @@ export default function LogTakeScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Take' : 'Log Take' }} />
 
       <View style={styles.projectLabel}>
@@ -178,6 +180,7 @@ export default function LogTakeScreen() {
             onChangeText={setShotNumber}
             placeholder="1A"
             placeholderTextColor={Colors.text.tertiary}
+            keyboardType="numbers-and-punctuation"
           />
         </View>
         <View style={{ width: 12 }} />
@@ -231,6 +234,7 @@ export default function LogTakeScreen() {
         </TouchableOpacity>
       )}
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

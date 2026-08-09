@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -80,7 +81,8 @@ export default function NewBudgetItemScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Budget Item' : 'New Budget Item' }} />
 
       <View style={styles.projectLabel}>
@@ -151,6 +153,7 @@ export default function NewBudgetItemScreen() {
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Budget Item'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

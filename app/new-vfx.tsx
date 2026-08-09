@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -97,7 +98,8 @@ export default function NewVFXScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit VFX Shot' : 'New VFX Shot' }} />
 
       <View style={styles.projectLabel}>
@@ -198,6 +200,7 @@ export default function NewVFXScreen() {
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add VFX Shot'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

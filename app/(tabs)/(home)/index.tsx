@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, ActivityIndicator, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Plus, Film, ChevronRight, Trash2 } from 'lucide-react-native';
+import { Plus, Film, ChevronRight, Trash2, Check } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useProjects } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
@@ -26,7 +26,7 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
   'completed': Colors.text.tertiary,
 };
 
-function ProjectCard({ project, index, onPress, onDelete }: { project: Project; index: number; onPress: () => void; onDelete: () => void }) {
+function ProjectCard({ project, index, isActive, onPress, onDelete }: { project: Project; index: number; isActive: boolean; onPress: () => void; onDelete: () => void }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const swipeableRef = useRef<Swipeable>(null);
@@ -68,7 +68,7 @@ function ProjectCard({ project, index, onPress, onDelete }: { project: Project; 
     <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
       <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
         <TouchableOpacity
-          style={styles.projectCard}
+          style={[styles.projectCard, isActive && styles.projectCardActive]}
           onPress={onPress}
           activeOpacity={0.7}
           testID={`project-card-${project.id}`}
@@ -91,6 +91,12 @@ function ProjectCard({ project, index, onPress, onDelete }: { project: Project; 
                 <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
                 <Text style={[styles.statusText, { color: statusColor }]}>{STATUS_LABELS[project.status]}</Text>
               </View>
+              {isActive && (
+                <View style={styles.activePill}>
+                  <Check color={Colors.text.inverse} size={11} />
+                  <Text style={styles.activePillText}>ACTIVE</Text>
+                </View>
+              )}
               <Text style={styles.projectFormat}>{project.format}</Text>
             </View>
             <Text style={styles.projectTitle}>{project.title}</Text>
@@ -137,11 +143,12 @@ export default function ProjectsScreen() {
       <ProjectCard
         project={item}
         index={index}
+        isActive={item.id === activeProjectId}
         onPress={() => handleProjectPress(item)}
         onDelete={() => handleDeleteProject(item)}
       />
     </View>
-  ), [handleProjectPress, handleDeleteProject, isTablet, columns]);
+  ), [handleProjectPress, handleDeleteProject, isTablet, columns, activeProjectId]);
 
   if (isLoading) {
     return (
@@ -269,6 +276,26 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 0.5,
     borderColor: Colors.border.subtle,
+  },
+  projectCardActive: {
+    borderColor: Colors.accent.gold,
+    borderWidth: 1.5,
+  },
+  activePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.accent.gold,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
+    marginLeft: 8,
+  },
+  activePillText: {
+    fontSize: 9,
+    fontWeight: '800' as const,
+    color: Colors.text.inverse,
+    letterSpacing: 0.8,
   },
   projectImage: {
     width: '100%',

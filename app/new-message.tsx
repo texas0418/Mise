@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useRouter } from 'expo-router';
 import { Send, Zap } from 'lucide-react-native';
 import { useProjects } from '@/contexts/ProjectContext';
@@ -74,7 +75,7 @@ export default function NewMessageScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.container} behavior={KEYBOARD_BEHAVIOR}>
       <ScrollView
         contentContainerStyle={[styles.scrollContent, {
           paddingHorizontal: contentPadding,

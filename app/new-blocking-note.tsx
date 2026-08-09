@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useProjects, useProjectBlockingNotes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
@@ -60,7 +61,8 @@ export default function NewBlockingNoteScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Blocking Note' : 'New Blocking Note' }} />
 
       {isEditing && (
@@ -105,6 +107,7 @@ export default function NewBlockingNoteScreen() {
         <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Save Blocking Note'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

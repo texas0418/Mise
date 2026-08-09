@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput,
-  TouchableOpacity, ActivityIndicator, Alert,
-} from 'react-native';
+  TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter } from 'expo-router';
 import { FileText, Upload, Check } from 'lucide-react-native';
 import { useProjects } from '@/contexts/ProjectContext';
@@ -115,7 +115,8 @@ export default function NewScriptScreen() {
   const canSave = !!pickedPDF && !!title.trim() && !uploading;
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
@@ -223,6 +224,7 @@ export default function NewScriptScreen() {
         )}
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
