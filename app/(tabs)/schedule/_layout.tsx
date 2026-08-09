@@ -11,7 +11,9 @@ export default function ScheduleLayout() {
         headerTitleStyle: { color: Colors.text.primary, fontWeight: '700' as const },
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Schedule" }} />
+      {/* "Days", matching the tab. The route stays /schedule — renaming the
+          label is a wording change, not a URL migration. */}
+      <Stack.Screen name="index" options={{ title: "Days" }} />
     </Stack>
   );
 }

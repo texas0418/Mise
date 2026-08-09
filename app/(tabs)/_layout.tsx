@@ -45,10 +45,8 @@ export default function TabLayout() {
         },
         tabBarLabelStyle: {
           // Was 10 on phones — the smallest text in the app, on the one control
-          // that is on every screen. At 12 the six labels no longer fit the
-          // width with letter spacing on, and "Schedule" truncated to
-          // "Sched…"; the spacing is a phone-width luxury, the legibility is
-          // not. Tablets keep it, having the room.
+          // that is on every screen. At 12 the six labels no longer fit with
+          // letter spacing on, so phones lose it; tablets have the room.
           fontSize: isTablet ? 14 : 12,
           fontWeight: '600' as const,
           letterSpacing: isTablet ? 0.3 : 0,
@@ -64,10 +62,9 @@ export default function TabLayout() {
             }
           // Nothing here on phones. Six tabs across 375pt gives each item 63,
           // of which React Navigation's own 5pt padding leaves the label 53 —
-          // and "Schedule" needs 55 at 12pt, so it truncates to "Sched…".
-          // tabBarItemStyle padding is additive to that 5, not a replacement,
-          // so it cannot buy the two points back. The fix is a shorter title
-          // ("Days" would fit at any text size) and that is Simon's call.
+          // and that padding is additive rather than overridable, so the width
+          // is what it is. Every title has to fit inside 53pt at 12pt, which is
+          // why the schedule tab is "Days": "Schedule" needed 55 and truncated.
           : {},
         ...(isTablet ? { tabBarPosition: 'left' } : {}),
       }}
@@ -102,7 +99,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="schedule"
         options={{
-          title: "Schedule",
+          // "Days", not "Schedule": it lists shoot days, and at 12pt the longer
+          // word does not fit a sixth of a phone's width.
+          title: "Days",
           tabBarIcon: ({ color, size }) => (
             <CalendarDays color={color} size={isTablet ? 28 : size - 2} />
           ),
