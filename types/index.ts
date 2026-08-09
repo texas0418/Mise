@@ -36,6 +36,15 @@ export interface Project {
   budget?: number;
   director?: string;
   producer?: string;
+  /**
+   * When this film was put away — not deleted.
+   *
+   * Distinct from the sync engine's `deleted_at` tombstone, which means the
+   * record is gone. Directors keep finished films for credits, festival
+   * tracking and the portfolio, so archiving hides a project from the list
+   * while leaving every one of its records intact and restorable (#46).
+   */
+  archivedAt?: string;
 }
 
 export interface Shot {
@@ -344,6 +353,13 @@ export interface CallSheetDetails {
   createdAt: string;
 }
 
+/**
+ * @deprecated Never wired to a store, and no longer registered for sync.
+ *
+ * Kept as the shape a per-person-per-day call time takes. `CastCallTime` now
+ * implements exactly that for cast (#51); moving crew calls off
+ * `CrewAssignment.callTime` onto the same shape is the outstanding half of #39.
+ */
 export interface CallSheetEntry {
   id: string;
   projectId: string;

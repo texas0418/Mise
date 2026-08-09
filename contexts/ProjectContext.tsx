@@ -201,6 +201,28 @@ function useEntityStore<T extends { id: string }>(
     );
   }, [mutate, enqueueMutation, supabaseTable]);
 
+  // Remove every record matching a predicate, in one write.
+  //
+  // The removed items are captured inside the updater, which runs immediately
+  // before the sync step within the same serialized write, so the ids enqueued
+  // are exactly the ones that went. Filtering the render snapshot instead would
+  // miss anything added since it was taken.
+  const removeWhere = useCallback((predicate: (item: T) => boolean) => {
+    let removed: T[] = [];
+    return mutate(
+      prev => {
+        removed = prev.filter(predicate);
+        if (removed.length === 0) return prev;
+        return prev.filter(i => !predicate(i));
+      },
+      async () => {
+        for (const item of removed) {
+          await enqueueMutation(supabaseTable, item.id, 'delete', null);
+        }
+      },
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
+
   // Create-or-edit in one serialized step.
   //
   // The match runs *inside* the write chain, against the freshest list, which
@@ -229,7 +251,7 @@ function useEntityStore<T extends { id: string }>(
     );
   }, [mutate, enqueueMutation, supabaseTable]);
 
-  return { items: query.data ?? [], add, addBulk, update, updateMany, remove, upsert, isLoading: query.isLoading };
+  return { items: query.data ?? [], add, addBulk, update, updateMany, remove, removeWhere, upsert, isLoading: query.isLoading };
 }
 
 export const [ProjectProvider, useProjects] = createContextHook(() => {
@@ -317,6 +339,83 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const scriptAnnotations = scriptAnnotationStore.items;
   const lightingDiagrams = lightingDiagramStore.items;
 
+  /**
+   * Delete a project and everything belonging to it.
+   *
+   * `deleteProject` used to remove the project row alone, leaving every shot,
+   * day, take and note behind permanently — storage grew without bound, every
+   * `useProjectX` filter walked dead records forever, and the rows stayed alive
+   * server-side. The confirmation said "this cannot be undone" while the data
+   * was in fact still there (#46).
+   *
+   * The store list is written out rather than derived, because getting it wrong
+   * is silent: a store left out leaves its rows behind forever. `crew` and
+   * `credits` are deliberately absent — contacts and portfolio credits are
+   * global and outlive any one film.
+   *
+   * Not wrapped in useCallback: the context object is rebuilt every render
+   * regardless, so a stable identity here would buy nothing and the store list
+   * would have to be a dependency of itself.
+   */
+  const deleteProject = (projectId: string) => {
+    const belongsToProject = (item: { projectId?: string }) => item.projectId === projectId;
+
+    // Location weather hangs off locations rather than the project, so its
+    // parents have to be resolved before those locations are removed.
+    const locationIds = new Set(
+      locationStore.items.filter(l => l.projectId === projectId).map(l => l.id),
+    );
+    if (locationIds.size > 0) {
+      void locationWeatherStore.removeWhere(w => locationIds.has(w.locationId));
+    }
+
+    void shotStore.removeWhere(belongsToProject);
+    void scheduleStore.removeWhere(belongsToProject);
+    void crewAssignmentStore.removeWhere(belongsToProject);
+    void takeStore.removeWhere(belongsToProject);
+    void sceneStore.removeWhere(belongsToProject);
+    void breakdownStore.removeWhere(belongsToProject);
+    void locationStore.removeWhere(belongsToProject);
+    void budgetStore.removeWhere(belongsToProject);
+    void continuityStore.removeWhere(belongsToProject);
+    void vfxStore.removeWhere(belongsToProject);
+    void festivalStore.removeWhere(belongsToProject);
+    void noteStore.removeWhere(belongsToProject);
+    void moodBoardStore.removeWhere(belongsToProject);
+    void shotRefStore.removeWhere(belongsToProject);
+    void wrapReportStore.removeWhere(belongsToProject);
+    void blockingStore.removeWhere(belongsToProject);
+    void colorRefStore.removeWhere(belongsToProject);
+    void timeEntryStore.removeWhere(belongsToProject);
+    void scriptSideStore.removeWhere(belongsToProject);
+    void castStore.removeWhere(belongsToProject);
+    void castCallTimeStore.removeWhere(belongsToProject);
+    void callSheetDetailStore.removeWhere(belongsToProject);
+    void lookbookStore.removeWhere(belongsToProject);
+    void directorStatementStore.removeWhere(belongsToProject);
+    void selectStore.removeWhere(belongsToProject);
+    void messageStore.removeWhere(belongsToProject);
+    void scriptPDFStore.removeWhere(belongsToProject);
+    void scriptAnnotationStore.removeWhere(belongsToProject);
+    void lightingDiagramStore.removeWhere(belongsToProject);
+
+    // The project goes last. If anything above fails, the film is still listed
+    // and the delete can be retried, rather than vanishing and stranding
+    // whatever was left behind.
+    void projectStore.remove(projectId);
+  };
+
+  /** Put a film away without destroying it, and bring it back. */
+  const archiveProject = (projectId: string) => {
+    const project = projectStore.items.find(p => p.id === projectId);
+    if (project) projectStore.update({ ...project, archivedAt: new Date().toISOString() });
+  };
+
+  const restoreProject = (projectId: string) => {
+    const project = projectStore.items.find(p => p.id === projectId);
+    if (project) projectStore.update({ ...project, archivedAt: undefined });
+  };
+
   const activeProject = projects.find(p => p.id === activeProjectId) ?? null;
   const isLoading = projectStore.isLoading || shotStore.isLoading || scheduleStore.isLoading || crewStore.isLoading || takeStore.isLoading;
 
@@ -331,7 +430,8 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     activeProject, activeProjectId,
     isLoading, selectProject,
 
-    addProject: projectStore.add, updateProject: projectStore.update, deleteProject: projectStore.remove,
+    addProject: projectStore.add, updateProject: projectStore.update, deleteProject,
+    archiveProject, restoreProject,
     addShot: shotStore.add, updateShot: shotStore.update, updateShots: shotStore.updateMany, deleteShot: shotStore.remove,
     addScheduleDay: scheduleStore.add, updateScheduleDay: scheduleStore.update, deleteScheduleDay: scheduleStore.remove,
     addCrewMember: crewStore.add, updateCrewMember: crewStore.update, deleteCrewMember: crewStore.remove,
