@@ -6,7 +6,7 @@
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "mise-app",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
@@ -24,7 +24,6 @@
         "NSCameraUsageDescription": "Mise uses your camera to photograph shot lists, scripts, and location photos for your film projects.",
         "NSLocationWhenInUseUsageDescription": "Mise uses your location to auto-populate weather data and map coordinates for your filming locations.",
         "UIRequiredDeviceCapabilities": [
-          "arm64",
           "arm64"
         ],
         "ITSAppUsesNonExemptEncryption": false
