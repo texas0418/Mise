@@ -70,11 +70,11 @@ function MessageCard({ msg, onDelete, onShare }: { msg: DirectorMessage; onDelet
           <Text style={styles.bodyText}>{msg.body}</Text>
           {msg.sceneNumber && <Text style={styles.sceneTag}>Scene {msg.sceneNumber}</Text>}
           <View style={styles.expandedActions}>
-            <TouchableOpacity style={styles.actionBtn} onPress={onShare}>
+            <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onShare}>
               <Share2 color={Colors.accent.gold} size={14} />
               <Text style={styles.actionBtnText}>Share</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={onDelete}>
+            <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onDelete}>
               <Trash2 color="#EF4444" size={14} />
               <Text style={[styles.actionBtnText, { color: '#EF4444' }]}>Delete</Text>
             </TouchableOpacity>
@@ -172,7 +172,7 @@ export default function CommsHubScreen() {
               data={filters}
               keyExtractor={f => f.key}
               renderItem={({ item: f }) => (
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   style={[styles.filterChip, filter === f.key && styles.filterChipActive]}
                   onPress={() => setFilter(f.key)}
                 >
@@ -192,7 +192,7 @@ export default function CommsHubScreen() {
           </View>
         }
       />
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Write a message"
         style={styles.fab}
         onPress={() => router.push('/new-message' as never)}
         activeOpacity={0.8}

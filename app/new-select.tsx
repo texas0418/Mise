@@ -124,7 +124,10 @@ export default function NewSelectScreen() {
         <Text style={styles.sectionTitle}>Rating</Text>
         <View style={styles.ratingRow}>
           {([1, 2, 3, 4, 5] as SelectRating[]).map(r => (
-            <TouchableOpacity key={r} onPress={() => setRating(r)} style={styles.ratingBtn}>
+            <TouchableOpacity key={r} onPress={() => setRating(r)} style={styles.ratingBtn}
+              accessibilityRole="button"
+              accessibilityLabel={`Rate ${r} star${r === 1 ? '' : 's'}`}
+              accessibilityState={{ selected: r <= rating }}>
               <Star color={r <= rating ? Colors.accent.gold : Colors.bg.tertiary}
                 fill={r <= rating ? Colors.accent.gold : 'transparent'} size={32} />
             </TouchableOpacity>
@@ -133,13 +136,13 @@ export default function NewSelectScreen() {
 
         <Text style={styles.sectionTitle}>Status</Text>
         <View style={styles.optionsRow}>
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={[styles.optionChip, isCircled && styles.circledChip]}
             onPress={() => { setIsCircled(!isCircled); if (!isCircled) setIsAlt(false); }}
           >
             <Text style={[styles.optionChipText, isCircled && { color: Colors.accent.gold }]}>⊙ Circle Select</Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={[styles.optionChip, isAlt && !isCircled && styles.altChip]}
             onPress={() => { setIsAlt(!isAlt); if (!isAlt) setIsCircled(false); }}
           >
@@ -163,7 +166,7 @@ export default function NewSelectScreen() {
           placeholder="Any focus, framing, or exposure issues..."
           placeholderTextColor={Colors.text.tertiary} multiline numberOfLines={3} />
 
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.8}>
+        <TouchableOpacity accessibilityRole="button" style={styles.saveBtn} onPress={handleSave} activeOpacity={0.8}>
           <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Add Select'}</Text>
         </TouchableOpacity>
         <View style={{ height: 40 }} />

@@ -28,7 +28,7 @@ function ScheduleCard({ day, scenes, onDelete }: { day: ScheduleDay; scenes: Sce
   const weekday = dateWith(day.date, { weekday: 'short' });
 
   const renderRightActions = () => (
-    <TouchableOpacity
+    <TouchableOpacity accessibilityRole="button"
       style={styles.deleteAction}
       onPress={() => {
         swipeableRef.current?.close();
@@ -43,7 +43,7 @@ function ScheduleCard({ day, scenes, onDelete }: { day: ScheduleDay; scenes: Sce
 
   return (
     <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.scheduleCard, expanded && styles.scheduleCardExpanded]}
         onPress={() => setExpanded(!expanded)}
         activeOpacity={0.7}
@@ -244,7 +244,7 @@ export default function ScheduleScreen() {
         }
       />
 
-<TouchableOpacity
+<TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a shoot day"
         style={styles.fab}
         onPress={() => router.push('/new-schedule-day' as never)}
         activeOpacity={0.8}

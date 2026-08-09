@@ -81,14 +81,14 @@ export default function NewShotReferenceScreen() {
       {imageUrl ? (
         <View style={styles.imagePreviewWrap}>
           <Image source={{ uri: resolvePhotoUri(imageUrl) }} style={styles.imagePreview} contentFit="cover" />
-          <TouchableOpacity style={styles.changePhotoBtn} onPress={() => {
+          <TouchableOpacity accessibilityRole="button" style={styles.changePhotoBtn} onPress={() => {
             showImagePickerOptions((uri) => setImageUrl(uri));
           }}>
             <Text style={styles.changePhotoText}>Change Photo</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <TouchableOpacity style={styles.pickImageBtn} onPress={() => {
+        <TouchableOpacity accessibilityRole="button" style={styles.pickImageBtn} onPress={() => {
           showImagePickerOptions((uri) => setImageUrl(uri));
         }}>
           <ImagePlus color={Colors.accent.gold} size={28} />
@@ -116,7 +116,7 @@ export default function NewShotReferenceScreen() {
         placeholder="Reference notes..." placeholderTextColor={Colors.text.tertiary}
         multiline numberOfLines={3} />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.saveBtn, !title.trim() && styles.saveBtnDisabled]}
         onPress={handleSave}
         disabled={!title.trim()}

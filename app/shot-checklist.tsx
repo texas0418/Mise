@@ -154,7 +154,7 @@ export default function ShotChecklistScreen() {
           const isCollapsed = collapsedScenes.has(s.sceneNumber);
           const allDone = sceneDone === sceneTotal;
           return (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               style={[styles.sceneHeader, allDone && styles.sceneHeaderDone]}
               onPress={() => toggleScene(s.sceneNumber)}
               activeOpacity={0.7}
@@ -187,7 +187,7 @@ export default function ShotChecklistScreen() {
             <View style={styles.progressCard}>
               <View style={styles.progressHeader}>
                 <Text style={styles.progressTitle}>Daily Progress</Text>
-                <TouchableOpacity onPress={resetAll} style={styles.resetBtn}>
+                <TouchableOpacity accessibilityRole="button" onPress={resetAll} style={styles.resetBtn}>
                   <RotateCcw color={Colors.text.tertiary} size={14} />
                   <Text style={styles.resetText}>Reset</Text>
                 </TouchableOpacity>
@@ -227,7 +227,7 @@ export default function ShotChecklistScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a shot"
         style={styles.fab}
         onPress={() => router.push('/new-shot' as never)}
         activeOpacity={0.8}

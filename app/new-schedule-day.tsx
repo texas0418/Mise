@@ -183,7 +183,7 @@ export default function NewScheduleDayScreen() {
           multiline numberOfLines={4} textAlignVertical="top" />
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-schedule-button">
+      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-schedule-button">
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Shoot Day'}</Text>
       </TouchableOpacity>
     </ScrollView>

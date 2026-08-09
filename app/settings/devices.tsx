@@ -83,13 +83,13 @@ export default function DevicesScreen() {
             {/* Actions */}
             <View style={s.deviceActions}>
               {device.isLicensed && (
-                <TouchableOpacity style={s.actionBtn} onPress={() => handleDeactivate(device.id, device.deviceName)} activeOpacity={0.7}>
+                <TouchableOpacity accessibilityRole="button" style={s.actionBtn} onPress={() => handleDeactivate(device.id, device.deviceName)} activeOpacity={0.7}>
                   <ShieldOff color={Colors.status.warning} size={14} />
                   <Text style={[s.actionText, { color: Colors.status.warning }]}>Deactivate</Text>
                 </TouchableOpacity>
               )}
               {!isCurrent && (
-                <TouchableOpacity style={s.actionBtn} onPress={() => handleRemove(device.id, device.deviceName)} activeOpacity={0.7}>
+                <TouchableOpacity accessibilityRole="button" style={s.actionBtn} onPress={() => handleRemove(device.id, device.deviceName)} activeOpacity={0.7}>
                   <Trash2 color={Colors.status.error} size={14} />
                   <Text style={[s.actionText, { color: Colors.status.error }]}>Remove</Text>
                 </TouchableOpacity>

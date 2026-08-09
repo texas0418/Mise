@@ -91,7 +91,7 @@ export default function NotificationSettings({ onPrefsChanged }: Props) {
   return (
     <View style={styles.card}>
       {/* Header */}
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={styles.headerRow}
         onPress={() => setExpanded(!expanded)}
         activeOpacity={0.7}
@@ -160,7 +160,7 @@ export default function NotificationSettings({ onPrefsChanged }: Props) {
               </View>
             </View>
             <View style={styles.settingRight}>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 style={styles.minuteBtn}
                 onPress={() => { setShowCallPicker(!showCallPicker); setShowWrapPicker(false); }}
                 activeOpacity={0.7}
@@ -181,7 +181,7 @@ export default function NotificationSettings({ onPrefsChanged }: Props) {
           {showCallPicker && (
             <View style={styles.pickerRow}>
               {MINUTE_OPTIONS.map(m => (
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   key={m}
                   style={[styles.pickerChip, prefs.callTimeMinutesBefore === m && styles.pickerChipActive]}
                   onPress={() => { updatePref({ callTimeMinutesBefore: m }); setShowCallPicker(false); }}
@@ -207,7 +207,7 @@ export default function NotificationSettings({ onPrefsChanged }: Props) {
               </View>
             </View>
             <View style={styles.settingRight}>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 style={styles.minuteBtn}
                 onPress={() => { setShowWrapPicker(!showWrapPicker); setShowCallPicker(false); }}
                 activeOpacity={0.7}
@@ -228,7 +228,7 @@ export default function NotificationSettings({ onPrefsChanged }: Props) {
           {showWrapPicker && (
             <View style={styles.pickerRow}>
               {MINUTE_OPTIONS.map(m => (
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   key={m}
                   style={[styles.pickerChip, prefs.wrapTimeMinutesBefore === m && styles.pickerChipActive]}
                   onPress={() => { updatePref({ wrapTimeMinutesBefore: m }); setShowWrapPicker(false); }}

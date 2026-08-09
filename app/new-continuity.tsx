@@ -127,18 +127,18 @@ export default function NewContinuityScreen() {
           <View style={styles.photoContainer}>
             <Image source={{ uri: resolvePhotoUri(photoUrl) }} style={styles.photoPreview} resizeMode="cover" />
             <View style={styles.photoActions}>
-              <TouchableOpacity onPress={handleAddPhoto} style={styles.photoChangeBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={handleAddPhoto} style={styles.photoChangeBtn}>
                 <Camera color={Colors.accent.gold} size={14} />
                 <Text style={styles.photoChangeBtnText}>Change</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setPhotoUrl(null)} style={styles.photoRemoveBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={() => setPhotoUrl(null)} style={styles.photoRemoveBtn}>
                 <X color={Colors.status.error} size={14} />
                 <Text style={styles.photoRemoveBtnText}>Remove</Text>
               </TouchableOpacity>
             </View>
           </View>
         ) : (
-          <TouchableOpacity style={styles.photoPlaceholder} onPress={handleAddPhoto} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" style={styles.photoPlaceholder} onPress={handleAddPhoto} activeOpacity={0.7}>
             <Camera color={Colors.text.tertiary} size={28} />
             <Text style={styles.photoPlaceholderText}>Take Photo or Choose from Library</Text>
             <Text style={styles.photoPlaceholderHint}>Tap to add a reference photo</Text>
@@ -146,7 +146,7 @@ export default function NewContinuityScreen() {
         )}
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Continuity Note'}</Text>
       </TouchableOpacity>
     </ScrollView>

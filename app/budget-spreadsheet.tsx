@@ -151,7 +151,7 @@ function SpreadsheetRow({
       );
     }
     return (
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.cell, { width }]}
         onPress={() => onStartEdit({ itemId: item.id, field })}
         activeOpacity={0.6}
@@ -207,6 +207,10 @@ function SpreadsheetRow({
         style={[styles.cell, { width: COL.paid, alignItems: 'center' }]}
         onPress={() => onTogglePaid(item)}
         activeOpacity={0.6}
+        accessibilityRole="button"
+        accessibilityLabel={item.paid ? `${item.description}: paid` : `${item.description}: not paid`}
+        accessibilityState={{ selected: !!item.paid }}
+        accessibilityHint="Marks this item paid or unpaid"
       >
         <View style={[styles.paidCheckbox, item.paid && styles.paidCheckboxChecked]}>
           {item.paid && <Check color={Colors.text.inverse} size={12} />}
@@ -215,7 +219,8 @@ function SpreadsheetRow({
 
       {/* Actions */}
       <View style={[styles.cell, { width: COL.actions, flexDirection: 'row', gap: 8, justifyContent: 'center' }]}>
-        <TouchableOpacity onPress={() => onDelete(item)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity onPress={() => onDelete(item)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button" accessibilityLabel={`Delete ${item.description}`}>
           <Trash2 color={Colors.status.error + '88'} size={14} />
         </TouchableOpacity>
       </View>
@@ -236,7 +241,7 @@ function CategoryGroupHeader({
   const variance = group.subtotalEstimated - group.subtotalActual;
 
   return (
-    <TouchableOpacity style={styles.groupHeader} onPress={onToggle} activeOpacity={0.7}>
+    <TouchableOpacity accessibilityRole="button" style={styles.groupHeader} onPress={onToggle} activeOpacity={0.7}>
       <View style={styles.groupHeaderLeft}>
         {collapsed
           ? <ChevronRight color={catColor} size={14} />
@@ -421,6 +426,9 @@ export default function BudgetSpreadsheetScreen() {
                     exportBudgetToXlsx(budget, activeProject!.title);
                   }}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Export the budget"
+                  accessibilityHint="Saves the budget as a spreadsheet"
                 >
                   <Download color={Colors.text.secondary} size={20} />
                 </TouchableOpacity>
@@ -428,6 +436,8 @@ export default function BudgetSpreadsheetScreen() {
                   style={styles.viewToggle}
                   onPress={() => router.replace('/budget' as never)}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Switch to list view"
                 >
                   <LayoutList color={Colors.text.secondary} size={20} />
                 </TouchableOpacity>
@@ -548,7 +558,7 @@ export default function BudgetSpreadsheetScreen() {
         </KeyboardAvoidingView>
 
         {/* FAB */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a budget item"
           style={styles.fab}
           onPress={() => router.push('/new-budget-item' as never)}
           activeOpacity={0.8}

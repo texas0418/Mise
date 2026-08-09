@@ -57,7 +57,7 @@ function DayPicker<T extends { id: string; dayNumber: number; date: string }>({
   return (
     <View style={styles.dayPicker}>
       <Text style={styles.dayPickerLabel}>{label}</Text>
-      <TouchableOpacity style={styles.dayPickerButton} onPress={() => setOpen(!open)} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={styles.dayPickerButton} onPress={() => setOpen(!open)} activeOpacity={0.7}>
         <Text style={styles.dayPickerValue}>
           {selected ? `Day ${selected.dayNumber} — ${selected.date}` : 'Choose a day'}
         </Text>
@@ -66,7 +66,7 @@ function DayPicker<T extends { id: string; dayNumber: number; date: string }>({
       {open && (
         <View style={styles.dayList}>
           {days.map(d => (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               key={d.id}
               style={[styles.dayOption, d.id === selected?.id && styles.dayOptionActive]}
               onPress={() => { onSelect(d.id); setOpen(false); }}

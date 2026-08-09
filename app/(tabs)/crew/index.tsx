@@ -40,10 +40,12 @@ function CrewCard({ member }: { member: CrewMember }) {
         <Text style={styles.crewRole}>{member.role}</Text>
       </View>
       <View style={styles.crewActions}>
-        <TouchableOpacity style={styles.actionBtn} onPress={handleCall} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.actionBtn} onPress={handleCall} activeOpacity={0.7}
+          accessibilityRole="button" accessibilityLabel={`Call ${member.name}`}>
           <Phone color={Colors.text.tertiary} size={16} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn} onPress={handleEmail} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.actionBtn} onPress={handleEmail} activeOpacity={0.7}
+          accessibilityRole="button" accessibilityLabel={`Email ${member.name}`}>
           <Mail color={Colors.text.tertiary} size={16} />
         </TouchableOpacity>
       </View>
@@ -100,7 +102,7 @@ export default function CrewScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a crew member"
         style={styles.fab}
         onPress={() => router.push('/new-crew' as never)}
         activeOpacity={0.8}

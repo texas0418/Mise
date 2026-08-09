@@ -59,10 +59,12 @@ function CrewCard({ member, isExpanded, onPress, onEdit, onDelete }: {
           <View style={styles.crewActions}>
             <TouchableOpacity style={styles.actionBtn} onPress={() => {
               if (Platform.OS !== 'web') Linking.openURL(`tel:${member.phone}`);
-            }} activeOpacity={0.7}>
+            }} activeOpacity={0.7}
+              accessibilityRole="button" accessibilityLabel={`Call ${member.name}`}>
               <Phone color={Colors.text.tertiary} size={16} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(`mailto:${member.email}`)} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.actionBtn} onPress={() => Linking.openURL(`mailto:${member.email}`)} activeOpacity={0.7}
+              accessibilityRole="button" accessibilityLabel={`Email ${member.name}`}>
               <Mail color={Colors.text.tertiary} size={16} />
             </TouchableOpacity>
           </View>
@@ -87,7 +89,7 @@ function CrewCard({ member, isExpanded, onPress, onEdit, onDelete }: {
           </View>
 
           {member.phone ? (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               style={styles.contactRow}
               onPress={() => { if (Platform.OS !== 'web') Linking.openURL(`tel:${member.phone}`); }}
               activeOpacity={0.7}
@@ -98,7 +100,7 @@ function CrewCard({ member, isExpanded, onPress, onEdit, onDelete }: {
           ) : null}
 
           {member.email ? (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               style={styles.contactRow}
               onPress={() => Linking.openURL(`mailto:${member.email}`)}
               activeOpacity={0.7}
@@ -109,11 +111,11 @@ function CrewCard({ member, isExpanded, onPress, onEdit, onDelete }: {
           ) : null}
 
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -304,13 +306,16 @@ export default function CrewDirectoryScreen() {
                   placeholderTextColor={Colors.text.tertiary}
                 />
                 {searchQuery.length > 0 && (
-                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <TouchableOpacity accessibilityRole="button" onPress={() => setSearchQuery('')}>
                     <Text style={styles.clearSearch}>✕</Text>
                   </TouchableOpacity>
                 )}
               </View>
               <TouchableOpacity
                 style={[styles.sortBtn, showSortOptions && styles.sortBtnActive]}
+                accessibilityRole="button"
+                accessibilityLabel="Sort the crew list"
+                accessibilityState={{ expanded: showSortOptions }}
                 onPress={() => setShowSortOptions(!showSortOptions)}
               >
                 <ArrowUpDown color={showSortOptions ? Colors.accent.gold : Colors.text.tertiary} size={16} />
@@ -321,7 +326,7 @@ export default function CrewDirectoryScreen() {
             {showSortOptions && (
               <View style={styles.sortRow}>
                 {SORT_OPTIONS.map(opt => (
-                  <TouchableOpacity key={opt.key}
+                  <TouchableOpacity accessibilityRole="button" key={opt.key}
                     style={[styles.sortChip, sortMode === opt.key && styles.sortChipActive]}
                     onPress={() => { setSortMode(opt.key); setShowSortOptions(false); }}>
                     <Text style={[styles.sortChipText, sortMode === opt.key && styles.sortChipTextActive]}>{opt.label}</Text>
@@ -332,13 +337,13 @@ export default function CrewDirectoryScreen() {
 
             {/* Department filter */}
             <View style={styles.filterRow}>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 style={[styles.filterChip, deptFilter === 'all' && styles.filterChipActive]}
                 onPress={() => setDeptFilter('all')}>
                 <Text style={[styles.filterChipText, deptFilter === 'all' && styles.filterChipTextActive]}>All</Text>
               </TouchableOpacity>
               {activeDepts.map(dept => (
-                <TouchableOpacity key={dept}
+                <TouchableOpacity accessibilityRole="button" key={dept}
                   style={[styles.filterChip, deptFilter === dept && styles.filterChipActive]}
                   onPress={() => setDeptFilter(deptFilter === dept ? 'all' : dept)}>
                   <View style={[styles.filterDot, { backgroundColor: Colors.department[dept] }]} />
@@ -363,7 +368,7 @@ export default function CrewDirectoryScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-crew' as never)} activeOpacity={0.8} testID="add-crew-button">
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a crew member" style={styles.fab} onPress={() => router.push('/new-crew' as never)} activeOpacity={0.8} testID="add-crew-button">
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>

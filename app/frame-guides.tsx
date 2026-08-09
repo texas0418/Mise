@@ -36,7 +36,7 @@ export default function FrameGuidesScreen() {
         const displayWidth = displayHeight * ratio.value;
 
         return (
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             key={ratio.label}
             style={[styles.ratioCard, isSelected && styles.ratioCardActive]}
             onPress={() => setSelected(isSelected ? null : i)}

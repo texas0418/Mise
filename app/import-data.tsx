@@ -279,7 +279,7 @@ function PickStep({ entityConfig, loading, onPickFile }: {
           The first row should contain column headers.
         </Text>
 
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.pickButton}
           onPress={onPickFile}
           disabled={loading}
@@ -305,7 +305,7 @@ function PickStep({ entityConfig, loading, onPickFile }: {
         </View>
 
         {/* Download template */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.templateBtn}
           onPress={() => shareCSVTemplate(entityConfig.key).catch(e =>
             Alert.alert('Error', e instanceof Error ? e.message : 'Could not share template')
@@ -423,11 +423,11 @@ function MapStep({ parsedData, mappingResult, entityConfig, expandedColumn, onEx
 
       {/* Bottom nav */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
           <ArrowLeft color={Colors.text.secondary} size={18} />
           <Text style={styles.backBtnText}>Back</Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.nextBtn, !mappingResult.isValid && styles.nextBtnDisabled]}
           onPress={onNext}
           disabled={!mappingResult.isValid}
@@ -464,7 +464,7 @@ function ColumnMappingCard({ mapping, entityConfig, previewValues, isExpanded, u
 
   return (
     <View style={[styles.mappingCard, isExpanded && styles.mappingCardExpanded]}>
-      <TouchableOpacity style={styles.mappingCardHeader} onPress={onToggleExpand} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={styles.mappingCardHeader} onPress={onToggleExpand} activeOpacity={0.7}>
         {/* Left: column info */}
         <View style={styles.mappingLeft}>
           <Columns color={Colors.text.tertiary} size={14} />
@@ -502,7 +502,7 @@ function ColumnMappingCard({ mapping, entityConfig, previewValues, isExpanded, u
 
           {/* Current mapping — option to unmap */}
           {mapping.mappedField && (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               style={styles.fieldOption}
               onPress={() => onSelectField(null)}
               activeOpacity={0.7}
@@ -521,7 +521,7 @@ function ColumnMappingCard({ mapping, entityConfig, previewValues, isExpanded, u
           ].map(field => {
             const isCurrentlyMapped = mapping.mappedField === field.key;
             return (
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 key={field.key}
                 style={[styles.fieldOption, isCurrentlyMapped && styles.fieldOptionSelected]}
                 onPress={() => onSelectField(field.key)}
@@ -633,11 +633,11 @@ function ConfirmStep({ parsedData, mappingResult, entityConfig, convertedRows, i
 
       {/* Bottom nav */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
           <ArrowLeft color={Colors.text.secondary} size={18} />
           <Text style={styles.backBtnText}>Back</Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.confirmBtn}
           onPress={onConfirm}
           disabled={importing}

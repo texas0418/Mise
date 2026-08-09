@@ -106,14 +106,14 @@ export default function NewFestivalScreen() {
       </View>
       <View style={styles.field}>
         <Text style={styles.label}>Status</Text>
-        <TouchableOpacity style={styles.selector} onPress={() => setShowStatus(!showStatus)}>
+        <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowStatus(!showStatus)}>
           <Text style={styles.selectorText}>{STATUS_OPTIONS.find(s => s.value === status)?.label}</Text>
           <ChevronDown color={Colors.text.tertiary} size={18} />
         </TouchableOpacity>
         {showStatus && (
           <View style={styles.optionsList}>
             {STATUS_OPTIONS.map(s => (
-              <TouchableOpacity key={s.value} style={[styles.option, status === s.value && styles.optionActive]}
+              <TouchableOpacity accessibilityRole="button" key={s.value} style={[styles.option, status === s.value && styles.optionActive]}
                 onPress={() => { setStatus(s.value); setShowStatus(false); }}>
                 <Text style={[styles.optionText, status === s.value && styles.optionTextActive]}>{s.label}</Text>
               </TouchableOpacity>
@@ -133,7 +133,7 @@ export default function NewFestivalScreen() {
         <Text style={styles.label}>Notes</Text>
         <TextInput style={[styles.input, styles.textArea]} value={notes} onChangeText={setNotes} placeholder="Premiere requirements, tips, contacts..." placeholderTextColor={Colors.text.tertiary} multiline numberOfLines={3} textAlignVertical="top" />
       </View>
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Festival'}</Text>
       </TouchableOpacity>
     </ScrollView>

@@ -101,14 +101,14 @@ export default function NewMoodItemScreen() {
 
       <View style={styles.field}>
         <Text style={styles.label}>Item Type</Text>
-        <TouchableOpacity style={styles.selector} onPress={() => setShowType(!showType)}>
+        <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowType(!showType)}>
           <Text style={styles.selectorText}>{TYPE_OPTIONS.find(t => t.value === type)?.label}</Text>
           <ChevronDown color={Colors.text.tertiary} size={18} />
         </TouchableOpacity>
         {showType && (
           <View style={styles.optionsList}>
             {TYPE_OPTIONS.map(t => (
-              <TouchableOpacity key={t.value}
+              <TouchableOpacity accessibilityRole="button" key={t.value}
                 style={[styles.option, type === t.value && styles.optionActive]}
                 onPress={() => { setType(t.value); setShowType(false); }}>
                 <Text style={[styles.optionText, type === t.value && styles.optionTextActive]}>{t.label}</Text>
@@ -130,14 +130,14 @@ export default function NewMoodItemScreen() {
           {imageUrl ? (
             <View style={styles.imagePreviewWrap}>
               <Image source={{ uri: resolvePhotoUri(imageUrl) }} style={styles.imagePreview} contentFit="cover" />
-              <TouchableOpacity style={styles.changePhotoBtn} onPress={() => {
+              <TouchableOpacity accessibilityRole="button" style={styles.changePhotoBtn} onPress={() => {
                 showImagePickerOptions((uri) => setImageUrl(uri));
               }}>
                 <Text style={styles.changePhotoText}>Change Photo</Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity style={styles.pickImageBtn} onPress={() => {
+            <TouchableOpacity accessibilityRole="button" style={styles.pickImageBtn} onPress={() => {
               showImagePickerOptions((uri) => setImageUrl(uri));
             }}>
               <ImagePlus color={Colors.accent.gold} size={28} />
@@ -171,7 +171,7 @@ export default function NewMoodItemScreen() {
         </View>
       )}
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add to Mood Board'}</Text>
       </TouchableOpacity>
     </ScrollView>

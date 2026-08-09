@@ -139,7 +139,8 @@ export default function SyncStatusIndicator({
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessibilityRole="button" accessibilityLabel={`Sync status: ${label}`} accessibilityHint="Opens sync settings">
         {pill}
       </TouchableOpacity>
     );

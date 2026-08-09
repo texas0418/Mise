@@ -164,7 +164,7 @@ function ForecastCard({ day, isExpanded, onToggle }: { day: DayForecast; isExpan
   const isToday = new Date().toISOString().split('T')[0] === day.date;
 
   return (
-    <TouchableOpacity
+    <TouchableOpacity accessibilityRole="button"
       style={[styles.card, isToday && styles.cardToday]}
       onPress={onToggle}
       activeOpacity={0.7}
@@ -250,11 +250,13 @@ function WeatherSection({ title, subtitle, forecast, loading, error, onRefresh, 
           )}
         </View>
         <View style={{ flexDirection: 'row', gap: 4 }}>
-          <TouchableOpacity onPress={onRefresh} style={styles.refreshBtn}>
+          <TouchableOpacity onPress={onRefresh} style={styles.refreshBtn}
+            accessibilityRole="button" accessibilityLabel="Refresh the forecast">
             <RefreshCw color={Colors.accent.gold} size={16} />
           </TouchableOpacity>
           {onDismiss && (
-            <TouchableOpacity onPress={onDismiss} style={styles.refreshBtn}>
+            <TouchableOpacity onPress={onDismiss} style={styles.refreshBtn}
+              accessibilityRole="button" accessibilityLabel="Dismiss the forecast">
               <X color={Colors.text.tertiary} size={16} />
             </TouchableOpacity>
           )}
@@ -536,18 +538,19 @@ export default function LocationWeatherScreen() {
               onSubmitEditing={handleSearch}
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); }}>
+              <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); }}
+                accessibilityRole="button" accessibilityLabel="Clear the search">
                 <X color={Colors.text.tertiary} size={14} />
               </TouchableOpacity>
             )}
           </View>
-          <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
+          <TouchableOpacity accessibilityRole="button" style={styles.searchBtn} onPress={handleSearch}>
             <Text style={styles.searchBtnText}>Go</Text>
           </TouchableOpacity>
         </View>
 
         {/* GPS button */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.gpsBtn}
           onPress={handleCurrentLocation}
           activeOpacity={0.7}
@@ -577,7 +580,7 @@ export default function LocationWeatherScreen() {
         <View style={styles.resultsDropdown}>
           <Text style={styles.resultsHint}>Select a location:</Text>
           {searchResults.map((geo, i) => (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               key={`${geo.lat}-${geo.lon}-${i}`}
               style={styles.resultItem}
               onPress={() => addSearchSection(geo)}

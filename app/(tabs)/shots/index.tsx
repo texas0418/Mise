@@ -36,7 +36,7 @@ function ShotCard({ shot, onEdit, onDelete }: { shot: Shot; onEdit: () => void; 
   };
 
   const renderRightActions = () => (
-    <TouchableOpacity
+    <TouchableOpacity accessibilityRole="button"
       style={styles.deleteAction}
       onPress={() => {
         swipeableRef.current?.close();
@@ -118,11 +118,11 @@ function ShotCard({ shot, onEdit, onDelete }: { shot: Shot; onEdit: () => void; 
 
             {/* Edit / Delete actions */}
             <View style={styles.actionRow}>
-              <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
                 <Pencil color={Colors.accent.gold} size={15} />
                 <Text style={styles.editBtnText}>Edit</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+              <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
                 <Trash2 color={Colors.status.error} size={15} />
                 <Text style={styles.deleteBtnText}>Delete</Text>
               </TouchableOpacity>
@@ -235,7 +235,7 @@ export default function ShotsScreen() {
           </View>
         }
       />
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-shot' as never)} activeOpacity={0.8} testID="add-shot-button">
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a shot" style={styles.fab} onPress={() => router.push('/new-shot' as never)} activeOpacity={0.8} testID="add-shot-button">
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>

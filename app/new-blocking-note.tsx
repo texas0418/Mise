@@ -100,7 +100,7 @@ export default function NewBlockingNoteScreen() {
       <TextInput style={[styles.input, styles.multiline]} value={notes} onChangeText={setNotes}
         placeholder="Safety, props, wardrobe notes..." placeholderTextColor={Colors.text.tertiary} multiline />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.saveBtn, (!title.trim() || !sceneNumber) && styles.saveBtnDisabled]}
         onPress={handleSave}
         disabled={!title.trim() || !sceneNumber}

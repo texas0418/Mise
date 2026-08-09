@@ -118,7 +118,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
     <View style={styles.container}>
       {/* Skip button */}
       {!isLastSlide && (
-        <TouchableOpacity style={styles.skipBtn} onPress={onComplete} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.skipBtn} onPress={onComplete} activeOpacity={0.7}>
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       )}
@@ -167,12 +167,12 @@ export default function OnboardingFlow({ onComplete }: Props) {
 
         {/* Action button */}
         {isLastSlide ? (
-          <TouchableOpacity style={styles.startBtn} onPress={onComplete} activeOpacity={0.8}>
+          <TouchableOpacity accessibilityRole="button" style={styles.startBtn} onPress={onComplete} activeOpacity={0.8}>
             <Text style={styles.startBtnText}>Get Started</Text>
             <ArrowRight color={Colors.text.inverse} size={20} />
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.nextBtn} onPress={goToNext} activeOpacity={0.8}>
+          <TouchableOpacity accessibilityRole="button" style={styles.nextBtn} onPress={goToNext} activeOpacity={0.8}>
             <Text style={styles.nextBtnText}>Next</Text>
             <ChevronRight color={Colors.accent.gold} size={18} />
           </TouchableOpacity>

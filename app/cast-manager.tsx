@@ -102,7 +102,7 @@ function CastCard({ member, index, onEdit, onDelete, onStatusChange }: {
                   const cfg = STATUS_CONFIG[s];
                   const isActive = member.status === s;
                   return (
-                    <TouchableOpacity
+                    <TouchableOpacity accessibilityRole="button"
                       key={s}
                       style={[
                         styles.statusToggleChip,
@@ -196,11 +196,11 @@ function CastCard({ member, index, onEdit, onDelete, onStatusChange }: {
 
             {/* Action buttons */}
             <View style={styles.footerActions}>
-              <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
                 <Pencil color={Colors.accent.gold} size={15} />
                 <Text style={styles.editBtnText}>Edit</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+              <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
                 <Trash2 color={Colors.status.error} size={15} />
                 <Text style={styles.deleteBtnText}>Delete</Text>
               </TouchableOpacity>
@@ -288,7 +288,7 @@ export default function CastManagerScreen() {
 
             <View style={styles.filterRow}>
               {filters.map(f => (
-                <TouchableOpacity key={f.key}
+                <TouchableOpacity accessibilityRole="button" key={f.key}
                   style={[styles.filterChip, filter === f.key && styles.filterChipActive]}
                   onPress={() => setFilter(f.key)}>
                   <Text style={[styles.filterChipText, filter === f.key && styles.filterChipTextActive]}>{f.label}</Text>
@@ -306,7 +306,7 @@ export default function CastManagerScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a cast member"
         style={styles.fab}
         onPress={() => router.push('/new-cast-member' as never)}
         activeOpacity={0.8}

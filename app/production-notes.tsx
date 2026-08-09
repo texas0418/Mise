@@ -89,11 +89,11 @@ function NoteCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 
           {/* Actions */}
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -158,7 +158,7 @@ export default function ProductionNotesScreen() {
 
       {/* Category filter chips */}
       <View style={styles.filterRow}>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.filterChip, !filterCat && styles.filterChipActive]}
           onPress={() => setFilterCat(null)}
         >
@@ -170,7 +170,7 @@ export default function ProductionNotesScreen() {
           const isActive = filterCat === c.value;
           const color = CAT_COLORS[c.value];
           return (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               key={c.value}
               style={[styles.filterChip, isActive && { backgroundColor: color + '18', borderColor: color + '44' }]}
               onPress={() => setFilterCat(isActive ? null : c.value)}
@@ -210,7 +210,7 @@ export default function ProductionNotesScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-note' as never)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a production note" style={styles.fab} onPress={() => router.push('/new-note' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>

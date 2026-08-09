@@ -48,7 +48,7 @@ export default function LensCalculatorScreen() {
         <Text style={styles.sectionTitle}>Sensor Format</Text>
         <View style={styles.sensorRow}>
           {SENSOR_SIZES.map((s, i) => (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               key={s.label}
               style={[styles.sensorChip, selectedSensor === i && styles.sensorChipActive]}
               onPress={() => setSelectedSensor(i)}
@@ -78,7 +78,7 @@ export default function LensCalculatorScreen() {
       <View style={styles.lensSection}>
         <Text style={styles.sectionTitle}>Focal Length Reference</Text>
         {lensInfo.map((lens, i) => (
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             key={lens.focal}
             style={[styles.lensCard, selectedLens === i && styles.lensCardActive]}
             onPress={() => setSelectedLens(selectedLens === i ? null : i)}

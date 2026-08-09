@@ -100,7 +100,7 @@ function ProjectCard({ project, index, isActive, onPress, onDelete, onArchive, o
   return (
     <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
       <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.projectCard, isActive && styles.projectCardActive]}
           onPress={onPress}
           activeOpacity={0.7}
@@ -276,7 +276,7 @@ export default function ProjectsScreen() {
               Every tool in Mise works on a project. Start with the title and
               you can fill in the rest later.
             </Text>
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               style={styles.emptyCta}
               onPress={() => router.push('/new-project' as never)}
               activeOpacity={0.8}
@@ -289,7 +289,7 @@ export default function ProjectsScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a film"
         style={styles.fab}
         onPress={() => router.push('/new-project' as never)}
         activeOpacity={0.8}
