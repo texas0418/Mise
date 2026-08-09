@@ -282,6 +282,32 @@ export interface MoodBoardItem {
   label: string;
 }
 
+/**
+ * When an actor is due, on one particular day.
+ *
+ * Per shoot day, not per production: makeup at 5:30 on a prosthetics day and
+ * 7:15 on the next is the normal case, and it is the reason call sheets get
+ * reissued at all. `CrewAssignment.callTime` is still per-production (#39) and
+ * is expected to move to this shape.
+ *
+ * A missing row, or a blank field, means that person is on the general call —
+ * so nothing has to be filled in for the sheet to be correct.
+ */
+export interface CastCallTime {
+  id: string;
+  projectId: string;
+  scheduleDayId: string;
+  castMemberId: string;
+  /** In the makeup chair. */
+  makeupTime?: string;
+  /** In wardrobe. */
+  wardrobeTime?: string;
+  /** On set, ready to shoot — the time that actually matters to the day. */
+  onSetTime?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface CallSheetEntry {
   id: string;
   projectId: string;

@@ -8,6 +8,7 @@ import {
 import {
   useProjects, useProjectShots, useProjectSchedule, useProjectBudget,
   useProjectWrapReports, useProjectScenes, useProjectSelects, useProjectTakes, useProjectCrew,
+  useProjectCast,
 } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -16,6 +17,7 @@ import {
   buildBudgetHtml, buildSelectsHtml, selectsCsv, takesCsv, budgetCsv,
 } from '@/utils/exportDocuments';
 import { toCsv } from '@/utils/csv';
+import { castTimesForDay } from '@/utils/callSheet';
 import { sharePdf, shareCsv } from '@/utils/shareDocument';
 import { ScheduleDay, WrapReport } from '@/types';
 
@@ -80,8 +82,9 @@ function DayPicker<T extends { id: string; dayNumber: number; date: string }>({
 }
 
 export default function ExportShareScreen() {
-  const { activeProject, activeProjectId } = useProjects();
+  const { activeProject, activeProjectId, castCallTimes } = useProjects();
   const crew = useProjectCrew(activeProjectId);
+  const cast = useProjectCast(activeProjectId);
   const shots = useProjectShots(activeProjectId);
   const schedule = useProjectSchedule(activeProjectId);
   const scenes = useProjectScenes(activeProjectId);
@@ -120,7 +123,12 @@ export default function ExportShareScreen() {
           await sharePdf(buildScheduleHtml(activeProject, schedule, scenes), name); break;
         case 'call-sheet': {
           const day = pickDay<ScheduleDay>(schedule, scheduleDayId);
-          if (day) await sharePdf(buildCallSheetHtml(activeProject, day, scenes, crew), `${activeProject.title} Call Sheet Day ${day.dayNumber}`);
+          if (day) {
+            await sharePdf(
+              buildCallSheetHtml(activeProject, day, scenes, crew, cast, castTimesForDay(castCallTimes ?? [], day.id)),
+              `${activeProject.title} Call Sheet Day ${day.dayNumber}`,
+            );
+          }
           break;
         }
         case 'wrap-report': {
@@ -136,8 +144,8 @@ export default function ExportShareScreen() {
     } finally {
       setBusy(null);
     }
-  }, [activeProject, shots, scenes, schedule, crew, budget, wrapReports, selects, takes,
-      scheduleDayId, wrapReportId]);
+  }, [activeProject, shots, scenes, schedule, crew, cast, castCallTimes, budget, wrapReports,
+      selects, takes, scheduleDayId, wrapReportId]);
 
   if (!activeProject) {
     return (
