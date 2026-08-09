@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectTimeEntries } from '@/contexts/ProjectContext';
 import { DEPARTMENTS } from '@/constants/filmData';
 import Colors from '@/constants/colors';
 import { Department } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewTimeEntryScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { activeProjectId, addTimeEntry, updateTimeEntry } = useProjects();
   const entries = useProjectTimeEntries(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

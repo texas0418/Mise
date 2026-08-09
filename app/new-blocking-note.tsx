@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useProjects, useProjectBlockingNotes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewBlockingNoteScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { activeProjectId, addBlockingNote, updateBlockingNote } = useProjects();
   const blockingNotes = useProjectBlockingNotes(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

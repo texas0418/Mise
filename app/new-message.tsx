@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { useRouter } from 'expo-router';
 import { Send, Zap } from 'lucide-react-native';
 import { useProjects } from '@/contexts/ProjectContext';
 import { MESSAGE_TEMPLATES } from '@/constants/filmData';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { DirectorMessage, MessagePriority, MessageCategory } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const PRIORITY_OPTIONS: { key: MessagePriority; label: string; color: string }[] = [
   { key: 'normal', label: 'Normal', color: Colors.text.secondary },
@@ -19,7 +19,7 @@ const RECIPIENT_OPTIONS = ['All Departments', 'Camera', 'Sound', 'Lighting', 'Ar
 
 export default function NewMessageScreen() {
   const { activeProjectId, addMessage } = useProjects();
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
 
   const [showTemplates, setShowTemplates] = useState(true);

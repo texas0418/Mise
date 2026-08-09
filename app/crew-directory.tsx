@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, Platform, Alert, TextInput } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Phone, Mail, Users, Plus, ChevronDown, ChevronUp, Pencil, Trash2, Search, ArrowUpDown } from 'lucide-react-native';
 import { useProjects, useProjectCrew } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
@@ -9,6 +9,7 @@ import ImportButton from '@/components/ImportButton';
 import AIImportButton from '@/components/AIImportButton';
 import { CrewMember, Department } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const DEPT_LABELS: Record<Department, string> = {
   direction: 'Direction', camera: 'Camera', sound: 'Sound', art: 'Art',
@@ -157,7 +158,7 @@ export default function CrewDirectoryScreen() {
     }
   }, [activeProjectId, crewAssignments, addCrewAssignment, deleteCrewAssignment]);
 
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');

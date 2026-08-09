@@ -1,10 +1,10 @@
 import React, { useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, SectionList, TouchableOpacity, Linking, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Plus, Phone, Mail, Users } from 'lucide-react-native';
 import { useProjects } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { CrewMember, Department } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const DEPT_LABELS: Record<Department, string> = {
   direction: 'Direction',
@@ -53,7 +53,7 @@ function CrewCard({ member }: { member: CrewMember }) {
 
 export default function CrewScreen() {
   const { crew } = useProjects();
-  const router = useRouter();
+  const router = useGuardedRouter();
 
   const sections = useMemo(() => {
     const grouped: Record<string, CrewMember[]> = {};

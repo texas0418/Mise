@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState, useCallback } from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
@@ -20,6 +20,7 @@ import { hasRunSceneMigration, runSceneMigration } from "@/lib/sceneMigration";
 import { hasRunCrewMigration, runCrewMigration } from "@/lib/crewMigration";
 import { noteFirstLaunch } from "@/utils/reviewPrompt";
 import OnboardingFlow from "@/components/OnboardingFlow";
+import { useGuardedRouter } from "@/utils/useGuardedRouter";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,7 +35,7 @@ const queryClient = new QueryClient();
  * "discard this". Cancel replaces it so there is exactly one obvious way out.
  */
 function ModalCancelButton() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   return (
     <TouchableOpacity
       onPress={() => router.back()}

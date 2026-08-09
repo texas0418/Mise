@@ -15,7 +15,7 @@ import {
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft, ChevronLeft, ChevronRight,
   Highlighter, MessageSquare, Undo2, X, Check,
@@ -27,6 +27,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getSignedScriptURL } from '@/utils/scriptPicker';
 import Colors from '@/constants/colors';
 import { ScriptRevisionColor, ScriptAnnotation } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -674,7 +675,7 @@ function useAnnotationTools({
 // Main component
 // ---------------------------------------------------------------------------
 export default function ScriptViewerScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const params = useLocalSearchParams<{ id?: string }>();
   const scriptId = params.id;
 

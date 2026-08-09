@@ -3,13 +3,14 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert,
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Image } from 'expo-image';
 import { Camera } from 'lucide-react-native';
-import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack } from 'expo-router';
 import { useProjects, useProjectLookbook } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import { pickImage } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { LookbookItem, LookbookSectionType } from '@/types';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const SECTION_OPTIONS: { value: LookbookSectionType; label: string }[] = [
   { value: 'tone', label: 'Tone & Mood' },
@@ -26,7 +27,7 @@ const SECTION_OPTIONS: { value: LookbookSectionType; label: string }[] = [
 export default function NewLookbookItemScreen() {
   const { activeProjectId, addLookbookItem, updateLookbookItem } = useProjects();
   const existingItems = useProjectLookbook(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id;

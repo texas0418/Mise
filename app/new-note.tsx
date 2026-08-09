@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectNotes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { NoteCategory } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const CATEGORY_OPTIONS: { label: string; value: NoteCategory }[] = [
   { label: 'General', value: 'general' },
@@ -18,7 +19,7 @@ const CATEGORY_OPTIONS: { label: string; value: NoteCategory }[] = [
 ];
 
 export default function NewNoteScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addNote, updateNote, activeProjectId, activeProject } = useProjects();
   const notes = useProjectNotes(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

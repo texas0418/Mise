@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, SectionList, TouchableOpacity, Alert } from 'react-native';
 import { Camera, Check, CheckCheck, Circle, CircleDot, RotateCcw, ChevronDown, ChevronUp, Plus } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
 import { useProjects, useProjectShots } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { Shot, ShotStatus } from '@/types';
 import { nextStatus, previousStatus, isComplete, describeTap } from '@/utils/shotStatus';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const STATUS_CONFIG: Record<ShotStatus, { label: string; color: string; icon: React.ElementType }> = {
   'planned': { label: 'Planned', color: Colors.text.tertiary, icon: Circle },
@@ -65,7 +65,7 @@ export default function ShotChecklistScreen() {
   const { activeProjectId, updateShot, updateShots } = useProjects();
   const shots = useProjectShots(activeProjectId);
   const { isTablet, contentPadding } = useLayout();
-  const router = useRouter();
+  const router = useGuardedRouter();
   const [collapsedScenes, setCollapsedScenes] = useState<Set<number>>(new Set());
 
   // Forward only, and it stops at approved. It used to wrap, so a stray tap on

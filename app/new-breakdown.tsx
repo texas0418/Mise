@@ -1,13 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectScenes } from '@/contexts/ProjectContext';
 import { parseEighths, formatEighths } from '@/utils/eighths';
 import Colors from '@/constants/colors';
 import { SceneIntExt, SceneTimeOfDay } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const INT_EXT_OPTIONS: { label: string; value: SceneIntExt }[] = [
   { label: 'INT', value: 'INT' },
@@ -24,7 +25,7 @@ const TIME_OPTIONS: { label: string; value: SceneTimeOfDay }[] = [
 ];
 
 export default function NewBreakdownScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addScene, updateScene, activeProjectId, activeProject } = useProjects();
   const breakdowns = useProjectScenes(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

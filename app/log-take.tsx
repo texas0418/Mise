@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { CircleCheck, CircleX, Trash2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectTakes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { Take } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 /** Existing take -> form field values. Module-level so the screen stays under
  *  the lint complexity ceiling. */
@@ -56,7 +57,7 @@ function TakeStatusRow({ isCircled, isNG, onToggleCircle, onToggleNG }: {
 }
 
 export default function LogTakeScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addTake, updateTake, deleteTake, activeProjectId, activeProject } = useProjects();
   const takes = useProjectTakes(activeProjectId);
 

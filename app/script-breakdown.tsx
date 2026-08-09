@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, FileText, MapPin, Clock, Users, Package, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectScenes } from '@/contexts/ProjectContext';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,6 +12,7 @@ import ImportButton from '@/components/ImportButton';
 import AIImportButton from '@/components/AIImportButton';
 import { Scene } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const TIME_COLORS: Record<string, string> = {
   'day': '#FBBF24',
@@ -169,7 +170,7 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function ScriptBreakdownScreen() {
   const { activeProject, activeProjectId, deleteScene } = useProjects();
   const breakdowns = useProjectScenes(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const queryClient = useQueryClient();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);

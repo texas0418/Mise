@@ -11,14 +11,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Mail, Lock, User } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function SignUpScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { signUp } = useAuth();
 
   const [displayName, setDisplayName] = useState('');

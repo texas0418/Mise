@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Image } from 'expo-image';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import {
   Film, Camera, CalendarDays, Users, MapPin, DollarSign,
   Clapperboard, ChevronRight, Trash2, Edit3, Clock, Check, Eye
@@ -10,6 +10,7 @@ import { useProjects, useProjectShots, useProjectSchedule } from '@/contexts/Pro
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { ProjectStatus, ShotStatus } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
   'development': 'Development',
@@ -38,7 +39,7 @@ const SHOT_STATUS_COLORS: Record<ShotStatus, string> = {
 export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { projects, deleteProject, selectProject } = useProjects();
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
 
   const project = projects.find(p => p.id === id) ?? null;

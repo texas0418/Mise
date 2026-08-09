@@ -19,7 +19,6 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import {
   RefreshCw,
   Trash2,
@@ -35,6 +34,7 @@ import {
 import { useSync } from '@/contexts/SyncContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -226,7 +226,7 @@ function ActionButton({
 
 // eslint-disable-next-line complexity -- tracked in #19
 export default function SyncSettingsScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const {
     syncStatus,
     pendingCount,

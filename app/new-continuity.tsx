@@ -1,16 +1,17 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Image, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { Camera, X, Image as ImageIcon } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectContinuity } from '@/contexts/ProjectContext';
 import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewContinuityScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addContinuityNote, updateContinuityNote, activeProjectId, activeProject } = useProjects();
   const notes = useProjectContinuity(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

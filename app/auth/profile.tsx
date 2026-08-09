@@ -9,15 +9,15 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { User, Lock, LogOut, Trash2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function ProfileScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { user, signOut, updateProfile, updatePassword } = useAuth();
 
   const [displayName, setDisplayName] = useState(

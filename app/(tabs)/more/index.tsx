@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, Alert, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
 import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, Trash2, LogIn, UserCircle, Smartphone, Cloud, ScrollText, Lightbulb } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProjects } from '@/contexts/ProjectContext';
@@ -10,6 +9,7 @@ import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 interface ToolItem {
   icon: React.ElementType;
@@ -62,7 +62,7 @@ const REFERENCE_TOOLS: ToolItem[] = [
 ];
 
 function ToolCard({ tool, index }: { tool: ToolItem; index: number }) {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, gridColumns } = useLayout();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -115,7 +115,7 @@ function AccountIdentityCard({
   isAuthenticated: boolean;
   user: { email?: string | null; user_metadata?: { display_name?: string } } | null;
 }) {
-  const router = useRouter();
+  const router = useGuardedRouter();
   if (isAuthenticated) {
     return (
       <TouchableOpacity style={styles.subscriptionCard} onPress={() => router.push('/auth/profile' as never)} activeOpacity={0.7}>
@@ -143,7 +143,7 @@ function AccountIdentityCard({
 }
 
 function AuthedSettingsGroup({ hasProject }: { hasProject: boolean }) {
-  const router = useRouter();
+  const router = useGuardedRouter();
   return (
     <View style={styles.settingsGroup}>
       <TouchableOpacity style={styles.settingsRow} onPress={() => router.push('/settings/sync' as never)} activeOpacity={0.7}>
@@ -170,7 +170,7 @@ function AuthedSettingsGroup({ hasProject }: { hasProject: boolean }) {
 }
 
 function ProStatusCard({ isPro }: { isPro: boolean }) {
-  const router = useRouter();
+  const router = useGuardedRouter();
   return (
     <TouchableOpacity style={styles.subscriptionCard} onPress={() => router.push('/paywall' as never)} activeOpacity={0.7}>
       <View style={[styles.subIconWrap, isPro ? styles.subIconPro : styles.subIconFree]}>
@@ -265,7 +265,7 @@ export default function MoreScreen() {
   useSubscription(); // kept for RC SDK initialization
   const { isPro, restoreAndActivate, isPurchasing } = useDeviceLicense();
   const { isAuthenticated, user } = useAuth();
-  const router = useRouter();
+  const router = useGuardedRouter();
   const queryClient = useQueryClient();
 
   const hasSampleData = projects.some(p => SAMPLE_PROJECT_IDS.includes(p.id));

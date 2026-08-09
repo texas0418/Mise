@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { User, Film, Trophy, Plus } from 'lucide-react-native';
 import { useProjects } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { DirectorCredit } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 function CreditCard({ credit }: { credit: DirectorCredit }) {
   return (

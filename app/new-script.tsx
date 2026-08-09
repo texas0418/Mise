@@ -3,13 +3,14 @@ import {
   View, Text, StyleSheet, ScrollView, TextInput,
   TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { FileText, Upload, Check } from 'lucide-react-native';
 import { useProjects } from '@/contexts/ProjectContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { pickPDF, uploadPDFToSupabase, PickedPDF } from '@/utils/scriptPicker';
 import Colors from '@/constants/colors';
 import { ScriptRevisionColor } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // ---------------------------------------------------------------------------
 // Revision color options (industry standard order)
@@ -27,7 +28,7 @@ const REVISION_OPTIONS: { value: ScriptRevisionColor; label: string; bg: string;
 ];
 
 export default function NewScriptScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { activeProjectId, addScriptPDF } = useProjects();
   const { user } = useAuth();
 

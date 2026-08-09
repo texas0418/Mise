@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, Move, AlertCircle, Camera, Users, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectBlockingNotes } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { BlockingNote } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 function BlockingCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: BlockingNote;
@@ -96,7 +97,7 @@ function BlockingCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function BlockingNotesScreen() {
   const { activeProject, activeProjectId, deleteBlockingNote } = useProjects();
   const notes = useProjectBlockingNotes(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

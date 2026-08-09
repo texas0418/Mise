@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, SectionList, TouchableOpacity, Animated, Alert, TextInput, Platform } from 'react-native';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
 import { Plus, Trash2, Film, Palette, Eye, Camera, Music, Shirt, Globe, Sparkles, PenLine, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
 import { useProjects, useProjectLookbook, useProjectDirectorStatement } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
@@ -9,6 +8,7 @@ import Colors from '@/constants/colors';
 import { LookbookItem, LookbookSectionType, DirectorStatement } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const SECTION_CONFIG: Record<LookbookSectionType, { label: string; icon: React.ElementType; color: string }> = {
   'tone': { label: 'Tone & Mood', icon: Sparkles, color: '#FBBF24' },
@@ -157,7 +157,7 @@ export default function LookbookScreen() {
   const { activeProjectId, activeProject, deleteLookbookItem, addDirectorStatement, updateDirectorStatement } = useProjects();
   const lookbook = useProjectLookbook(activeProjectId);
   const statement = useProjectDirectorStatement(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

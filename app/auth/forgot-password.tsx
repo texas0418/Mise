@@ -11,13 +11,13 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Mail } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function ForgotPasswordScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { resetPassword } = useAuth();
 
   const [email, setEmail] = useState('');

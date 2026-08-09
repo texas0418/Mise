@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, FileText, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectWrapReports } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
@@ -9,6 +9,7 @@ import ImportButton from '@/components/ImportButton';
 import AIImportButton from '@/components/AIImportButton';
 import { WrapReport } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 function StatBadge({ label, value, color }: { label: string; value: string | number; color?: string }) {
   return (
@@ -97,7 +98,7 @@ function WrapCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function WrapReportsScreen() {
   const { activeProject, activeProjectId, deleteWrapReport } = useProjects();
   const reports = useProjectWrapReports(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
