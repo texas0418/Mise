@@ -85,7 +85,7 @@ export default function NewTimeEntryScreen() {
       <Text style={styles.label}>Department</Text>
       <View style={styles.chipRow}>
         {DEPARTMENTS.map(d => (
-          <TouchableOpacity key={d.value}
+          <TouchableOpacity accessibilityRole="button" key={d.value}
             style={[styles.chip, department === d.value && styles.chipActive]}
             onPress={() => setDepartment(d.value as Department)}>
             <Text style={[styles.chipText, department === d.value && styles.chipTextActive]}>{d.label}</Text>
@@ -141,7 +141,7 @@ export default function NewTimeEntryScreen() {
       <TextInput style={[styles.input, styles.multiline]} value={notes} onChangeText={setNotes}
         placeholder="Notes..." placeholderTextColor={Colors.text.tertiary} multiline />
 
-      <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.saveBtn} onPress={handleSave} activeOpacity={0.8}>
         <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Save Time Entry'}</Text>
       </TouchableOpacity>
     </ScrollView>

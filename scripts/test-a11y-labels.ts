@@ -3,33 +3,143 @@
  *
  *   node --experimental-strip-types scripts/test-a11y-labels.ts
  *
- * Every touchable on a covered screen must announce itself.
+ * Every touchable in the app must announce itself. All 399 of them now do.
  *
- * #47 is being fixed a screen at a time — there are 63 of them and the on-set
- * path comes first. That creates the obvious hazard: a screen gets labelled,
- * and six weeks later someone adds a fresh icon-only button to it and puts it
- * straight back where it started. Nothing would notice, because a missing
- * label is invisible to everything except a person holding the phone with
- * VoiceOver on.
+ * There are three ways to satisfy that, and which one applies is a property of
+ * the control rather than a matter of taste:
  *
- * So COVERED is a ratchet, not a to-do list. A file goes in once it is clean,
- * and from then on it has to stay clean. Adding a screen to the list is the
- * last step of doing the work, and the suite fails if the claim is untrue.
+ * 1. **An icon-only control gets a label.** A bare glyph announces as nothing,
+ *    so the label is the only thing that says what the button is. 70 of these
+ *    were silent.
  *
- * It also prints app-wide coverage on every run, so the size of what is left
- * stays visible rather than being something you have to go and count.
+ * 2. **A control with visible text gets the button role and no label.** Its
+ *    text is already read aloud; what it lacked was the trait, so the text was
+ *    heard as prose rather than as something that can be activated. A second
+ *    hand-written label on top would be redundant, and if it drifted from the
+ *    visible text it would be the WCAG 2.5.3 "Label in Name" failure.
+ *
+ * 3. **A container that wraps its own controls gets neither.** Giving an
+ *    expandable card the button role makes react-native-web emit <button>
+ *    inside <button>, and iOS focuses the card and never the edit and delete
+ *    buttons inside it. Its text is read regardless.
+ *
+ * The hazard this guards is that a screen gets labelled and someone later adds
+ * a fresh icon-only button to it, putting it straight back where it started.
+ * Nothing would notice: a missing label is invisible to everything except a
+ * person holding the phone with VoiceOver on.
+ *
+ * Coverage prints on every run, so a regression shows up as a number going
+ * down rather than as silence.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describeTake, formatTakeTime, toggleLabel, saveTakeHint } from '../utils/a11yLabels.ts';
 
 /**
- * Screens whose touchables are fully labelled. Only add a file after the suite
- * passes with it in.
+ * Every screen in the app. This started as a two-file beachhead while #47 was
+ * being worked through a screen at a time; it is now the whole surface, which
+ * means a new screen must arrive announced or the suite fails.
+ *
+ * Listed explicitly rather than globbed on purpose: a glob would quietly cover
+ * a new file and quietly stop covering a renamed one, and the point of a
+ * ratchet is that changes to what it guards are visible in the diff.
  */
 const COVERED = [
+  'app/(tabs)/(today)/_layout.tsx',
+  'app/(tabs)/(today)/index.tsx',
+  'app/(tabs)/_layout.tsx',
+  'app/(tabs)/crew/_layout.tsx',
+  'app/(tabs)/crew/index.tsx',
+  'app/(tabs)/more/_layout.tsx',
+  'app/(tabs)/more/index.tsx',
+  'app/(tabs)/onset/_layout.tsx',
   'app/(tabs)/onset/index.tsx',
+  'app/(tabs)/projects/_layout.tsx',
+  'app/(tabs)/projects/index.tsx',
+  'app/(tabs)/schedule/_layout.tsx',
+  'app/(tabs)/schedule/index.tsx',
+  'app/(tabs)/shots/_layout.tsx',
+  'app/(tabs)/shots/index.tsx',
+  'app/+native-intent.tsx',
+  'app/_layout.tsx',
+  'app/auth/forgot-password.tsx',
+  'app/auth/profile.tsx',
+  'app/auth/sign-in.tsx',
+  'app/auth/sign-up.tsx',
+  'app/blocking-notes.tsx',
+  'app/budget-spreadsheet.tsx',
+  'app/budget.tsx',
+  'app/call-sheet-details.tsx',
+  'app/call-sheets.tsx',
+  'app/cast-manager.tsx',
+  'app/color-references.tsx',
+  'app/comms-hub.tsx',
+  'app/continuity.tsx',
+  'app/crew-directory.tsx',
+  'app/digital-slate.tsx',
+  'app/export-share.tsx',
+  'app/festival-tracker.tsx',
+  'app/frame-guides.tsx',
+  'app/import-data.tsx',
+  'app/lens-calculator.tsx',
+  'app/lighting-diagrams.tsx',
+  'app/lighting-editor.tsx',
+  'app/location-weather.tsx',
+  'app/locations.tsx',
   'app/log-take.tsx',
+  'app/lookbook.tsx',
+  'app/mood-boards.tsx',
+  'app/new-blocking-note.tsx',
+  'app/new-breakdown.tsx',
+  'app/new-budget-item.tsx',
+  'app/new-cast-member.tsx',
+  'app/new-color-reference.tsx',
+  'app/new-continuity.tsx',
+  'app/new-crew.tsx',
+  'app/new-festival.tsx',
+  'app/new-lighting-diagram.tsx',
+  'app/new-location.tsx',
+  'app/new-lookbook-item.tsx',
+  'app/new-message.tsx',
+  'app/new-mood-item.tsx',
+  'app/new-note.tsx',
+  'app/new-project.tsx',
+  'app/new-schedule-day.tsx',
+  'app/new-script-side.tsx',
+  'app/new-script.tsx',
+  'app/new-select.tsx',
+  'app/new-shot-reference.tsx',
+  'app/new-shot.tsx',
+  'app/new-time-entry.tsx',
+  'app/new-vfx.tsx',
+  'app/new-wrap-report.tsx',
+  'app/paywall.tsx',
+  'app/portfolio.tsx',
+  'app/production-notes.tsx',
+  'app/project-detail.tsx',
+  'app/project/invite.tsx',
+  'app/project/team.tsx',
+  'app/script-breakdown.tsx',
+  'app/script-sides.tsx',
+  'app/script-viewer.tsx',
+  'app/scripts.tsx',
+  'app/selects.tsx',
+  'app/settings/devices.tsx',
+  'app/settings/sync.tsx',
+  'app/shot-checklist.tsx',
+  'app/shot-references.tsx',
+  'app/time-tracker.tsx',
+  'app/vfx-tracker.tsx',
+  'app/wrap-reports.tsx',
+  'components/ConflictResolver.tsx',
+  'components/ImportButton.tsx',
+  'components/ImportToolbar.tsx',
+  'components/NotificationSettings.tsx',
+  'components/OfflineIndicator.tsx',
+  'components/OnboardingFlow.tsx',
+  'components/SyncStatusIndicator.tsx',
+  'components/TodayCards.tsx',
+  'components/V2MigrationFlow.tsx',
 ];
 
 /** Components that take a press and therefore need announcing. */
@@ -84,6 +194,27 @@ function readOpeningTag(source: string, start: number): string {
   return source.slice(start);
 }
 
+/**
+ * The end of a component's children, so the body can be inspected.
+ *
+ * Depth-counted rather than "find the next closing tag", because these nest —
+ * a card wrapping two buttons is the common shape, not the exception.
+ */
+function findClose(source: string, start: number, name: string): number {
+  let depth = 1;
+  let index = start;
+  while (depth > 0) {
+    const close = source.indexOf(`</${name}>`, index);
+    const open = source.indexOf(`<${name} `, index);
+    if (close === -1) return source.length;
+    if (open !== -1 && open < close) { depth++; index = open + 1; continue; }
+    depth--;
+    index = close + 1;
+    if (depth === 0) return close;
+  }
+  return index;
+}
+
 function scan(file: string): { total: number; missing: Finding[] } {
   const source = readFileSync(file, 'utf8');
   const missing: Finding[] = [];
@@ -101,6 +232,26 @@ function scan(file: string): { total: number; missing: Finding[] } {
       total++;
       const opening = readOpeningTag(source, match.index);
       if (EXEMPTIONS.some(prop => opening.includes(prop))) continue;
+
+      // A control whose own visible text says what it does is already
+      // announced — VoiceOver reads the <Text> inside it. What it needs is the
+      // *trait*, so that the text is heard as a button rather than as prose.
+      // A second, hand-written label on top would be redundant at best, and at
+      // worst would say something different from what is on screen, which is
+      // the WCAG 2.5.3 "Label in Name" failure.
+      const body = source.slice(match.index + opening.length,
+                                findClose(source, match.index + opening.length, tag));
+      const hasText = /<Text[\s>]/.test(body);
+      if (hasText && opening.includes('accessibilityRole="button"')) continue;
+
+      // A container that wraps its own controls — an expandable card holding
+      // edit and delete — must NOT be given the button role: react-native-web
+      // then emits <button> inside <button>, and iOS focuses the container and
+      // never the controls in it. Its text is still read aloud, so it is
+      // announced; what it is not is a button, and saying so would be a lie
+      // that costs the reader the buttons inside.
+      const wrapsAControl = TOUCHABLES.some(inner => new RegExp(`<${inner}[\\s/>]`).test(body));
+      if (hasText && wrapsAControl) continue;
 
       missing.push({
         file,

@@ -139,7 +139,7 @@ export default function NewScriptScreen() {
               <Text style={styles.pdfPreviewSize}>{fileSizeMB} MB</Text>
             )}
           </View>
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={styles.changePdfBtn}
             onPress={handlePickPDF}
             disabled={uploading}
@@ -148,7 +148,7 @@ export default function NewScriptScreen() {
           </TouchableOpacity>
         </View>
       ) : (
-        <TouchableOpacity style={styles.pickPdfBtn} onPress={handlePickPDF}>
+        <TouchableOpacity accessibilityRole="button" style={styles.pickPdfBtn} onPress={handlePickPDF}>
           <Upload color={Colors.accent.gold} size={28} />
           <Text style={styles.pickPdfText}>Choose PDF from Files</Text>
           <Text style={styles.pickPdfHint}>Maximum 50 MB</Text>
@@ -183,7 +183,7 @@ export default function NewScriptScreen() {
         {REVISION_OPTIONS.map((opt) => {
           const isSelected = colorCode === opt.value;
           return (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               key={opt.value}
               style={[
                 styles.colorOption,
@@ -209,7 +209,7 @@ export default function NewScriptScreen() {
       </View>
 
       {/* Upload Button */}
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}
         onPress={handleSave}
         disabled={!canSave}

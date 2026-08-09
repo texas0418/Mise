@@ -131,11 +131,11 @@ function BudgetCard({ item, isExpanded, onPress, onEdit, onDelete }: {
           ) : null}
 
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -253,6 +253,8 @@ export default function BudgetScreen() {
             style={{ padding: 6, marginRight: 4 }}
             onPress={() => router.replace('/budget-spreadsheet' as never)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel="Switch to spreadsheet view"
           >
             <LayoutGrid color={Colors.text.secondary} size={20} />
           </TouchableOpacity>
@@ -302,7 +304,7 @@ export default function BudgetScreen() {
                 <View style={[styles.progressFill, { width: `${spentPercent}%` as unknown as number, backgroundColor: spentPercent > 90 ? Colors.status.error : spentPercent > 70 ? Colors.status.warning : Colors.accent.gold }]} />
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}><ImportButton entityKey="budget" />
-        <TouchableOpacity style={styles.templateBtnSmall} onPress={handleLoadTemplate} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.templateBtnSmall} onPress={handleLoadTemplate} activeOpacity={0.7}>
                 <FileText color={Colors.accent.gold} size={13} />
                 <Text style={styles.templateBtnSmallText}>Template</Text>
               </TouchableOpacity></View>
@@ -321,7 +323,7 @@ export default function BudgetScreen() {
                   placeholderTextColor={Colors.text.tertiary}
                 />
                 {searchQuery.length > 0 && (
-                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <TouchableOpacity accessibilityRole="button" onPress={() => setSearchQuery('')}>
                     <Text style={styles.clearSearch}>✕</Text>
                   </TouchableOpacity>
                 )}
@@ -329,6 +331,9 @@ export default function BudgetScreen() {
               <TouchableOpacity
                 style={[styles.sortBtn, showSortOptions && styles.sortBtnActive]}
                 onPress={() => setShowSortOptions(!showSortOptions)}
+                accessibilityRole="button"
+                accessibilityLabel="Sort budget items"
+                accessibilityState={{ expanded: showSortOptions }}
               >
                 <ArrowUpDown color={showSortOptions ? Colors.accent.gold : Colors.text.tertiary} size={16} />
               </TouchableOpacity>
@@ -338,7 +343,7 @@ export default function BudgetScreen() {
             {showSortOptions && (
               <View style={styles.sortRow}>
                 {SORT_OPTIONS.map(opt => (
-                  <TouchableOpacity key={opt.key}
+                  <TouchableOpacity accessibilityRole="button" key={opt.key}
                     style={[styles.sortChip, sortMode === opt.key && styles.sortChipActive]}
                     onPress={() => { setSortMode(opt.key); setShowSortOptions(false); }}>
                     <Text style={[styles.sortChipText, sortMode === opt.key && styles.sortChipTextActive]}>{opt.label}</Text>
@@ -349,13 +354,13 @@ export default function BudgetScreen() {
 
             {/* Category filter chips */}
             <View style={styles.filterRow}>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 style={[styles.filterChip, categoryFilter === 'all' && styles.filterChipActive]}
                 onPress={() => setCategoryFilter('all')}>
                 <Text style={[styles.filterChipText, categoryFilter === 'all' && styles.filterChipTextActive]}>All</Text>
               </TouchableOpacity>
               {activeCategories.map(cat => (
-                <TouchableOpacity key={cat}
+                <TouchableOpacity accessibilityRole="button" key={cat}
                   style={[styles.filterChip, categoryFilter === cat && styles.filterChipActive]}
                   onPress={() => setCategoryFilter(categoryFilter === cat ? 'all' : cat)}>
                   <View style={[styles.filterDot, { backgroundColor: CATEGORY_COLORS[cat] }]} />
@@ -377,7 +382,7 @@ export default function BudgetScreen() {
             <Text style={styles.emptyTitle}>{searchQuery ? 'No matching items' : 'No budget items'}</Text>
             <Text style={styles.emptySubtitle}>{searchQuery ? 'Try a different search' : 'Track your production spending'}</Text>
             {!searchQuery && (
-              <TouchableOpacity style={styles.templateBtn} onPress={handleLoadTemplate} activeOpacity={0.7}>
+              <TouchableOpacity accessibilityRole="button" style={styles.templateBtn} onPress={handleLoadTemplate} activeOpacity={0.7}>
                 <FileText color={Colors.accent.gold} size={16} />
                 <Text style={styles.templateBtnText}>Use Film Budget Template</Text>
               </TouchableOpacity>
@@ -386,7 +391,7 @@ export default function BudgetScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-budget-item' as never)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a budget item" style={styles.fab} onPress={() => router.push('/new-budget-item' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>

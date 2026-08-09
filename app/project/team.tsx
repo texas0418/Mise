@@ -159,7 +159,7 @@ export default function TeamScreen() {
 
       {/* Invite button */}
       {canInvite() && (
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={s.inviteButton}
           onPress={() => router.push('/project/invite')}
           activeOpacity={0.8}
@@ -197,7 +197,7 @@ export default function TeamScreen() {
             {/* Actions — only if I can manage and it's not me or the owner */}
             {canManageMembers() && !isMe && member.role !== 'owner' && (
               <View style={s.memberActions}>
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   style={s.actionBtn}
                   onPress={() => handleChangeRole(member.id, member.displayName, member.role)}
                   activeOpacity={0.7}
@@ -207,7 +207,7 @@ export default function TeamScreen() {
                     : <><ChevronDown color={Colors.accent.gold} size={14} /><Text style={s.actionGold}>Change Role</Text></>
                   }
                 </TouchableOpacity>
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   style={s.actionBtn}
                   onPress={() => handleRemoveMember(member.id, member.displayName)}
                   activeOpacity={0.7}

@@ -229,7 +229,7 @@ function ActionButton({
     : Colors.accent.gold;
 
   return (
-    <TouchableOpacity
+    <TouchableOpacity accessibilityRole="button"
       style={[styles.actionBtn, (disabled || loading) && styles.actionBtnDisabled]}
       onPress={onPress}
       disabled={disabled || loading}
@@ -354,7 +354,7 @@ export default function SyncSettingsScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* ── Back header ──────────────────────────────────────────────── */}
-      <TouchableOpacity style={styles.backRow} onPress={() => router.back()} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={styles.backRow} onPress={() => router.back()} activeOpacity={0.7}>
         <ChevronLeft color={Colors.text.secondary} size={20} />
         <Text style={styles.backText}>Sync Settings</Text>
       </TouchableOpacity>

@@ -119,10 +119,13 @@ export default function ProjectDetailScreen() {
               style={styles.editBtn}
               activeOpacity={0.7}
               testID="edit-project-button"
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${project.title}`}
             >
               <Edit3 color={Colors.accent.gold} size={18} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn} activeOpacity={0.7}>
+            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn} activeOpacity={0.7}
+              accessibilityRole="button" accessibilityLabel={`Delete ${project.title} and all of its data`}>
               <Trash2 color={Colors.status.error} size={18} />
             </TouchableOpacity>
           </View>
@@ -242,7 +245,7 @@ export default function ProjectDetailScreen() {
         {/* Quick Actions */}
         <View style={styles.actionsSection}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={styles.actionRow}
             onPress={() => router.push('/shot-checklist' as never)}
             activeOpacity={0.7}
@@ -251,7 +254,7 @@ export default function ProjectDetailScreen() {
             <Text style={styles.actionText}>Shot Checklist</Text>
             <ChevronRight color={Colors.text.tertiary} size={16} />
           </TouchableOpacity>
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={styles.actionRow}
             onPress={() => router.push('/script-sides' as never)}
             activeOpacity={0.7}
@@ -260,7 +263,7 @@ export default function ProjectDetailScreen() {
             <Text style={styles.actionText}>Script Sides</Text>
             <ChevronRight color={Colors.text.tertiary} size={16} />
           </TouchableOpacity>
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={styles.actionRow}
             onPress={() => router.push('/cast-manager' as never)}
             activeOpacity={0.7}
@@ -269,7 +272,7 @@ export default function ProjectDetailScreen() {
             <Text style={styles.actionText}>Cast</Text>
             <ChevronRight color={Colors.text.tertiary} size={16} />
           </TouchableOpacity>
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={styles.actionRow}
             onPress={() => router.push('/budget' as never)}
             activeOpacity={0.7}

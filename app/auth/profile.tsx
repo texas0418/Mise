@@ -172,7 +172,7 @@ export default function ProfileScreen() {
             />
           </View>
         </View>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.saveButton, savingProfile && styles.buttonDisabled]}
           onPress={handleSaveProfile}
           activeOpacity={0.8}
@@ -201,7 +201,7 @@ export default function ProfileScreen() {
             <TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} placeholder="Confirm new password" placeholderTextColor={Colors.text.tertiary} secureTextEntry />
           </View>
         </View>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.saveButton, savingPassword && styles.buttonDisabled]}
           onPress={handleChangePassword}
           activeOpacity={0.8}
@@ -216,7 +216,7 @@ export default function ProfileScreen() {
       </View>
 
       {/* Sign out */}
-      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={styles.signOutButton} onPress={handleSignOut} activeOpacity={0.7}>
         <LogOut color={Colors.status.error} size={18} />
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
@@ -227,7 +227,7 @@ export default function ProfileScreen() {
         <Text style={styles.dangerDesc}>
           Permanently delete your account and all production data from our servers. This cannot be undone.
         </Text>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.deleteButton, deleting && styles.buttonDisabled]}
           onPress={handleDeleteAccount}
           activeOpacity={0.7}

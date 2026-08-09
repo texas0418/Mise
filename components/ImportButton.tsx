@@ -51,6 +51,9 @@ export default function ImportButton({ entityKey, variant = 'full', label = 'Imp
         onPress={handlePress}
         activeOpacity={0.7}
         testID={`import-btn-${entityKey}`}
+        accessibilityRole="button"
+        accessibilityLabel={needsPro ? 'Import — a Pro feature' : 'Import'}
+        accessibilityHint={needsPro ? 'Opens the upgrade screen' : 'Imports records from a spreadsheet'}
       >
         {needsPro ? (
           <Lock color={Colors.text.tertiary} size={14} />
@@ -62,7 +65,7 @@ export default function ImportButton({ entityKey, variant = 'full', label = 'Imp
   }
 
   return (
-    <TouchableOpacity
+    <TouchableOpacity accessibilityRole="button"
       style={[styles.fullBtn, needsPro && styles.lockedBtn]}
       onPress={handlePress}
       activeOpacity={0.7}

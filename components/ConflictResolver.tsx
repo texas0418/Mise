@@ -102,7 +102,7 @@ export default function ConflictResolver({
               <View key={field} style={s.fieldRow}>
                 <Text style={s.fieldName}>{formatFieldName(field)}</Text>
                 <View style={s.versions}>
-                  <TouchableOpacity
+                  <TouchableOpacity accessibilityRole="button"
                     style={[s.versionCard, selected === 'local' && s.versionSelected]}
                     onPress={() => toggleField(field)}
                     activeOpacity={0.7}
@@ -111,7 +111,7 @@ export default function ConflictResolver({
                     <Text style={s.versionValue} numberOfLines={2}>{localVal}</Text>
                     {selected === 'local' && <Check color={Colors.accent.gold} size={14} style={s.checkIcon} />}
                   </TouchableOpacity>
-                  <TouchableOpacity
+                  <TouchableOpacity accessibilityRole="button"
                     style={[s.versionCard, selected === 'remote' && s.versionSelected]}
                     onPress={() => toggleField(field)}
                     activeOpacity={0.7}
@@ -127,21 +127,21 @@ export default function ConflictResolver({
         </ScrollView>
 
         <View style={s.actions}>
-          <TouchableOpacity style={s.quickBtn} onPress={handleKeepLocal} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" style={s.quickBtn} onPress={handleKeepLocal} activeOpacity={0.7}>
             <ArrowLeft color={Colors.text.secondary} size={14} />
             <Text style={s.quickBtnText}>Keep All Local</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.mergeBtn} onPress={handleMerge} activeOpacity={0.8}>
+          <TouchableOpacity accessibilityRole="button" style={s.mergeBtn} onPress={handleMerge} activeOpacity={0.8}>
             <GitMerge color={Colors.text.inverse} size={16} />
             <Text style={s.mergeBtnText}>Merge Selected</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.quickBtn} onPress={handleKeepRemote} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" style={s.quickBtn} onPress={handleKeepRemote} activeOpacity={0.7}>
             <Text style={s.quickBtnText}>Keep All Remote</Text>
             <ArrowRight color={Colors.text.secondary} size={14} />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={s.dismissBtn} onPress={onDismiss} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={s.dismissBtn} onPress={onDismiss} activeOpacity={0.7}>
           <Text style={s.dismissText}>Dismiss (auto-resolve later)</Text>
         </TouchableOpacity>
       </View>

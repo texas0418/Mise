@@ -79,7 +79,7 @@ function ToolCard({ tool, index }: { tool: ToolItem; index: number }) {
 
   return (
     <Animated.View style={[styles.toolCardWrapper, { opacity: fadeAnim, transform: [{ scale: scaleAnim }], flexBasis: cardBasis as unknown as number }]}>
-      <TouchableOpacity style={styles.toolCard} onPress={() => router.push(tool.route as never)} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={styles.toolCard} onPress={() => router.push(tool.route as never)} activeOpacity={0.7}>
         <View style={[styles.toolIconWrap, { backgroundColor: tool.color + '18' }]}>
           <Icon color={tool.color} size={22} />
         </View>
@@ -118,7 +118,7 @@ function AccountIdentityCard({
   const router = useGuardedRouter();
   if (isAuthenticated) {
     return (
-      <TouchableOpacity style={styles.subscriptionCard} onPress={() => router.push('/auth/profile' as never)} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={styles.subscriptionCard} onPress={() => router.push('/auth/profile' as never)} activeOpacity={0.7}>
         <View style={[styles.subIconWrap, { backgroundColor: '#34D39918' }]}>
           <UserCircle color="#34D399" size={22} />
         </View>
@@ -130,7 +130,7 @@ function AccountIdentityCard({
     );
   }
   return (
-    <TouchableOpacity style={styles.subscriptionCard} onPress={() => router.push('/auth/sign-in' as never)} activeOpacity={0.7}>
+    <TouchableOpacity accessibilityRole="button" style={styles.subscriptionCard} onPress={() => router.push('/auth/sign-in' as never)} activeOpacity={0.7}>
       <View style={[styles.subIconWrap, { backgroundColor: '#60A5FA18' }]}>
         <LogIn color="#60A5FA" size={22} />
       </View>
@@ -146,15 +146,15 @@ function AuthedSettingsGroup({ hasProject }: { hasProject: boolean }) {
   const router = useGuardedRouter();
   return (
     <View style={styles.settingsGroup}>
-      <TouchableOpacity style={styles.settingsRow} onPress={() => router.push('/settings/sync' as never)} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={styles.settingsRow} onPress={() => router.push('/settings/sync' as never)} activeOpacity={0.7}>
         <Cloud color={Colors.text.secondary} size={18} />
         <Text style={styles.settingsRowText}>Sync Settings</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.settingsRow} onPress={() => router.push('/settings/devices' as never)} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={styles.settingsRow} onPress={() => router.push('/settings/devices' as never)} activeOpacity={0.7}>
         <Smartphone color={Colors.text.secondary} size={18} />
         <Text style={styles.settingsRowText}>My Devices</Text>
       </TouchableOpacity>
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.settingsRowLast, !hasProject && styles.settingsRowDisabled]}
         onPress={() => { if (hasProject) router.push('/project/team' as never); }}
         activeOpacity={hasProject ? 0.7 : 1}
@@ -172,7 +172,7 @@ function AuthedSettingsGroup({ hasProject }: { hasProject: boolean }) {
 function ProStatusCard({ isPro }: { isPro: boolean }) {
   const router = useGuardedRouter();
   return (
-    <TouchableOpacity style={styles.subscriptionCard} onPress={() => router.push('/paywall' as never)} activeOpacity={0.7}>
+    <TouchableOpacity accessibilityRole="button" style={styles.subscriptionCard} onPress={() => router.push('/paywall' as never)} activeOpacity={0.7}>
       <View style={[styles.subIconWrap, isPro ? styles.subIconPro : styles.subIconFree]}>
         <Crown color={isPro ? Colors.accent.gold : Colors.text.tertiary} size={22} />
       </View>
@@ -194,7 +194,7 @@ function ProStatusCard({ isPro }: { isPro: boolean }) {
 function ManageSubscriptionGroup() {
   return (
     <View style={styles.settingsGroup}>
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={styles.settingsRowLast}
         onPress={() => Linking.openURL('https://apps.apple.com/account/subscriptions')}
         activeOpacity={0.7}
@@ -212,7 +212,7 @@ function ManageSubscriptionGroup() {
 function SampleDataGroup({ onRemove }: { onRemove: () => void }) {
   return (
     <View style={styles.settingsGroup}>
-      <TouchableOpacity style={styles.settingsRowLast} onPress={onRemove} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={styles.settingsRowLast} onPress={onRemove} activeOpacity={0.7}>
         <Trash2 color={Colors.status.error} size={18} />
         <Text style={[styles.settingsRowText, { color: Colors.status.error }]}>
           Remove Sample Data
@@ -231,7 +231,7 @@ function RestorePrivacyGroup({
 }) {
   return (
     <View style={styles.settingsGroup}>
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={styles.settingsRow}
         onPress={onRestore}
         activeOpacity={0.7}
@@ -247,7 +247,7 @@ function RestorePrivacyGroup({
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={styles.settingsRowLast}
         onPress={() => Linking.openURL('https://texas0418.github.io/MiseApp/')}
         activeOpacity={0.7}

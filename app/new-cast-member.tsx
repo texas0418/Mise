@@ -117,7 +117,7 @@ export default function NewCastMemberScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Headshot picker */}
-        <TouchableOpacity style={styles.headshotPicker} onPress={handlePickHeadshot}>
+        <TouchableOpacity accessibilityRole="button" style={styles.headshotPicker} onPress={handlePickHeadshot}>
           {headshot ? (
             <Image source={{ uri: resolvePhotoUri(headshot) }} style={styles.headshotPreview} contentFit="cover" />
           ) : (
@@ -141,7 +141,7 @@ export default function NewCastMemberScreen() {
         <Text style={styles.label}>Status</Text>
         <View style={styles.optionsRow}>
           {STATUS_OPTIONS.map(opt => (
-            <TouchableOpacity key={opt.value}
+            <TouchableOpacity accessibilityRole="button" key={opt.value}
               style={[styles.optionChip, status === opt.value && styles.optionChipActive]}
               onPress={() => setStatus(opt.value)}>
               <Text style={[styles.optionChipText, status === opt.value && styles.optionChipTextActive]}>{opt.label}</Text>
@@ -205,7 +205,7 @@ export default function NewCastMemberScreen() {
         <TextInput style={[styles.input, styles.textArea]} value={costumeNotes} onChangeText={setCostumeNotes}
           placeholder="Character's look, key wardrobe pieces..." placeholderTextColor={Colors.text.tertiary} multiline numberOfLines={3} />
 
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+        <TouchableOpacity accessibilityRole="button" style={styles.saveBtn} onPress={handleSave}>
           <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Add Cast Member'}</Text>
         </TouchableOpacity>
 

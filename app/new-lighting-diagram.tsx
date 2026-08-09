@@ -183,7 +183,7 @@ export default function NewLightingDiagramScreen() {
             {LIGHTING_TEMPLATES.map(tmpl => {
               const selected = !selectedCustomId && templateName === tmpl.name;
               return (
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   key={tmpl.name}
                   style={[styles.templateCard, selected && styles.templateCardSelected]}
                   onPress={() => { setTemplateName(tmpl.name); setSelectedCustomId(null); }}
@@ -209,7 +209,7 @@ export default function NewLightingDiagramScreen() {
                 {customTemplates.map(tmpl => {
                   const selected = selectedCustomId === tmpl.id;
                   return (
-                    <TouchableOpacity
+                    <TouchableOpacity accessibilityRole="button"
                       key={tmpl.id}
                       style={[styles.templateCard, selected && styles.templateCardSelected]}
                       onPress={() => { setSelectedCustomId(tmpl.id); }}
@@ -259,7 +259,7 @@ export default function NewLightingDiagramScreen() {
       />
 
       {/* Save */}
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.saveButton, !title.trim() && styles.saveButtonDisabled]}
         onPress={handleSave}
         disabled={!title.trim()}

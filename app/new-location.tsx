@@ -179,7 +179,7 @@ export default function NewLocationScreen() {
         <Text style={styles.label}>Rating (1-5)</Text>
         <View style={styles.ratingRow}>
           {[1, 2, 3, 4, 5].map(r => (
-            <TouchableOpacity key={r} style={[styles.ratingBtn, rating >= r && styles.ratingBtnActive]}
+            <TouchableOpacity accessibilityRole="button" key={r} style={[styles.ratingBtn, rating >= r && styles.ratingBtnActive]}
               onPress={() => setRating(r)}>
               <Text style={[styles.ratingText, rating >= r && styles.ratingTextActive]}>{r}</Text>
             </TouchableOpacity>
@@ -193,12 +193,13 @@ export default function NewLocationScreen() {
           {photoUrls.map((uri, i) => (
             <View key={i} style={styles.photoThumb}>
               <Image source={{ uri: resolvePhotoUri(uri) }} style={styles.photoImage} contentFit="cover" />
-              <TouchableOpacity style={styles.photoRemove} onPress={() => handleRemovePhoto(i)}>
+              <TouchableOpacity style={styles.photoRemove} onPress={() => handleRemovePhoto(i)}
+                accessibilityRole="button" accessibilityLabel={`Remove photo ${i + 1}`}>
                 <X color="#fff" size={12} />
               </TouchableOpacity>
             </View>
           ))}
-          <TouchableOpacity style={styles.addPhotoBtn} onPress={handleAddPhoto}>
+          <TouchableOpacity accessibilityRole="button" style={styles.addPhotoBtn} onPress={handleAddPhoto}>
             <ImagePlus color={Colors.accent.gold} size={24} />
             <Text style={styles.addPhotoText}>Add Photo</Text>
           </TouchableOpacity>
@@ -212,7 +213,7 @@ export default function NewLocationScreen() {
           multiline numberOfLines={3} textAlignVertical="top" />
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Location'}</Text>
       </TouchableOpacity>
     </ScrollView>

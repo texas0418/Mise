@@ -62,7 +62,9 @@ export default function DigitalSlateScreen() {
 
       <Animated.View style={[styles.flash, { opacity: flashAnim }]} pointerEvents="none" />
 
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      {/* Tap-anywhere keyboard dismisser, not a control. Left focusable it is
+          a full-screen unlabelled button sitting over the slate. */}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.slateBody}>
           <Animated.View style={[styles.slapStick, { transform: [{ rotate: slapRotate }] }]}>
             <View style={styles.slapStickInner}>
@@ -111,10 +113,10 @@ export default function DigitalSlateScreen() {
       </TouchableWithoutFeedback>
 
       <View style={styles.controls}>
-        <TouchableOpacity style={styles.nextTakeBtn} onPress={incrementTake} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.nextTakeBtn} onPress={incrementTake} activeOpacity={0.7}>
           <Text style={styles.nextTakeText}>Next Take</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.clapBtn} onPress={handleClap} activeOpacity={0.8}>
+        <TouchableOpacity accessibilityRole="button" style={styles.clapBtn} onPress={handleClap} activeOpacity={0.8}>
           <Text style={styles.clapBtnText}>CLAP</Text>
         </TouchableOpacity>
       </View>

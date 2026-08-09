@@ -107,7 +107,7 @@ export default function InviteScreen() {
       {/* Role selector */}
       <View style={s.field}>
         <Text style={s.label}>Role</Text>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={s.selector}
           onPress={() => setShowRoles(!showRoles)}
           activeOpacity={0.7}
@@ -118,7 +118,7 @@ export default function InviteScreen() {
         {showRoles && (
           <View style={s.optionsList}>
             {ASSIGNABLE_ROLES.map(r => (
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 key={r}
                 style={[s.option, selectedRole === r && s.optionActive]}
                 onPress={() => { setSelectedRole(r); setShowRoles(false); }}
@@ -134,7 +134,7 @@ export default function InviteScreen() {
       </View>
 
       {/* Send button */}
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[s.sendButton, sending && s.buttonDisabled]}
         onPress={handleInvite}
         activeOpacity={0.8}

@@ -229,7 +229,7 @@ function ToolbarSection({
         {items.map(item => {
           const Icon = ICON_MAP[item.iconKey] ?? Tag;
           return (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               key={item.type}
               style={styles.toolbarItem}
               onPress={() => onAdd(item.type)}
@@ -416,7 +416,7 @@ export default function LightingEditorScreen() {
         <StatusBar barStyle="light-content" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Diagram not found</Text>
-          <TouchableOpacity onPress={() => router.back()} style={styles.errorBtn}>
+          <TouchableOpacity accessibilityRole="button" onPress={() => router.back()} style={styles.errorBtn}>
             <Text style={styles.errorBtnText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -436,7 +436,8 @@ export default function LightingEditorScreen() {
 
       {/* Header bar */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.headerBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity onPress={handleBack} style={styles.headerBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button" accessibilityLabel="Back" accessibilityHint="Leaves the lighting diagram">
           <ArrowLeft color={Colors.text.primary} size={22} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
@@ -447,10 +448,13 @@ export default function LightingEditorScreen() {
           onPress={handleSaveAsTemplate}
           style={styles.headerBtn}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Save as template"
+          accessibilityHint="Reuses this lighting setup on another diagram"
         >
           <Bookmark color={Colors.text.secondary} size={18} />
         </TouchableOpacity>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           onPress={handleSave}
           style={[styles.saveBtn, !hasChanges && styles.saveBtnDisabled]}
           disabled={!hasChanges}
@@ -508,21 +512,25 @@ export default function LightingEditorScreen() {
               </Text>
             </View>
             {selectedElement.intensity && (
-              <TouchableOpacity onPress={cycleIntensity} style={[styles.controlBtn, styles.intensityBtn]}>
+              <TouchableOpacity accessibilityRole="button" onPress={cycleIntensity} style={[styles.controlBtn, styles.intensityBtn]}>
                 <Zap color="#FBBF24" size={16} />
                 <Text style={styles.intensityLabel}>{selectedElement.intensity[0].toUpperCase()}</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={() => rotateSelected(-45)} style={styles.controlBtn}>
+            <TouchableOpacity onPress={() => rotateSelected(-45)} style={styles.controlBtn}
+              accessibilityRole="button" accessibilityLabel="Rotate left 45 degrees">
               <RotateCw color={Colors.text.secondary} size={18} style={{ transform: [{ scaleX: -1 }] }} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => rotateSelected(45)} style={styles.controlBtn}>
+            <TouchableOpacity onPress={() => rotateSelected(45)} style={styles.controlBtn}
+              accessibilityRole="button" accessibilityLabel="Rotate right 45 degrees">
               <RotateCw color={Colors.text.secondary} size={18} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={openEditModal} style={styles.controlBtn}>
+            <TouchableOpacity onPress={openEditModal} style={styles.controlBtn}
+              accessibilityRole="button" accessibilityLabel="Edit the selected light">
               <Info color={Colors.status.info} size={18} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={deleteSelected} style={styles.controlBtn}>
+            <TouchableOpacity onPress={deleteSelected} style={styles.controlBtn}
+              accessibilityRole="button" accessibilityLabel="Delete the selected light">
               <Trash2 color={Colors.status.error} size={18} />
             </TouchableOpacity>
           </View>
@@ -533,7 +541,7 @@ export default function LightingEditorScreen() {
         )}
 
         {/* Add element toggle */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.addBtn, showToolbar && styles.addBtnActive]}
           onPress={() => setShowToolbar(!showToolbar)}
           activeOpacity={0.7}
@@ -603,10 +611,10 @@ export default function LightingEditorScreen() {
             </View>
 
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => setShowEditModal(false)} style={styles.modalCancelBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={() => setShowEditModal(false)} style={styles.modalCancelBtn}>
                 <Text style={styles.modalCancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={saveEditModal} style={styles.modalSaveBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={saveEditModal} style={styles.modalSaveBtn}>
                 <Text style={styles.modalSaveText}>Done</Text>
               </TouchableOpacity>
             </View>

@@ -175,7 +175,7 @@ export default function NewScriptSideScreen() {
         <Text style={styles.label}>Status</Text>
         <View style={styles.optionsRow}>
           {STATUS_OPTIONS.map(opt => (
-            <TouchableOpacity key={opt.value}
+            <TouchableOpacity accessibilityRole="button" key={opt.value}
               style={[styles.optionChip, status === opt.value && styles.optionChipActive]}
               onPress={() => setStatus(opt.value)}>
               <Text style={[styles.optionChipText, status === opt.value && styles.optionChipTextActive]}>{opt.label}</Text>
@@ -195,12 +195,12 @@ export default function NewScriptSideScreen() {
 
         <Text style={styles.label}>Revision Color</Text>
         <View style={styles.colorRow}>
-          <TouchableOpacity style={[styles.colorChip, !revisionColor && styles.colorChipActive]}
+          <TouchableOpacity accessibilityRole="button" style={[styles.colorChip, !revisionColor && styles.colorChipActive]}
             onPress={() => setRevisionColor(undefined)}>
             <Text style={styles.colorChipText}>None</Text>
           </TouchableOpacity>
           {REVISION_COLORS.map(c => (
-            <TouchableOpacity key={c} style={[styles.colorChip, revisionColor === c && styles.colorChipActive]}
+            <TouchableOpacity accessibilityRole="button" key={c} style={[styles.colorChip, revisionColor === c && styles.colorChipActive]}
               onPress={() => setRevisionColor(c)}>
               <View style={[styles.colorDot, { backgroundColor: REVISION_HEX[c] }]} />
               <Text style={styles.colorChipText}>{c}</Text>
@@ -215,7 +215,8 @@ export default function NewScriptSideScreen() {
               <Text style={styles.annotationTypeLabel}>{ann.type.toUpperCase()}</Text>
               <Text style={styles.annotationTextPreview}>{ann.text}</Text>
             </View>
-            <TouchableOpacity onPress={() => removeAnnotation(ann.id)}>
+            <TouchableOpacity onPress={() => removeAnnotation(ann.id)}
+              accessibilityRole="button" accessibilityLabel={`Remove the ${ann.type} note: ${ann.text}`}>
               <X color={Colors.status.error} size={16} />
             </TouchableOpacity>
           </View>
@@ -226,7 +227,7 @@ export default function NewScriptSideScreen() {
           {ANNOTATION_TYPES.map(at => {
             const Icon = at.icon;
             return (
-              <TouchableOpacity key={at.value}
+              <TouchableOpacity accessibilityRole="button" key={at.value}
                 style={[styles.annotationTypeChip, newAnnotationType === at.value && styles.annotationTypeChipActive]}
                 onPress={() => setNewAnnotationType(at.value)}>
                 <Icon color={newAnnotationType === at.value ? Colors.accent.gold : Colors.text.tertiary} size={14} />
@@ -238,7 +239,8 @@ export default function NewScriptSideScreen() {
         <View style={styles.annotationInputRow}>
           <TextInput style={[styles.input, { flex: 1 }]} value={newAnnotationText} onChangeText={setNewAnnotationText}
             placeholder="Note about this scene..." placeholderTextColor={Colors.text.tertiary} />
-          <TouchableOpacity style={styles.addAnnotationBtn} onPress={addAnnotation}>
+          <TouchableOpacity style={styles.addAnnotationBtn} onPress={addAnnotation}
+            accessibilityRole="button" accessibilityLabel="Add this annotation">
             <Plus color={Colors.text.inverse} size={18} />
           </TouchableOpacity>
         </View>
@@ -247,7 +249,7 @@ export default function NewScriptSideScreen() {
         <TextInput style={[styles.input, styles.textArea]} value={notes} onChangeText={setNotes}
           placeholder="Any additional notes for this scene..." placeholderTextColor={Colors.text.tertiary} multiline numberOfLines={3} />
 
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+        <TouchableOpacity accessibilityRole="button" style={styles.saveBtn} onPress={handleSave}>
           <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Add Scene to Sides'}</Text>
         </TouchableOpacity>
 

@@ -118,11 +118,11 @@ function ColorRefCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 
           {/* Actions */}
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -156,7 +156,7 @@ export default function ColorReferencesScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Color & LUT Reference' }} />
 
-      <TouchableOpacity style={styles.guideToggle} onPress={() => setShowGuide(!showGuide)}>
+      <TouchableOpacity accessibilityRole="button" style={styles.guideToggle} onPress={() => setShowGuide(!showGuide)}>
         <Text style={styles.guideToggleText}>{showGuide ? 'Hide' : 'Show'} LUT Style Guide</Text>
       </TouchableOpacity>
 
@@ -202,7 +202,7 @@ export default function ColorReferencesScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-color-reference' as never)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a color reference" style={styles.fab} onPress={() => router.push('/new-color-reference' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>

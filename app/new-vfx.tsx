@@ -132,14 +132,14 @@ export default function NewVFXScreen() {
 
       <View style={styles.field}>
         <Text style={styles.label}>Complexity</Text>
-        <TouchableOpacity style={styles.selector} onPress={() => { setShowComplexity(!showComplexity); setShowStatus(false); }}>
+        <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => { setShowComplexity(!showComplexity); setShowStatus(false); }}>
           <Text style={styles.selectorText}>{COMPLEXITY_OPTIONS.find(c => c.value === complexity)?.label}</Text>
           <ChevronDown color={Colors.text.tertiary} size={18} />
         </TouchableOpacity>
         {showComplexity && (
           <View style={styles.optionsList}>
             {COMPLEXITY_OPTIONS.map(c => (
-              <TouchableOpacity key={c.value}
+              <TouchableOpacity accessibilityRole="button" key={c.value}
                 style={[styles.option, complexity === c.value && styles.optionActive]}
                 onPress={() => { setComplexity(c.value); setShowComplexity(false); }}>
                 <Text style={[styles.optionText, complexity === c.value && styles.optionTextActive]}>{c.label}</Text>
@@ -153,14 +153,14 @@ export default function NewVFXScreen() {
       {isEditing && (
         <View style={styles.field}>
           <Text style={styles.label}>Status</Text>
-          <TouchableOpacity style={styles.selector} onPress={() => { setShowStatus(!showStatus); setShowComplexity(false); }}>
+          <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => { setShowStatus(!showStatus); setShowComplexity(false); }}>
             <Text style={styles.selectorText}>{STATUS_OPTIONS.find(s => s.value === status)?.label}</Text>
             <ChevronDown color={Colors.text.tertiary} size={18} />
           </TouchableOpacity>
           {showStatus && (
             <View style={styles.optionsList}>
               {STATUS_OPTIONS.map(s => (
-                <TouchableOpacity key={s.value}
+                <TouchableOpacity accessibilityRole="button" key={s.value}
                   style={[styles.option, status === s.value && styles.optionActive]}
                   onPress={() => { setStatus(s.value); setShowStatus(false); }}>
                   <Text style={[styles.optionText, status === s.value && styles.optionTextActive]}>{s.label}</Text>
@@ -197,7 +197,7 @@ export default function NewVFXScreen() {
           placeholder="Reference notes, style guidance..." placeholderTextColor={Colors.text.tertiary} />
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add VFX Shot'}</Text>
       </TouchableOpacity>
     </ScrollView>

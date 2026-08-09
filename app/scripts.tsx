@@ -142,11 +142,11 @@ function ScriptCard({
           </View>
 
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onView} style={styles.viewBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onView} style={styles.viewBtn}>
               <Eye color={Colors.accent.gold} size={15} />
               <Text style={styles.viewBtnText}>Open</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -228,7 +228,7 @@ export default function ScriptsScreen() {
               <Text style={styles.emptySub}>
                 Upload a PDF script to view, annotate, and mark up
               </Text>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 style={styles.emptyUploadBtn}
                 onPress={() => router.push('/new-script' as never)}
                 activeOpacity={0.8}
@@ -240,7 +240,7 @@ export default function ScriptsScreen() {
           }
         />
 
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a script"
           style={styles.fab}
           onPress={() => router.push('/new-script' as never)}
           activeOpacity={0.8}

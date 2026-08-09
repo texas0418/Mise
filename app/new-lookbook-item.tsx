@@ -100,7 +100,7 @@ export default function NewLookbookItemScreen() {
         <Text style={styles.sectionTitle}>Section</Text>
         <View style={styles.optionsGrid}>
           {SECTION_OPTIONS.map(opt => (
-            <TouchableOpacity key={opt.value}
+            <TouchableOpacity accessibilityRole="button" key={opt.value}
               style={[styles.optionChip, section === opt.value && styles.optionChipActive]}
               onPress={() => setSection(opt.value)}>
               <Text style={[styles.optionChipText, section === opt.value && styles.optionChipTextActive]}>{opt.label}</Text>
@@ -120,7 +120,7 @@ export default function NewLookbookItemScreen() {
 
         {/* Image */}
         <Text style={styles.label}>Reference Image</Text>
-        <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
+        <TouchableOpacity accessibilityRole="button" style={styles.imagePicker} onPress={handlePickImage}>
           {imageUrl ? (
             <Image source={{ uri: resolvePhotoUri(imageUrl) }} style={styles.imagePreview} contentFit="cover" />
           ) : (
@@ -151,7 +151,7 @@ export default function NewLookbookItemScreen() {
           </>
         )}
 
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+        <TouchableOpacity accessibilityRole="button" style={styles.saveBtn} onPress={handleSave}>
           <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Add to Lookbook'}</Text>
         </TouchableOpacity>
 

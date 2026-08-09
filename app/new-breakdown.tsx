@@ -146,14 +146,14 @@ export default function NewBreakdownScreen() {
       <View style={styles.row}>
         <View style={[styles.field, { flex: 1 }]}>
           <Text style={styles.label}>Int/Ext</Text>
-          <TouchableOpacity style={styles.selector} onPress={() => setShowIntExt(!showIntExt)}>
+          <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowIntExt(!showIntExt)}>
             <Text style={styles.selectorText}>{intExt}</Text>
             <ChevronDown color={Colors.text.tertiary} size={18} />
           </TouchableOpacity>
           {showIntExt && (
             <View style={styles.optionsList}>
               {INT_EXT_OPTIONS.map(o => (
-                <TouchableOpacity key={o.value}
+                <TouchableOpacity accessibilityRole="button" key={o.value}
                   style={[styles.option, intExt === o.value && styles.optionActive]}
                   onPress={() => { setIntExt(o.value); setShowIntExt(false); }}>
                   <Text style={[styles.optionText, intExt === o.value && styles.optionTextActive]}>{o.label}</Text>
@@ -165,14 +165,14 @@ export default function NewBreakdownScreen() {
         <View style={{ width: 12 }} />
         <View style={[styles.field, { flex: 1 }]}>
           <Text style={styles.label}>Time of Day</Text>
-          <TouchableOpacity style={styles.selector} onPress={() => setShowTime(!showTime)}>
+          <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowTime(!showTime)}>
             <Text style={styles.selectorText}>{TIME_OPTIONS.find(t => t.value === timeOfDay)?.label}</Text>
             <ChevronDown color={Colors.text.tertiary} size={18} />
           </TouchableOpacity>
           {showTime && (
             <View style={styles.optionsList}>
               {TIME_OPTIONS.map(o => (
-                <TouchableOpacity key={o.value}
+                <TouchableOpacity accessibilityRole="button" key={o.value}
                   style={[styles.option, timeOfDay === o.value && styles.optionActive]}
                   onPress={() => { setTimeOfDay(o.value); setShowTime(false); }}>
                   <Text style={[styles.optionText, timeOfDay === o.value && styles.optionTextActive]}>{o.label}</Text>
@@ -232,7 +232,7 @@ export default function NewBreakdownScreen() {
           multiline numberOfLines={3} textAlignVertical="top" />
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Scene Breakdown'}</Text>
       </TouchableOpacity>
     </ScrollView>

@@ -151,7 +151,7 @@ export default function NewWrapReportScreen() {
       <Text style={styles.label}>Notes</Text>
       <TextInput style={[styles.input, styles.multiline]} value={notes} onChangeText={setNotes} placeholder="Wrap notes..." placeholderTextColor={Colors.text.tertiary} multiline numberOfLines={4} />
 
-      <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.saveBtn} onPress={handleSave} activeOpacity={0.8}>
         <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Save Wrap Report'}</Text>
       </TouchableOpacity>
     </ScrollView>

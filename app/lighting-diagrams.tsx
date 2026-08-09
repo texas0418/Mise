@@ -108,15 +108,16 @@ function DiagramCard({ item, isExpanded, onPress, onEdit, onOpen, onDelete }: {
           </Text>
 
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onOpen} style={styles.openBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onOpen} style={styles.openBtn}>
               <Lightbulb color={Colors.accent.gold} size={15} />
               <Text style={styles.openBtnText}>Open Editor</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.text.secondary} size={15} />
               <Text style={styles.editBtnText}>Edit Info</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}
+              accessibilityRole="button" accessibilityLabel={`Delete ${item.title}`}>
               <Trash2 color={Colors.status.error} size={15} />
             </TouchableOpacity>
           </View>
@@ -182,7 +183,7 @@ export default function LightingDiagramsScreen() {
           }
         />
 
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a lighting diagram"
           style={styles.fab}
           onPress={() => router.push('/new-lighting-diagram' as never)}
           activeOpacity={0.8}

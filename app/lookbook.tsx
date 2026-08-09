@@ -78,11 +78,11 @@ function LookbookCard({ item, isExpanded, onPress, onEdit, onDelete }: {
               </View>
             )}
             <View style={styles.cardActions}>
-              <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
                 <Pencil color={Colors.accent.gold} size={15} />
                 <Text style={styles.editBtnText}>Edit</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+              <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
                 <Trash2 color={Colors.status.error} size={15} />
                 <Text style={styles.deleteBtnText}>Delete</Text>
               </TouchableOpacity>
@@ -108,7 +108,7 @@ function DirectorStatementSection({ statement, onSave }: {
 
   return (
     <View style={styles.statementSection}>
-      <TouchableOpacity style={styles.statementHeader} onPress={() => setExpanded(!expanded)}>
+      <TouchableOpacity accessibilityRole="button" style={styles.statementHeader} onPress={() => setExpanded(!expanded)}>
         <View style={styles.statementHeaderLeft}>
           <PenLine color={Colors.accent.gold} size={16} />
           <Text style={styles.statementTitle}>Director&apos;s Statement</Text>
@@ -129,16 +129,16 @@ function DirectorStatementSection({ statement, onSave }: {
                 placeholderTextColor={Colors.text.tertiary}
               />
               <View style={styles.statementActions}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={() => { setEditing(false); setText(statement?.text || ''); }}>
+                <TouchableOpacity accessibilityRole="button" style={styles.cancelBtn} onPress={() => { setEditing(false); setText(statement?.text || ''); }}>
                   <Text style={styles.cancelBtnText}>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.saveSmallBtn} onPress={handleSave}>
+                <TouchableOpacity accessibilityRole="button" style={styles.saveSmallBtn} onPress={handleSave}>
                   <Text style={styles.saveSmallBtnText}>Save</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ) : (
-            <TouchableOpacity onPress={() => setEditing(true)} activeOpacity={0.7}>
+            <TouchableOpacity accessibilityRole="button" onPress={() => setEditing(true)} activeOpacity={0.7}>
               {statement?.text ? (
                 <Text style={styles.statementText}>{statement.text}</Text>
               ) : (
@@ -241,7 +241,7 @@ export default function LookbookScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a lookbook item"
         style={styles.fab}
         onPress={() => router.push('/new-lookbook-item' as never)}
         activeOpacity={0.8}

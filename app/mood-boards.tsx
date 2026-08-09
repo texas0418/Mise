@@ -35,10 +35,12 @@ function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
         <Text style={styles.colorHex}>{item.color}</Text>
         {isSelected && (
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.actionBtnSmall}>
+            <TouchableOpacity onPress={onEdit} style={styles.actionBtnSmall}
+              accessibilityRole="button" accessibilityLabel={`Edit ${item.label}`}>
               <Pencil color={Colors.accent.gold} size={13} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.actionBtnSmallDanger}>
+            <TouchableOpacity onPress={handleDelete} style={styles.actionBtnSmallDanger}
+              accessibilityRole="button" accessibilityLabel={`Delete ${item.label}`}>
               <Trash2 color={Colors.status.error} size={13} />
             </TouchableOpacity>
           </View>
@@ -56,10 +58,12 @@ function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
         </View>
         {isSelected && (
           <View style={styles.refActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.actionBtnOverlay}>
+            <TouchableOpacity onPress={onEdit} style={styles.actionBtnOverlay}
+              accessibilityRole="button" accessibilityLabel={`Edit ${item.label}`}>
               <Pencil color="#fff" size={14} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.actionBtnOverlay}>
+            <TouchableOpacity onPress={handleDelete} style={styles.actionBtnOverlay}
+              accessibilityRole="button" accessibilityLabel={`Delete ${item.label}`}>
               <Trash2 color="#FF6B6B" size={14} />
             </TouchableOpacity>
           </View>
@@ -77,11 +81,11 @@ function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
       <Text style={styles.noteText}>{item.note}</Text>
       {isSelected && (
         <View style={styles.cardActionsRow}>
-          <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+          <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
             <Pencil color={Colors.accent.gold} size={13} />
             <Text style={styles.editBtnText}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+          <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
             <Trash2 color={Colors.status.error} size={13} />
             <Text style={styles.deleteBtnText}>Delete</Text>
           </TouchableOpacity>
@@ -164,7 +168,7 @@ export default function MoodBoardsScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-mood-item' as never)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a mood board item" style={styles.fab} onPress={() => router.push('/new-mood-item' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>

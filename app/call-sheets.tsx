@@ -327,7 +327,7 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
 
           {/* Actions */}
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
@@ -341,7 +341,7 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
               <ShieldAlert color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Details</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -447,7 +447,7 @@ export default function CallSheetsScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a shoot day"
         style={styles.fab}
         onPress={() => router.push('/new-schedule-day' as never)}
         activeOpacity={0.8}

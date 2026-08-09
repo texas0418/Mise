@@ -141,14 +141,14 @@ export default function NewShotScreen() {
 
         <View style={styles.field}>
           <Text style={styles.label}>Shot Type</Text>
-          <TouchableOpacity style={styles.selector} onPress={() => setShowTypes(!showTypes)} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowTypes(!showTypes)} activeOpacity={0.7}>
             <Text style={styles.selectorText}>{SHOT_TYPES.find(t => t.value === type)?.label}</Text>
             <ChevronDown color={Colors.text.tertiary} size={18} />
           </TouchableOpacity>
           {showTypes && (
             <View style={styles.optionsList}>
               {SHOT_TYPES.map(t => (
-                <TouchableOpacity key={t.value} style={[styles.option, type === t.value && styles.optionActive]}
+                <TouchableOpacity accessibilityRole="button" key={t.value} style={[styles.option, type === t.value && styles.optionActive]}
                   onPress={() => { setType(t.value as ShotType); setShowTypes(false); }}>
                   <Text style={[styles.optionText, type === t.value && styles.optionTextActive]}>{t.label}</Text>
                 </TouchableOpacity>
@@ -159,14 +159,14 @@ export default function NewShotScreen() {
 
         <View style={styles.field}>
           <Text style={styles.label}>Camera Movement</Text>
-          <TouchableOpacity style={styles.selector} onPress={() => setShowMovements(!showMovements)} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowMovements(!showMovements)} activeOpacity={0.7}>
             <Text style={styles.selectorText}>{SHOT_MOVEMENTS.find(m => m.value === movement)?.label}</Text>
             <ChevronDown color={Colors.text.tertiary} size={18} />
           </TouchableOpacity>
           {showMovements && (
             <View style={styles.optionsList}>
               {SHOT_MOVEMENTS.map(m => (
-                <TouchableOpacity key={m.value} style={[styles.option, movement === m.value && styles.optionActive]}
+                <TouchableOpacity accessibilityRole="button" key={m.value} style={[styles.option, movement === m.value && styles.optionActive]}
                   onPress={() => { setMovement(m.value as ShotMovement); setShowMovements(false); }}>
                   <Text style={[styles.optionText, movement === m.value && styles.optionTextActive]}>{m.label}</Text>
                 </TouchableOpacity>
@@ -179,7 +179,7 @@ export default function NewShotScreen() {
         {isEditing && (
           <View style={styles.field}>
             <Text style={styles.label}>Status</Text>
-            <TouchableOpacity style={styles.selector} onPress={() => setShowStatuses(!showStatuses)} activeOpacity={0.7}>
+            <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowStatuses(!showStatuses)} activeOpacity={0.7}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: STATUS_OPTIONS.find(s => s.value === status)?.color }} />
                 <Text style={styles.selectorText}>{STATUS_OPTIONS.find(s => s.value === status)?.label}</Text>
@@ -189,7 +189,7 @@ export default function NewShotScreen() {
             {showStatuses && (
               <View style={styles.optionsList}>
                 {STATUS_OPTIONS.map(s => (
-                  <TouchableOpacity key={s.value} style={[styles.option, status === s.value && styles.optionActive]}
+                  <TouchableOpacity accessibilityRole="button" key={s.value} style={[styles.option, status === s.value && styles.optionActive]}
                     onPress={() => { setStatus(s.value); setShowStatuses(false); }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: s.color }} />
@@ -217,7 +217,7 @@ export default function NewShotScreen() {
 
         {/* Lighting diagram link — edit mode only */}
         {isEditing && (
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={styles.lightingLink}
             onPress={() => {
               if (linkedDiagram) {
@@ -244,7 +244,7 @@ export default function NewShotScreen() {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-shot-button">
+        <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-shot-button">
           <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Shot'}</Text>
         </TouchableOpacity>
         <View style={{ height: 40 }} />

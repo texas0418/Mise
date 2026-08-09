@@ -86,12 +86,12 @@ export default function V2MigrationFlow({ onComplete }: Props) {
             Your local data stays intact either way.
           </Text>
 
-          <TouchableOpacity style={s.primaryBtn} onPress={handleUpload} activeOpacity={0.8}>
+          <TouchableOpacity accessibilityRole="button" style={s.primaryBtn} onPress={handleUpload} activeOpacity={0.8}>
             <Cloud color={Colors.text.inverse} size={18} />
             <Text style={s.primaryBtnText}>Upload & Enable Sync</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={s.skipBtn} onPress={handleSkip} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" style={s.skipBtn} onPress={handleSkip} activeOpacity={0.7}>
             <Text style={s.skipBtnText}>Skip for now</Text>
           </TouchableOpacity>
         </View>
@@ -125,7 +125,7 @@ export default function V2MigrationFlow({ onComplete }: Props) {
               : 'Sync is enabled. Any new changes will sync automatically.'
             }
           </Text>
-          <TouchableOpacity style={s.primaryBtn} onPress={handleFinish} activeOpacity={0.8}>
+          <TouchableOpacity accessibilityRole="button" style={s.primaryBtn} onPress={handleFinish} activeOpacity={0.8}>
             <ArrowRight color={Colors.text.inverse} size={18} />
             <Text style={s.primaryBtnText}>Continue</Text>
           </TouchableOpacity>
@@ -148,12 +148,12 @@ export default function V2MigrationFlow({ onComplete }: Props) {
           Your existing data will be uploaded to the cloud.
         </Text>
 
-        <TouchableOpacity style={s.primaryBtn} onPress={handleSignIn} activeOpacity={0.8}>
+        <TouchableOpacity accessibilityRole="button" style={s.primaryBtn} onPress={handleSignIn} activeOpacity={0.8}>
           <LogIn color={Colors.text.inverse} size={18} />
           <Text style={s.primaryBtnText}>Sign In to Sync</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={s.skipBtn} onPress={handleSkip} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={s.skipBtn} onPress={handleSkip} activeOpacity={0.7}>
           <CloudOff color={Colors.text.tertiary} size={14} />
           <Text style={s.skipBtnText}>Continue without sync</Text>
         </TouchableOpacity>

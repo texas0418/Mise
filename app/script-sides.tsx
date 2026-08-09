@@ -176,7 +176,7 @@ function SideCard({ side, index, isExpanded, onPress, onEdit, onDelete, linkedSh
                 </Text>
               </View>
               <View style={styles.actionButtons}>
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   onPress={onEdit}
                   style={styles.editBtn}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -184,7 +184,7 @@ function SideCard({ side, index, isExpanded, onPress, onEdit, onDelete, linkedSh
                   <Pencil color={Colors.accent.gold} size={15} />
                   <Text style={styles.editBtnText}>Edit</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   onPress={handleDelete}
                   style={styles.deleteBtnAction}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -283,7 +283,7 @@ export default function ScriptSidesScreen() {
 
             <View style={styles.filterRow}>
               {filters.map(f => (
-                <TouchableOpacity key={f.key}
+                <TouchableOpacity accessibilityRole="button" key={f.key}
                   style={[styles.filterChip, filter === f.key && styles.filterChipActive]}
                   onPress={() => setFilter(f.key)}>
                   <Text style={[styles.filterChipText, filter === f.key && styles.filterChipTextActive]}>{f.label}</Text>
@@ -301,7 +301,7 @@ export default function ScriptSidesScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a script side"
         style={styles.fab}
         onPress={() => router.push('/new-script-side' as never)}
         activeOpacity={0.8}

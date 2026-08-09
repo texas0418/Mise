@@ -94,12 +94,12 @@ export default function NewMessageScreen() {
             </View>
             <View style={styles.templateGrid}>
               {MESSAGE_TEMPLATES.map((t, i) => (
-                <TouchableOpacity key={i} style={styles.templateChip} onPress={() => applyTemplate(t)}>
+                <TouchableOpacity accessibilityRole="button" key={i} style={styles.templateChip} onPress={() => applyTemplate(t)}>
                   <Text style={styles.templateChipText}>{t.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
-            <TouchableOpacity onPress={() => setShowTemplates(false)}>
+            <TouchableOpacity accessibilityRole="button" onPress={() => setShowTemplates(false)}>
               <Text style={styles.skipText}>Or write from scratch ↓</Text>
             </TouchableOpacity>
           </View>
@@ -109,7 +109,7 @@ export default function NewMessageScreen() {
         <Text style={styles.sectionTitle}>Priority</Text>
         <View style={styles.optionsRow}>
           {PRIORITY_OPTIONS.map(p => (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               key={p.key}
               style={[styles.priChip, priority === p.key && { borderColor: p.color + '66', backgroundColor: p.color + '12' }]}
               onPress={() => setPriority(p.key)}
@@ -158,7 +158,7 @@ export default function NewMessageScreen() {
           {RECIPIENT_OPTIONS.map(r => {
             const selected = recipients.includes(r);
             return (
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 key={r}
                 style={[styles.recipientChip, selected && styles.recipientChipActive]}
                 onPress={() => toggleRecipient(r)}
@@ -170,7 +170,7 @@ export default function NewMessageScreen() {
         </View>
 
         {/* Send */}
-        <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
+        <TouchableOpacity accessibilityRole="button" style={styles.sendBtn} onPress={handleSend}>
           <Send color={Colors.text.inverse} size={18} />
           <Text style={styles.sendBtnText}>Send Message</Text>
         </TouchableOpacity>
