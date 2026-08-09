@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, Sparkles, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectVFX } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { VFXShot, VFXShotStatus, VFXComplexity } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const STATUS_CONFIG: Record<VFXShotStatus, { color: string; label: string }> = {
   'pending': { color: Colors.text.tertiary, label: 'Pending' },
@@ -136,7 +136,7 @@ function VFXCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function VFXTrackerScreen() {
   const { activeProject, activeProjectId, deleteVFXShot } = useProjects();
   const vfxShots = useProjectVFX(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<VFXShotStatus | null>(null);
@@ -227,8 +227,7 @@ export default function VFXTrackerScreen() {
         }
       />
 
-            <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="vfx" variant="compact" />
-        <AIImportButton entityKey="vfx" variant="compact" /></View>
+            <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="vfx" variant="compact" /></View>
 
 <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-vfx' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />

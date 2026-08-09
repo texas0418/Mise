@@ -10,12 +10,9 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import {
   Crown,
   Upload,
-  Sparkles,
-  FolderOpen,
   FileSpreadsheet,
   History,
   X,
@@ -28,6 +25,7 @@ import {
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // ─── Feature list ───────────────────────────────────────────────────────────
 
@@ -36,16 +34,6 @@ const PRO_FEATURES = [
     icon: Upload,
     title: 'Spreadsheet Import',
     description: 'Import crew lists, budgets, and shot lists from CSV & Excel files',
-  },
-  {
-    icon: Sparkles,
-    title: 'AI Import',
-    description: 'Describe your data in plain language or photograph handwritten sheets',
-  },
-  {
-    icon: FolderOpen,
-    title: 'Unlimited Projects',
-    description: 'Manage as many productions as you need simultaneously',
   },
   {
     icon: FileSpreadsheet,
@@ -324,7 +312,7 @@ function LegalFooter({
 // ─── Screen ─────────────────────────────────────────────────────────────────
 
 export default function PaywallScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
 
   const { isLoading: rcLoading } = useSubscription();
 

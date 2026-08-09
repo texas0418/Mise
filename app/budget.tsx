@@ -1,16 +1,16 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, DollarSign, AlertCircle, Check, Clock, ChevronDown, ChevronUp, Pencil, Trash2, Search, ArrowUpDown, LayoutGrid, FileText } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectBudget } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { BudgetItem, BudgetCategory } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { generateBudgetTemplate, TEMPLATE_LINE_COUNT } from '@/utils/budgetTemplate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const CATEGORY_COLORS: Record<BudgetCategory, string> = {
   'talent': '#FB923C', 'crew': '#60A5FA', 'equipment': '#A78BFA', 'locations': '#4ADE80',
@@ -149,7 +149,7 @@ function BudgetCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function BudgetScreen() {
   const { activeProject, activeProjectId, deleteBudgetItem, addBudgetItem, addBudgetItemBulk } = useProjects();
   const budget = useProjectBudget(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -304,8 +304,7 @@ export default function BudgetScreen() {
         <TouchableOpacity style={styles.templateBtnSmall} onPress={handleLoadTemplate} activeOpacity={0.7}>
                 <FileText color={Colors.accent.gold} size={13} />
                 <Text style={styles.templateBtnSmallText}>Template</Text>
-              </TouchableOpacity>
-        <AIImportButton entityKey="budget" variant="compact" /></View>
+              </TouchableOpacity></View>
               <Text style={styles.progressText}>{spentPercent.toFixed(0)}% of budget used · {budget.length} items</Text>
             </View>
 

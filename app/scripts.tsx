@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import {
   Plus, FileText, AlertCircle, ChevronDown, ChevronUp,
   Eye, Trash2, Upload,
@@ -10,6 +10,7 @@ import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { ScriptPDF, ScriptRevisionColor } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // ---------------------------------------------------------------------------
 // Revision color display config (industry standard)
@@ -161,7 +162,7 @@ function ScriptCard({
 export default function ScriptsScreen() {
   const { activeProject, activeProjectId, deleteScriptPDF } = useProjects();
   const scripts = useProjectScriptPDFs(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

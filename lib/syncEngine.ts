@@ -26,6 +26,7 @@ import {
   pruneFailedItems,
   type SyncQueueItem,
 } from '@/lib/syncQueue';
+import { isProEntitled } from '@/lib/entitlement';
 
 // ---------------------------------------------------------------------------
 // UUID helpers — app uses numeric IDs, Supabase expects UUIDs
@@ -79,10 +80,11 @@ function convertRowIds(row: Record<string, any>): Record<string, any> {
 // WHERE table_schema = 'public' ORDER BY table_name, ordinal_position;
 // ---------------------------------------------------------------------------
 const KNOWN_COLUMNS: Record<string, string[] | null> = {
-  projects: ['id', 'user_id', 'title', 'logline', 'genre', 'status', 'format', 'image_url', 'budget', 'director', 'producer', 'created_at', 'updated_at', 'deleted_at'],
+  projects: ['id', 'user_id', 'title', 'logline', 'genre', 'status', 'format', 'image_url', 'budget', 'director', 'producer', 'created_at', 'updated_at', 'archived_at', 'deleted_at'],
   shots: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'type', 'movement', 'lens', 'description', 'notes', 'status', 'created_at', 'updated_at', 'deleted_at'],
   schedule_days: ['id', 'user_id', 'project_id', 'date', 'day_number', 'scenes', 'location', 'call_time', 'wrap_time', 'notes', 'created_at', 'updated_at', 'deleted_at'],
   crew_members: ['id', 'user_id', 'project_id', 'name', 'role', 'department', 'phone', 'email', 'created_at', 'updated_at', 'deleted_at'],
+  crew_assignments: ['id', 'user_id', 'project_id', 'crew_member_id', 'role', 'call_time', 'created_at', 'updated_at', 'deleted_at'],
   takes: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'take_number', 'is_circled', 'is_ng', 'notes', 'timestamp', 'created_at', 'updated_at', 'deleted_at'],
   scenes: ['id', 'user_id', 'project_id', 'number', 'heading', 'int_ext', 'time_of_day', 'location', 'page_eighths', 'cast_list', 'extras', 'props', 'wardrobe', 'special_equipment', 'synopsis', 'notes', 'created_at', 'updated_at', 'deleted_at'],
   scene_breakdowns: ['id', 'user_id', 'project_id', 'scene_number', 'scene_name', 'int_ext', 'time_of_day', 'location', 'cast_list', 'extras', 'props', 'wardrobe', 'special_equipment', 'notes', 'page_count', 'created_at', 'updated_at', 'deleted_at'],
@@ -103,6 +105,8 @@ const KNOWN_COLUMNS: Record<string, string[] | null> = {
   time_entries: ['id', 'user_id', 'project_id', 'schedule_day_id', 'crew_member_id', 'department', 'date', 'call_time', 'wrap_time', 'lunch_start', 'lunch_end', 'scheduled_hours', 'actual_hours', 'overtime_hours', 'rate', 'notes', 'created_at', 'updated_at', 'deleted_at'],
   script_sides: ['id', 'user_id', 'project_id', 'scene_number', 'scene_header', 'page_start', 'page_end', 'page_count', 'shoot_date', 'status', 'synopsis', 'cast_ids', 'linked_shot_ids', 'annotations', 'revision_color', 'revision_date', 'notes', 'created_at', 'updated_at', 'deleted_at'],
   cast_members: ['id', 'user_id', 'project_id', 'actor_name', 'character_name', 'character_description', 'status', 'headshot', 'email', 'phone', 'agent_name', 'agent_contact', 'scenes', 'shoot_days', 'availability', 'performance_notes', 'preferred_takes', 'costume_notes', 'created_at', 'updated_at', 'deleted_at'],
+  call_sheet_details: ['id', 'user_id', 'project_id', 'schedule_day_id', 'hospital_name', 'hospital_address', 'hospital_phone', 'safety_notes', 'parking_notes', 'basecamp_notes', 'crew_park_notes', 'nearest_bathroom', 'walkie_channels', 'catering_location', 'breakfast_time', 'lunch_time', 'company_moves', 'version', 'issued_at', 'created_at', 'updated_at', 'deleted_at'],
+  cast_call_times: ['id', 'user_id', 'project_id', 'schedule_day_id', 'cast_member_id', 'makeup_time', 'wardrobe_time', 'on_set_time', 'notes', 'created_at', 'updated_at', 'deleted_at'],
   lookbook_items: ['id', 'user_id', 'project_id', 'section', 'title', 'description', 'image_url', 'reference_film', 'color_hex', 'sort_order', 'created_at', 'updated_at', 'deleted_at'],
   director_statements: ['id', 'user_id', 'project_id', 'text', 'created_at', 'updated_at', 'deleted_at'],
   scene_selects: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'take_number', 'rating', 'is_circled', 'is_alt', 'editor_note', 'performance_note', 'technical_note', 'timecode', 'created_at', 'updated_at', 'deleted_at'],
@@ -432,6 +436,14 @@ export async function runMigrationsIfNeeded(): Promise<boolean> {
   }
 }
 
+/**
+ * Whether this device should sync at all.
+ *
+ * Being signed in used to be the whole test, so every free account pushed and
+ * pulled against Supabase while the paywall advertised Multi-Device Sync as a
+ * paid feature — the claim and the behaviour disagreed, and the bill was real
+ * (#43). Sync now requires a paid entitlement as well as a session.
+ */
 export function isSyncEnabled(userId: string | null | undefined): boolean {
-  return !!userId;
+  return !!userId && isProEntitled();
 }

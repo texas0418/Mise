@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Image } from 'expo-image';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, MapPin, Star, Zap, Phone, AlertCircle, Shield, ChevronDown, ChevronUp, Pencil, Trash2, Car, ImageIcon } from 'lucide-react-native';
 import { useProjects, useProjectLocations } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { LocationScout } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // eslint-disable-next-line complexity -- tracked in #8
 function LocationCard({ item, isExpanded, onPress, onEdit, onDelete }: {
@@ -157,7 +157,7 @@ function LocationCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function LocationsScreen() {
   const { activeProject, activeProjectId, deleteLocation } = useProjects();
   const locations = useProjectLocations(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -176,8 +176,7 @@ export default function LocationsScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Locations' }} />
 
-      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="locations" variant="compact" />
-        <AIImportButton entityKey="locations" variant="compact" /></View>
+      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="locations" variant="compact" /></View>
       <View style={styles.statsBar}>
         <MapPin color={Colors.accent.gold} size={16} />
         <Text style={styles.statsText}>{locations.length} location{locations.length !== 1 ? 's' : ''}</Text>

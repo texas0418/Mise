@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { Lightbulb, Check, Star, Trash2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectLightingDiagrams } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { LightingTemplateName, LightingElement } from '@/types';
 import { LIGHTING_TEMPLATES, getTemplate, loadCustomTemplates, deleteCustomTemplate, CustomTemplate } from '@/utils/lightingTemplates';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewLightingDiagramScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { activeProjectId, activeProject, addLightingDiagram, updateLightingDiagram } = useProjects();
   const diagrams = useProjectLightingDiagrams(activeProjectId);
   const params = useLocalSearchParams<{ id?: string; scene?: string; shot?: string }>();

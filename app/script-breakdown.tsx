@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, FileText, MapPin, Clock, Users, Package, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectScenes } from '@/contexts/ProjectContext';
 import { useQueryClient } from '@tanstack/react-query';
@@ -9,9 +9,9 @@ import { runSceneMigration } from '@/lib/sceneMigration';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { Scene } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const TIME_COLORS: Record<string, string> = {
   'day': '#FBBF24',
@@ -169,7 +169,7 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function ScriptBreakdownScreen() {
   const { activeProject, activeProjectId, deleteScene } = useProjects();
   const breakdowns = useProjectScenes(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const queryClient = useQueryClient();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -204,8 +204,7 @@ export default function ScriptBreakdownScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Scenes' }} />
 
-      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="sceneBreakdowns" variant="compact" />
-        <AIImportButton entityKey="sceneBreakdowns" variant="compact" /></View>
+      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="sceneBreakdowns" variant="compact" /></View>
       <View style={styles.statsBar}>
         <FileText color={Colors.accent.gold} size={16} />
         <Text style={styles.statsText}>{stats.scenes} scenes</Text>

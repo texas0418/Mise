@@ -36,6 +36,15 @@ export interface Project {
   budget?: number;
   director?: string;
   producer?: string;
+  /**
+   * When this film was put away — not deleted.
+   *
+   * Distinct from the sync engine's `deleted_at` tombstone, which means the
+   * record is gone. Directors keep finished films for credits, festival
+   * tracking and the portfolio, so archiving hides a project from the list
+   * while leaving every one of its records intact and restorable (#46).
+   */
+  archivedAt?: string;
 }
 
 export interface Shot {
@@ -63,6 +72,16 @@ export interface ScheduleDay {
   projectId: string;
   date: string;
   dayNumber: number;
+  /**
+   * Scenes scheduled for this day. Optional because days created before
+   * scenes existed are backfilled by parsing `scenes` below.
+   */
+  sceneIds?: string[];
+  /**
+   * Legacy free-text scene list ("Sc. 1, 5, 8"). Kept in sync with `sceneIds`
+   * so call sheets, exports and the project summary keep rendering while the
+   * links spread. Derived, not authoritative.
+   */
   scenes: string;
   location: string;
   callTime: string;
@@ -70,6 +89,11 @@ export interface ScheduleDay {
   notes: string;
 }
 
+/**
+ * A person. Global, not per-project: a director reuses the same gaffer across
+ * films, so the contact is an address book entry and the *assignment* is what
+ * is project-specific. See CrewAssignment.
+ */
 export interface CrewMember {
   id: string;
   name: string;
@@ -77,6 +101,27 @@ export interface CrewMember {
   department: Department;
   phone: string;
   email: string;
+}
+
+/**
+ * Someone working on a particular production.
+ *
+ * This is what makes crew project-scoped (#40) without guessing which film an
+ * existing contact belonged to — the contacts stay put and assignments are
+ * added alongside them.
+ */
+export interface CrewAssignment {
+  id: string;
+  projectId: string;
+  crewMemberId: string;
+  /** Role on this production; a gaffer on one film is a best boy on another. */
+  role?: string;
+  /**
+   * This person's standard call for this production. Empty means they are on
+   * the general call — which is what every call sheet printed before (#39).
+   */
+  callTime?: string;
+  createdAt: string;
 }
 
 export interface Take {
@@ -246,6 +291,75 @@ export interface MoodBoardItem {
   label: string;
 }
 
+/**
+ * When an actor is due, on one particular day.
+ *
+ * Per shoot day, not per production: makeup at 5:30 on a prosthetics day and
+ * 7:15 on the next is the normal case, and it is the reason call sheets get
+ * reissued at all. `CrewAssignment.callTime` is still per-production (#39) and
+ * is expected to move to this shape.
+ *
+ * A missing row, or a blank field, means that person is on the general call —
+ * so nothing has to be filled in for the sheet to be correct.
+ */
+export interface CastCallTime {
+  id: string;
+  projectId: string;
+  scheduleDayId: string;
+  castMemberId: string;
+  /** In the makeup chair. */
+  makeupTime?: string;
+  /** In wardrobe. */
+  wardrobeTime?: string;
+  /** On set, ready to shoot — the time that actually matters to the day. */
+  onSetTime?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+/**
+ * The call sheet's header block for one shoot day.
+ *
+ * Deliberately not fields on `ScheduleDay`: a shoot day is a scheduling
+ * record, while hospital directions and walkie channels are facts about the
+ * document issued for it. One row per day, created the first time anything is
+ * filled in — an absent row simply means those sections are blank.
+ */
+export interface CallSheetDetails {
+  id: string;
+  projectId: string;
+  scheduleDayId: string;
+
+  /** Safety. The nearest hospital is the line that matters when nothing else does. */
+  hospitalName?: string;
+  hospitalAddress?: string;
+  hospitalPhone?: string;
+  safetyNotes?: string;
+
+  parkingNotes?: string;
+  basecampNotes?: string;
+  crewParkNotes?: string;
+  nearestBathroom?: string;
+  walkieChannels?: string;
+  cateringLocation?: string;
+  breakfastTime?: string;
+  lunchTime?: string;
+  companyMoves?: string;
+
+  /** Bumped on reissue, so crew can tell which sheet is current. */
+  version: number;
+  /** When this version was issued. Absent until it has been. */
+  issuedAt?: string;
+  createdAt: string;
+}
+
+/**
+ * @deprecated Never wired to a store, and no longer registered for sync.
+ *
+ * Kept as the shape a per-person-per-day call time takes. `CastCallTime` now
+ * implements exactly that for cast (#51); moving crew calls off
+ * `CrewAssignment.callTime` onto the same shape is the outstanding half of #39.
+ */
 export interface CallSheetEntry {
   id: string;
   projectId: string;

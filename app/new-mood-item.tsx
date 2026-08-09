@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { ChevronDown, ImagePlus } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -10,6 +10,7 @@ import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { MoodBoardItemType } from '@/types';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const TYPE_OPTIONS: { label: string; value: MoodBoardItemType }[] = [
   { label: 'Color Swatch', value: 'color' },
@@ -18,7 +19,7 @@ const TYPE_OPTIONS: { label: string; value: MoodBoardItemType }[] = [
 ];
 
 export default function NewMoodItemScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addMoodBoardItem, updateMoodBoardItem, activeProjectId, activeProject } = useProjects();
   const moodItems = useProjectMoodBoard(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

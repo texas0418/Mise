@@ -10,11 +10,11 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert,
 } from 'react-native';
 import { Cloud, CloudOff, ArrowRight, Upload, LogIn } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSync } from '@/contexts/SyncContext';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const V2_MIGRATION_KEY = 'mise_v2_migration_done';
 
@@ -35,7 +35,7 @@ interface Props {
 }
 
 export default function V2MigrationFlow({ onComplete }: Props) {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isAuthenticated } = useAuth();
   const { doInitialUpload } = useSync();
 

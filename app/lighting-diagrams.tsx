@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2, Camera, Users, Zap } from 'lucide-react-native';
 import { useProjects, useProjectLightingDiagrams } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { LightingDiagram } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const TEMPLATE_LABELS: Record<string, string> = {
   'blank': 'Blank', 'three-point': '3-Point', 'rembrandt': 'Rembrandt',
@@ -127,7 +128,7 @@ function DiagramCard({ item, isExpanded, onPress, onEdit, onOpen, onDelete }: {
 export default function LightingDiagramsScreen() {
   const { activeProject, activeProjectId, deleteLightingDiagram } = useProjects();
   const diagrams = useProjectLightingDiagrams(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

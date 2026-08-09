@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, SectionList, TouchableOpacity, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Plus, Star, Circle, CircleDot, Trash2, Clock, MessageSquare, Camera, AlertTriangle, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
 import { useProjects, useProjectSelects } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { SceneSelect } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 function StarRating({ rating, size = 12 }: { rating: number; size?: number }) {
   return (
@@ -116,7 +116,7 @@ function SelectCard({ select, onEdit, onDelete }: {
 export default function SelectsScreen() {
   const { activeProjectId, deleteSceneSelect } = useProjects();
   const selects = useProjectSelects(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [filter, setFilter] = useState<'all' | 'circled' | 'alt'>('all');
 

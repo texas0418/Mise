@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState, useCallback } from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
@@ -17,7 +17,10 @@ import {
 } from "@/utils/onboarding";
 import { hasRunPhotoMigration, runPhotoMigration } from "@/lib/photoMigration";
 import { hasRunSceneMigration, runSceneMigration } from "@/lib/sceneMigration";
+import { hasRunCrewMigration, runCrewMigration } from "@/lib/crewMigration";
+import { noteFirstLaunch } from "@/utils/reviewPrompt";
 import OnboardingFlow from "@/components/OnboardingFlow";
+import { useGuardedRouter } from "@/utils/useGuardedRouter";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,7 +35,7 @@ const queryClient = new QueryClient();
  * "discard this". Cancel replaces it so there is exactly one obvious way out.
  */
 function ModalCancelButton() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   return (
     <TouchableOpacity
       onPress={() => router.back()}
@@ -78,16 +81,32 @@ export default function RootLayout() {
       try {
         if (!(await hasRunSceneMigration())) {
           const r = await runSceneMigration();
-          if (r.fromBreakdowns || r.fromShots || r.shotsLinked) {
+          if (r.fromBreakdowns || r.fromShots || r.shotsLinked || r.daysLinked) {
             console.log(
               `[sceneMigration] ${r.fromBreakdowns} from breakdowns, ` +
-              `${r.fromShots} from shots, ${r.shotsLinked} shots linked`,
+              `${r.fromShots} from shots, ${r.shotsLinked} shots linked, ` +
+              `${r.daysLinked} days linked`,
             );
           }
         }
       } catch (e) {
         console.warn("[sceneMigration] skipped:", e);
       }
+
+      // Assign existing contacts to existing projects, so call sheets keep
+      // listing the people they listed before crew became project-scoped.
+      try {
+        if (!(await hasRunCrewMigration())) {
+          const { created } = await runCrewMigration();
+          if (created) console.log(`[crewMigration] ${created} assignments created`);
+        }
+      } catch (e) {
+        console.warn("[crewMigration] skipped:", e);
+      }
+
+      // Stamped once, so the review prompt can tell a new install from a
+      // long-running one.
+      await noteFirstLaunch();
 
       const done = await hasCompletedOnboarding();
       setShowOnboarding(!done);
@@ -263,6 +282,13 @@ export default function RootLayout() {
                     options={{ title: "Call Sheets" }}
                   />
                   <Stack.Screen
+                    name="call-sheet-details"
+                    options={{
+                      ...FORM_MODAL_OPTIONS,
+                      title: "Call Sheet Details",
+                    }}
+                  />
+                  <Stack.Screen
                     name="crew-directory"
                     options={{ title: "Crew Directory" }}
                   />
@@ -408,10 +434,6 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="import-data"
                     options={{ ...FORM_MODAL_OPTIONS, title: "Import Data" }}
-                  />
-                  <Stack.Screen
-                    name="ai-import"
-                    options={{ ...FORM_MODAL_OPTIONS, title: "AI Import" }}
                   />
                   <Stack.Screen
                     name="paywall"

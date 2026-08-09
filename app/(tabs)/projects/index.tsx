@@ -1,13 +1,14 @@
-import React, { useCallback, useRef, useEffect, useState } from 'react';
+import React, { useCallback, useRef, useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, ActivityIndicator, Alert } from 'react-native';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
-import { Plus, Film, ChevronRight, Trash2, Check } from 'lucide-react-native';
+import { Plus, Film, ChevronRight, Trash2, Check, Archive, ArchiveRestore } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useProjects } from '@/contexts/ProjectContext';
+import { maybeAskForReview } from '@/utils/reviewPrompt';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { Project, ProjectStatus } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -26,7 +27,16 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
   'completed': Colors.text.tertiary,
 };
 
-function ProjectCard({ project, index, isActive, onPress, onDelete }: { project: Project; index: number; isActive: boolean; onPress: () => void; onDelete: () => void }) {
+function ProjectCard({ project, index, isActive, onPress, onDelete, onArchive, onRestore }: {
+  project: Project;
+  index: number;
+  isActive: boolean;
+  onPress: () => void;
+  onDelete: () => void;
+  onArchive: () => void;
+  onRestore: () => void;
+}) {
+  const isArchived = Boolean(project.archivedAt);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const swipeableRef = useRef<Swipeable>(null);
@@ -50,18 +60,41 @@ function ProjectCard({ project, index, isActive, onPress, onDelete }: { project:
 
   const statusColor = STATUS_COLORS[project.status];
 
+  // Archive sits before Delete on purpose: putting a finished film away is the
+  // common intention, and destroying every record of it is not (#46).
   const renderRightActions = () => (
-    <TouchableOpacity
-      style={styles.deleteAction}
-      onPress={() => {
-        swipeableRef.current?.close();
-        onDelete();
-      }}
-      activeOpacity={0.7}
-    >
-      <Trash2 color="#fff" size={20} />
-      <Text style={styles.deleteActionText}>Delete</Text>
-    </TouchableOpacity>
+    <View style={styles.swipeActions}>
+      <TouchableOpacity
+        style={styles.archiveAction}
+        onPress={() => {
+          swipeableRef.current?.close();
+          if (isArchived) onRestore(); else onArchive();
+        }}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={isArchived ? `Restore ${project.title}` : `Archive ${project.title}`}
+        testID={`project-${isArchived ? 'restore' : 'archive'}-${project.id}`}
+      >
+        {isArchived
+          ? <ArchiveRestore color={Colors.text.inverse} size={20} />
+          : <Archive color={Colors.text.inverse} size={20} />}
+        <Text style={styles.archiveActionText}>{isArchived ? 'Restore' : 'Archive'}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.deleteAction}
+        onPress={() => {
+          swipeableRef.current?.close();
+          onDelete();
+        }}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`Delete ${project.title} and all of its data`}
+        testID={`project-delete-${project.id}`}
+      >
+        <Trash2 color="#fff" size={20} />
+        <Text style={styles.deleteActionText}>Delete</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -113,30 +146,60 @@ function ProjectCard({ project, index, isActive, onPress, onDelete }: { project:
 }
 
 export default function ProjectsScreen() {
-  const { projects, activeProjectId, selectProject, deleteProject, isLoading } = useProjects();
-  const router = useRouter();
+  const {
+    projects, activeProjectId, selectProject, deleteProject,
+    archiveProject, restoreProject, isLoading, takes, wrapReports,
+  } = useProjects();
+  const [showArchived, setShowArchived] = useState(false);
+  const router = useGuardedRouter();
   const { isTablet, gridColumns, contentPadding } = useLayout();
   const columns = isTablet ? Math.min(gridColumns, 2) : 1;
+
+  // Asked here rather than on set: this screen is where someone lands between
+  // shoots, not mid-take. Silent unless the use has earned the ask.
+  useEffect(() => {
+    if (isLoading) return;
+    maybeAskForReview({
+      wrapReports: wrapReports.length,
+      takes: takes.length,
+      projects: projects.length,
+    });
+  }, [isLoading, wrapReports.length, takes.length, projects.length]);
 
   const handleProjectPress = useCallback((project: Project) => {
     selectProject(project.id);
     router.push({ pathname: '/project-detail', params: { id: project.id } } as never);
   }, [selectProject, router]);
 
+  // The old wording said "this cannot be undone" while in fact leaving every
+  // shot, day and take behind. Now the delete really does take them, so the
+  // warning names what goes and offers archiving as the way out (#46).
   const handleDeleteProject = useCallback((project: Project) => {
     Alert.alert(
-      'Delete Project',
-      `Are you sure you want to delete "${project.title}"? This cannot be undone.`,
+      `Delete "${project.title}"?`,
+      'This deletes the film and everything in it — shots, shoot days, takes, '
+      + 'scenes, cast, budget, notes and documents. It cannot be undone.\n\n'
+      + 'To keep the film without it cluttering the list, archive it instead.',
       [
         { text: 'Cancel', style: 'cancel' },
+        { text: 'Archive', onPress: () => archiveProject(project.id) },
         {
-          text: 'Delete',
+          text: 'Delete everything',
           style: 'destructive',
           onPress: () => deleteProject(project.id),
         },
       ]
     );
-  }, [deleteProject]);
+  }, [deleteProject, archiveProject]);
+
+  const active = useMemo(() => projects.filter(p => !p.archivedAt), [projects]);
+  const archived = useMemo(() => projects.filter(p => p.archivedAt), [projects]);
+  // Archived films sit below the live ones, behind a tap, rather than in a
+  // separate screen — they are looked at rarely but not never.
+  const listed = useMemo(
+    () => (showArchived ? [...active, ...archived] : active),
+    [active, archived, showArchived],
+  );
 
   const renderProject = useCallback(({ item, index }: { item: Project; index: number }) => (
     <View style={isTablet ? { flex: 1 / columns, padding: 8 } : {}}>
@@ -146,9 +209,11 @@ export default function ProjectsScreen() {
         isActive={item.id === activeProjectId}
         onPress={() => handleProjectPress(item)}
         onDelete={() => handleDeleteProject(item)}
+        onArchive={() => archiveProject(item.id)}
+        onRestore={() => restoreProject(item.id)}
       />
     </View>
-  ), [handleProjectPress, handleDeleteProject, isTablet, columns, activeProjectId]);
+  ), [handleProjectPress, handleDeleteProject, archiveProject, restoreProject, isTablet, columns, activeProjectId]);
 
   if (isLoading) {
     return (
@@ -170,7 +235,7 @@ export default function ProjectsScreen() {
       )}
 
       <FlatList
-        data={projects}
+        data={listed}
         keyExtractor={item => item.id}
         renderItem={renderProject}
         numColumns={columns}
@@ -180,8 +245,28 @@ export default function ProjectsScreen() {
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Your Films</Text>
-            <Text style={styles.headerSubtitle}>{projects.length} project{projects.length !== 1 ? 's' : ''}</Text>
+            <Text style={styles.headerSubtitle}>
+              {active.length} project{active.length !== 1 ? 's' : ''}
+              {archived.length > 0 ? ` · ${archived.length} archived` : ''}
+            </Text>
           </View>
+        }
+        ListFooterComponent={
+          archived.length > 0 ? (
+            <TouchableOpacity
+              style={styles.archivedHeader}
+              onPress={() => setShowArchived(v => !v)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={showArchived ? 'Hide archived films' : 'Show archived films'}
+              testID="toggle-archived"
+            >
+              <Archive color={Colors.text.tertiary} size={14} />
+              <Text style={styles.archivedHeaderText}>
+                {showArchived ? 'HIDE ARCHIVED' : `ARCHIVED (${archived.length})`}
+              </Text>
+            </TouchableOpacity>
+          ) : null
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -371,6 +456,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.accent.goldLight,
     fontWeight: '600' as const,
+  },
+  swipeActions: {
+    flexDirection: 'row',
+  },
+  archiveAction: {
+    backgroundColor: Colors.accent.goldDim,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    borderRadius: 16,
+    marginBottom: 16,
+    marginLeft: 8,
+  },
+  archiveActionText: {
+    color: Colors.text.inverse,
+    fontSize: 11,
+    fontWeight: '600' as const,
+    marginTop: 4,
+  },
+  archivedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 4,
+    paddingTop: 18,
+    paddingBottom: 10,
+  },
+  archivedHeaderText: {
+    fontSize: 11,
+    fontWeight: '800' as const,
+    color: Colors.text.tertiary,
+    letterSpacing: 1,
   },
   deleteAction: {
     backgroundColor: Colors.status.error,

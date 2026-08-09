@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectShots, useProjectLightingDiagrams, useProjectScenes, findScene } from '@/contexts/ProjectContext';
@@ -9,6 +9,7 @@ import Colors from '@/constants/colors';
 import { ShotType, ShotMovement, ShotStatus } from '@/types';
 import { SHOT_TYPES, SHOT_MOVEMENTS } from '@/constants/filmData';
 import { Lightbulb } from 'lucide-react-native';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const STATUS_OPTIONS: { value: ShotStatus; label: string; color: string }[] = [
   { value: 'planned', label: 'Planned', color: Colors.text.tertiary },
@@ -19,7 +20,7 @@ const STATUS_OPTIONS: { value: ShotStatus; label: string; color: string }[] = [
 
 // eslint-disable-next-line complexity -- tracked in #10
 export default function NewShotScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addShot, updateShot, activeProjectId, activeProject } = useProjects();
   const shots = useProjectShots(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

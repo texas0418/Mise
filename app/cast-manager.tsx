@@ -1,16 +1,15 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, Alert } from 'react-native';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
 import { Plus, User, Phone, Mail, Film, Calendar, Star, Trash2, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
 import { useProjects, useProjectCast } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { CastMember, CastStatus } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const STATUS_CONFIG: Record<CastStatus, { label: string; color: string }> = {
   'confirmed': { label: 'CONFIRMED', color: '#4ADE80' },
@@ -216,7 +215,7 @@ function CastCard({ member, index, onEdit, onDelete, onStatusChange }: {
 export default function CastManagerScreen() {
   const { activeProjectId, deleteCastMember, updateCastMember } = useProjects();
   const cast = useProjectCast(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [filter, setFilter] = useState<CastStatus | 'all'>('all');
 
@@ -264,8 +263,7 @@ export default function CastManagerScreen() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
-      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="cast" variant="compact" />
-        <AIImportButton entityKey="cast" variant="compact" /></View>
+      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="cast" variant="compact" /></View>
             <View style={styles.statsBar}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{cast.length}</Text>

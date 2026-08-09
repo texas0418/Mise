@@ -1,14 +1,13 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Plus, FileText, Clock, MessageSquare, Camera, Users, ChevronDown, ChevronUp, Tag, Trash2, Eye, Pencil } from 'lucide-react-native';
 import { useProjects, useProjectScriptSides, useProjectShots } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { ScriptSide, SidesStatus, SideAnnotation } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const STATUS_CONFIG: Record<SidesStatus, { label: string; color: string; bg: string }> = {
   'upcoming': { label: 'UPCOMING', color: '#60A5FA', bg: '#60A5FA18' },
@@ -205,7 +204,7 @@ export default function ScriptSidesScreen() {
   const { activeProjectId, deleteScriptSide } = useProjects();
   const sides = useProjectScriptSides(activeProjectId);
   const shots = useProjectShots(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [filter, setFilter] = useState<SidesStatus | 'all'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -258,8 +257,7 @@ export default function ScriptSidesScreen() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
-      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="scriptSides" variant="compact" />
-        <AIImportButton entityKey="scriptSides" variant="compact" /></View>
+      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="scriptSides" variant="compact" /></View>
             <View style={styles.statsBar}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{sides.length}</Text>

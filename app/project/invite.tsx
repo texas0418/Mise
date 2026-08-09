@@ -4,7 +4,6 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   ScrollView, Alert, ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Mail, ChevronDown, Send } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,12 +11,13 @@ import { useProjects } from '@/contexts/ProjectContext';
 import { supabase } from '@/lib/supabase';
 import { ALL_ROLES, ROLE_LABELS, ROLE_DESCRIPTIONS, type Role } from '@/lib/permissions';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // Roles that can be assigned (not owner)
 const ASSIGNABLE_ROLES = ALL_ROLES.filter(r => r !== 'owner');
 
 export default function InviteScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { user } = useAuth();
   const { activeProjectId, activeProject } = useProjects();
 

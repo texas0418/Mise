@@ -2,18 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Star } from 'lucide-react-native';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectSelects } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { SceneSelect, SelectRating } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // eslint-disable-next-line complexity -- tracked in #9
 export default function NewSelectScreen() {
   const { activeProjectId, addSceneSelect, updateSceneSelect } = useProjects();
   const selects = useProjectSelects(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id;

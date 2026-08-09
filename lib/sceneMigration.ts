@@ -17,13 +17,15 @@
 // ---------------------------------------------------------------------------
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Scene, SceneBreakdown, Shot, SceneIntExt, SceneTimeOfDay } from '@/types';
+import { Scene, SceneBreakdown, Shot, ScheduleDay, SceneIntExt, SceneTimeOfDay } from '@/types';
 import { parseEighths } from '@/utils/eighths';
+import { parseSceneList } from '@/utils/sceneList';
 
 const MIGRATION_KEY = 'mise_scene_migration_v1';
 const SCENES_KEY = 'mise_scenes';
 const BREAKDOWNS_KEY = 'mise_scene_breakdowns';
 const SHOTS_KEY = 'mise_shots';
+const SCHEDULE_KEY = 'mise_schedule';
 
 export interface SceneMigrationResult {
   /** Scenes built from existing breakdown records. */
@@ -32,6 +34,8 @@ export interface SceneMigrationResult {
   fromShots: number;
   /** Shots given a sceneId. */
   shotsLinked: number;
+  /** Shoot days whose free-text scene list was resolved to sceneIds. */
+  daysLinked: number;
 }
 
 export async function hasRunSceneMigration(): Promise<boolean> {
@@ -140,8 +144,33 @@ function collectScenes(
   }
 }
 
+/** Resolve each day's free-text scene list to real Scene ids. */
+async function linkScheduleDays(
+  byNumber: Map<string, Scene>,
+  result: SceneMigrationResult,
+): Promise<void> {
+  const days = await readArray<ScheduleDay>(SCHEDULE_KEY);
+  if (days.length === 0) return;
+
+  let changed = false;
+  const linked = days.map(day => {
+    if (!day?.projectId || (day.sceneIds && day.sceneIds.length > 0)) return day;
+
+    const ids = parseSceneList(day.scenes)
+      .map(number => byNumber.get(keyOf(day.projectId, number))?.id)
+      .filter((id): id is string => !!id);
+
+    if (ids.length === 0) return day;
+    changed = true;
+    result.daysLinked += 1;
+    return { ...day, sceneIds: ids };
+  });
+
+  if (changed) await AsyncStorage.setItem(SCHEDULE_KEY, JSON.stringify(linked));
+}
+
 export async function runSceneMigration(): Promise<SceneMigrationResult> {
-  const result: SceneMigrationResult = { fromBreakdowns: 0, fromShots: 0, shotsLinked: 0 };
+  const result: SceneMigrationResult = { fromBreakdowns: 0, fromShots: 0, shotsLinked: 0, daysLinked: 0 };
 
   const [existingScenes, breakdowns, shots] = await Promise.all([
     readArray<Scene>(SCENES_KEY),
@@ -174,6 +203,8 @@ export async function runSceneMigration(): Promise<SceneMigrationResult> {
   if (shotsChanged) {
     await AsyncStorage.setItem(SHOTS_KEY, JSON.stringify(linkedShots));
   }
+
+  await linkScheduleDays(byNumber, result);
 
   try {
     await AsyncStorage.setItem(MIGRATION_KEY, 'done');

@@ -1,21 +1,213 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
-import { ClipboardList, MapPin, Clock, Users, AlertCircle, Plus, ChevronDown, ChevronUp, Pencil, Trash2, Calendar } from 'lucide-react-native';
-import { useProjects, useProjectSchedule } from '@/contexts/ProjectContext';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { Stack } from 'expo-router';
+import { ClipboardList, MapPin, Clock, Users, Drama, ShieldAlert, AlertCircle, Plus, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
+import {
+  useProjects, useProjectSchedule, useProjectCrew, useProjectScenes,
+  useProjectCast, useDayCastCallTimes, useCallSheetDetails, AssignedCrew,
+} from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
+import { formatEighths } from '@/utils/eighths';
+import {
+  sceneRows, dayTotals, sceneListLabel, resolveDayScenes, castRows, detailSummaryLines,
+} from '@/utils/callSheet';
 import Colors from '@/constants/colors';
-import { ScheduleDay } from '@/types';
+import { ScheduleDay, Scene, CastMember, CastCallTime } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
-function CallSheetCard({ day, crew, projectTitle, isExpanded, onPress, onEdit, onDelete }: {
+/** Which of an actor's three times is being edited. */
+type CastTimeField = 'makeupTime' | 'wardrobeTime' | 'onSetTime';
+
+/**
+ * The scenes block.
+ *
+ * This used to print `day.scenes` — the free-text string someone typed — so the
+ * screen said "Sc. 12, 12A" while the exported PDF listed those same scenes
+ * with headings, page counts and cast. The document and the screen disagreed
+ * about what the day was. Both read the linked Scene records now, and the typed
+ * string survives only as the fallback for days the migration could not resolve.
+ */
+function SceneTable({ day, scenes }: { day: ScheduleDay; scenes: Scene[] }) {
+  const linked = resolveDayScenes(day, scenes);
+  const rows = sceneRows(linked);
+  const totals = dayTotals(linked);
+
+  if (rows.length === 0) {
+    return (
+      <View style={styles.detailSection}>
+        <Text style={styles.detailLabel}>SCENES</Text>
+        <Text style={styles.scenesText}>{sceneListLabel(day, scenes)}</Text>
+        <Text style={styles.sceneFallbackNote}>
+          Not linked to scene records, so there are no page counts. Importing or
+          adding the scenes fills this in.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.detailSection}>
+      <View style={styles.sceneHeaderRow}>
+        <Text style={styles.detailLabel}>SCENES</Text>
+        <Text style={styles.sceneTotals} testID="call-sheet-scene-totals">
+          {totals.sceneCount} scene{totals.sceneCount === 1 ? '' : 's'} · {formatEighths(totals.eighths)} pages
+        </Text>
+      </View>
+
+      <View style={styles.sceneTableHeader}>
+        <Text style={[styles.sceneColHeader, styles.colScene]}>SC</Text>
+        <Text style={[styles.sceneColHeader, styles.colIntExt]}>I/E</Text>
+        <Text style={[styles.sceneColHeader, styles.colDayNight]}>D/N</Text>
+        <Text style={[styles.sceneColHeader, styles.colHeading]}>DESCRIPTION</Text>
+        <Text style={[styles.sceneColHeader, styles.colPages]}>PGS</Text>
+      </View>
+
+      {rows.map(row => (
+        <View key={row.id} style={styles.sceneRow} testID={`call-sheet-scene-${row.id}`}>
+          <Text style={[styles.sceneNumber, styles.colScene]}>{row.number}</Text>
+          <Text style={[styles.sceneCell, styles.colIntExt]}>{row.intExt}</Text>
+          <Text style={[styles.sceneCell, styles.colDayNight]}>{row.dayNight}</Text>
+          <View style={styles.colHeading}>
+            <Text style={styles.sceneHeading} numberOfLines={1}>{row.heading || 'No slugline'}</Text>
+            {row.cast.length > 0 ? (
+              <Text style={styles.sceneCast} numberOfLines={1}>{row.cast.join(', ')}</Text>
+            ) : null}
+          </View>
+          <Text style={[styles.scenePages, styles.colPages]}>{formatEighths(row.pageEighths)}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/** Set one of the three times without widening CastCallTime to a string map. */
+function applyCastTime(entry: CastCallTime, field: CastTimeField, value: string): CastCallTime {
+  if (field === 'makeupTime') return { ...entry, makeupTime: value };
+  if (field === 'wardrobeTime') return { ...entry, wardrobeTime: value };
+  return { ...entry, onSetTime: value };
+}
+
+/** The three times an actor is given, in the order they happen. */
+const CAST_TIME_FIELDS: { key: CastTimeField; label: string }[] = [
+  { key: 'makeupTime', label: 'MAKEUP' },
+  { key: 'wardrobeTime', label: 'WARDROBE' },
+  { key: 'onSetTime', label: 'ON SET' },
+];
+
+/**
+ * The cast table.
+ *
+ * Two rows per person rather than five columns: three editable times plus a
+ * character and an actor do not fit across a phone, and the times are what
+ * someone is here to change.
+ *
+ * A blank field means the general call, so an untouched sheet is still correct
+ * — the same rule the crew calls follow (#39).
+ */
+function CastTable({ day, cast, scenes, onSetCastTime }: {
   day: ScheduleDay;
-  crew: { id: string; name: string; role: string; department: string }[];
+  cast: CastMember[];
+  scenes: Scene[];
+  onSetCastTime: (dayId: string, castMemberId: string, field: CastTimeField, value: string) => void;
+}) {
+  const times = useDayCastCallTimes(day.id);
+  const rows = castRows(cast, resolveDayScenes(day, scenes), times);
+
+  return (
+    <View style={styles.castSection}>
+      <View style={styles.crewHeader}>
+        <Drama color={Colors.accent.gold} size={14} />
+        <Text style={styles.crewTitle}>CAST ({rows.length})</Text>
+      </View>
+
+      {rows.length === 0 ? (
+        <Text style={styles.castEmpty}>
+          No cast matched today&apos;s scenes. Cast are matched to a scene by character name.
+        </Text>
+      ) : rows.map(row => (
+        <View key={row.castMemberId} style={styles.castRow} testID={`call-sheet-cast-${row.castMemberId}`}>
+          <View style={styles.castIdentity}>
+            <Text style={styles.castCharacter} numberOfLines={1}>{row.character}</Text>
+            <Text style={styles.castActor} numberOfLines={1}>{row.actor}</Text>
+            <Text style={styles.castScenes}>Sc. {row.sceneNumbers.join(', ')}</Text>
+          </View>
+          <View style={styles.castTimes}>
+            {CAST_TIME_FIELDS.map(field => (
+              <View key={field.key} style={styles.castTimeCell}>
+                <Text style={styles.castTimeLabel}>{field.label}</Text>
+                <TextInput
+                  style={styles.castTimeInput}
+                  value={row[field.key]}
+                  placeholder={day.callTime}
+                  placeholderTextColor={Colors.text.tertiary}
+                  onChangeText={value => onSetCastTime(day.id, row.castMemberId, field.key, value)}
+                  textAlign="center"
+                  accessibilityLabel={`${field.label.toLowerCase()} time for ${row.character}`}
+                  testID={`cast-time-${row.castMemberId}-${field.key}`}
+                />
+              </View>
+            ))}
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/**
+ * Safety and logistics, shown read-only on the card.
+ *
+ * The document prints these; if the card did not, the screen and the PDF would
+ * disagree again — which is the exact fault the scene table was fixing. Editing
+ * lives on the details screen, behind the button below.
+ */
+function DetailsSummary({ dayId }: { dayId: string }) {
+  const details = useCallSheetDetails(dayId);
+  const lines = detailSummaryLines(details);
+
+  if (lines.length === 0) {
+    return (
+      <View style={styles.detailSection}>
+        <Text style={styles.detailLabel}>SAFETY &amp; LOGISTICS</Text>
+        <Text style={styles.castEmpty}>
+          Nothing set. Hospital, parking and walkie channels print on the sheet once added.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.detailSection} testID={`call-sheet-summary-${dayId}`}>
+      <View style={styles.sceneHeaderRow}>
+        <Text style={styles.detailLabel}>SAFETY &amp; LOGISTICS</Text>
+        <Text style={styles.sceneTotals}>
+          {details?.issuedAt ? `Issued v${details.version}` : 'Draft'}
+        </Text>
+      </View>
+      {lines.map(([label, value]) => (
+        <View key={label} style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>{label}</Text>
+          <Text style={styles.summaryValue}>{value}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPress, onEdit, onDelete, onSetCallTime, onSetCastTime, onEditDetails }: {
+  day: ScheduleDay;
+  crew: AssignedCrew[];
+  scenes: Scene[];
+  cast: CastMember[];
   projectTitle: string;
   isExpanded: boolean;
   onPress: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onSetCallTime: (assignmentId: string, callTime: string) => void;
+  onSetCastTime: (dayId: string, castMemberId: string, field: CastTimeField, value: string) => void;
+  onEditDetails: () => void;
 }) {
   const dateObj = new Date(day.date + 'T00:00:00');
   const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -85,11 +277,7 @@ function CallSheetCard({ day, crew, projectTitle, isExpanded, onPress, onEdit, o
             </View>
           </View>
 
-          {/* Scenes */}
-          <View style={styles.detailSection}>
-            <Text style={styles.detailLabel}>SCENES</Text>
-            <Text style={styles.scenesText}>{day.scenes}</Text>
-          </View>
+          <SceneTable day={day} scenes={scenes} />
 
           {/* Notes / Special Instructions */}
           {day.notes ? (
@@ -111,19 +299,45 @@ function CallSheetCard({ day, crew, projectTitle, isExpanded, onPress, onEdit, o
               <Text style={[styles.crewColHeader, { flex: 1, textAlign: 'right' }]}>CALL</Text>
             </View>
             {crew.map(member => (
-              <View key={member.id} style={styles.crewRow}>
+              <View key={member.assignmentId} style={styles.crewRow}>
                 <Text style={[styles.crewName, { flex: 2 }]}>{member.name}</Text>
-                <Text style={[styles.crewRole, { flex: 2 }]}>{member.role}</Text>
-                <Text style={[styles.crewCall, { flex: 1, textAlign: 'right' }]}>{day.callTime}</Text>
+                <Text style={[styles.crewRole, { flex: 2 }]}>{member.projectRole}</Text>
+                {/* Their own call when they have one, otherwise the general
+                    call — which is what everyone used to get (#39). */}
+                {/* Editable: this is the whole point of a call sheet. Blank
+                    means they are on the general call. */}
+                <TextInput
+                  style={[styles.crewCall, styles.crewCallInput, { flex: 1 }]}
+                  value={member.callTime ?? ''}
+                  placeholder={day.callTime}
+                  placeholderTextColor={Colors.text.tertiary}
+                  onChangeText={t => onSetCallTime(member.assignmentId, t)}
+                  textAlign="right"
+                  accessibilityLabel={`Call time for ${member.name}`}
+                />
               </View>
             ))}
           </View>
+
+          <CastTable day={day} cast={cast} scenes={scenes} onSetCastTime={onSetCastTime} />
+
+          <DetailsSummary dayId={day.id} />
 
           {/* Actions */}
           <View style={styles.cardActions}>
             <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onEditDetails}
+              style={styles.editBtn}
+              accessibilityRole="button"
+              accessibilityLabel={`Safety and logistics for day ${day.dayNumber}`}
+              testID={`call-sheet-details-${day.id}`}
+            >
+              <ShieldAlert color={Colors.accent.gold} size={15} />
+              <Text style={styles.editBtnText}>Details</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
@@ -137,9 +351,41 @@ function CallSheetCard({ day, crew, projectTitle, isExpanded, onPress, onEdit, o
 }
 
 export default function CallSheetsScreen() {
-  const { activeProject, activeProjectId, crew, deleteScheduleDay } = useProjects();
+  const { activeProject, activeProjectId, deleteScheduleDay } = useProjects();
+  const crew = useProjectCrew(activeProjectId);
+  const scenes = useProjectScenes(activeProjectId);
+  const cast = useProjectCast(activeProjectId);
+  const { crewAssignments, updateCrewAssignment, upsertCastCallTime } = useProjects();
+
+  // Create-or-edit, decided inside the write chain rather than from this
+  // render's snapshot — see the note on useEntityStore.upsert.
+  const setCastTime = useCallback((
+    dayId: string, castMemberId: string, field: CastTimeField, value: string,
+  ) => {
+    if (!activeProjectId) return;
+    upsertCastCallTime(
+      (entry: CastCallTime) => entry.scheduleDayId === dayId && entry.castMemberId === castMemberId,
+      (existing: CastCallTime | null) => applyCastTime(existing ?? {
+        id: Date.now().toString(),
+        projectId: activeProjectId,
+        scheduleDayId: dayId,
+        castMemberId,
+        makeupTime: '',
+        wardrobeTime: '',
+        onSetTime: '',
+        notes: '',
+        createdAt: new Date().toISOString(),
+      }, field, value),
+    );
+  }, [activeProjectId, upsertCastCallTime]);
+
+  const setCallTime = useCallback((assignmentId: string, callTime: string) => {
+    const assignment = (crewAssignments ?? []).find(a => a.id === assignmentId);
+    if (!assignment) return;
+    updateCrewAssignment({ ...assignment, callTime });
+  }, [crewAssignments, updateCrewAssignment]);
   const schedule = useProjectSchedule(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -171,11 +417,16 @@ export default function CallSheetsScreen() {
           <CallSheetCard
             day={item}
             crew={crew}
+            scenes={scenes}
+            cast={cast}
             projectTitle={activeProject.title}
             isExpanded={expandedId === item.id}
             onPress={() => setExpandedId(expandedId === item.id ? null : item.id)}
             onEdit={() => router.push(`/new-schedule-day?id=${item.id}` as never)}
             onDelete={() => deleteScheduleDay(item.id)}
+            onSetCallTime={setCallTime}
+            onSetCastTime={setCastTime}
+            onEditDetails={() => router.push(`/call-sheet-details?dayId=${item.id}` as never)}
           />
         )}
         contentContainerStyle={[styles.list, {
@@ -241,6 +492,23 @@ const styles = StyleSheet.create({
   detailLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1, marginBottom: 4 },
   detailValue: { fontSize: 14, color: Colors.text.primary, fontWeight: '500' as const },
   scenesText: { fontSize: 15, fontWeight: '600' as const, color: Colors.accent.goldLight },
+  sceneFallbackNote: { fontSize: 11, color: Colors.text.tertiary, marginTop: 6, lineHeight: 16 },
+  // Scene table
+  sceneHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  sceneTotals: { fontSize: 11, color: Colors.accent.goldLight, fontWeight: '600' as const, fontVariant: ['tabular-nums'] },
+  sceneTableHeader: { flexDirection: 'row', alignItems: 'center', paddingBottom: 5, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
+  sceneColHeader: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5 },
+  sceneRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 7, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
+  colScene: { width: 40 },
+  colIntExt: { width: 46 },
+  colDayNight: { width: 46 },
+  colHeading: { flex: 1, paddingRight: 8 },
+  colPages: { width: 42, textAlign: 'right' as const },
+  sceneNumber: { fontSize: 13, fontWeight: '700' as const, color: Colors.accent.gold, fontVariant: ['tabular-nums'] },
+  sceneCell: { fontSize: 11, color: Colors.text.secondary },
+  sceneHeading: { fontSize: 12, color: Colors.text.primary, fontWeight: '500' as const },
+  sceneCast: { fontSize: 10, color: Colors.text.tertiary, marginTop: 2 },
+  scenePages: { fontSize: 11, color: Colors.text.secondary, fontVariant: ['tabular-nums'] },
   notesText: { fontSize: 13, color: Colors.text.secondary, lineHeight: 19 },
   // Crew
   crewSection: { padding: 14 },
@@ -252,6 +520,22 @@ const styles = StyleSheet.create({
   crewName: { fontSize: 13, fontWeight: '600' as const, color: Colors.text.primary },
   crewRole: { fontSize: 12, color: Colors.text.secondary },
   crewCall: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold, fontVariant: ['tabular-nums'] },
+  crewCallInput: { paddingVertical: 2, paddingHorizontal: 4, borderRadius: 4, backgroundColor: Colors.bg.elevated, minWidth: 68 },
+  summaryRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 4 },
+  summaryLabel: { fontSize: 10, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5, width: 96 },
+  summaryValue: { flex: 1, fontSize: 12, color: Colors.text.secondary, lineHeight: 17 },
+  // Cast
+  castSection: { padding: 14, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
+  castEmpty: { fontSize: 11, color: Colors.text.tertiary, lineHeight: 16 },
+  castRow: { paddingVertical: 9, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
+  castIdentity: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+  castCharacter: { fontSize: 13, fontWeight: '700' as const, color: Colors.text.primary, maxWidth: '40%' },
+  castActor: { flex: 1, fontSize: 11, color: Colors.text.secondary },
+  castScenes: { fontSize: 10, color: Colors.accent.goldLight, fontVariant: ['tabular-nums'] },
+  castTimes: { flexDirection: 'row', gap: 8, marginTop: 7 },
+  castTimeCell: { flex: 1 },
+  castTimeLabel: { fontSize: 8, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 3, textAlign: 'center' as const },
+  castTimeInput: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold, fontVariant: ['tabular-nums'], paddingVertical: 5, borderRadius: 6, backgroundColor: Colors.bg.elevated, borderWidth: 0.5, borderColor: Colors.border.subtle },
   // Actions
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 14, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },

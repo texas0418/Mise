@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import {
   Plus,
   LayoutGrid,
@@ -33,9 +33,9 @@ import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { BudgetItem, BudgetCategory } from '@/types';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import PermissionGate from '@/contexts/PermissionGate';
 import { exportBudgetToXlsx } from '@/utils/budgetExport';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -285,7 +285,7 @@ function SubtotalRow({ label, estimated, actual }: { label: string; estimated: n
 export default function BudgetSpreadsheetScreen() {
   const { activeProject, activeProjectId, updateBudgetItem, deleteBudgetItem } = useProjects();
   const budget = useProjectBudget(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
 
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
@@ -461,7 +461,6 @@ export default function BudgetSpreadsheetScreen() {
             <View style={{ flex: 1 }} />
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <ImportButton entityKey="budget" />
-              <AIImportButton entityKey="budget" variant="compact" />
             </View>
           </View>
 

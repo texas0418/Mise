@@ -5,6 +5,15 @@ export interface TableConfig {
   table: string;
   storageKey: string;
   queryKey: string;
+  /**
+   * Whether these records belong to one project and die with it.
+   *
+   * Declarative — the sync engine does not branch on it. It is the list
+   * `deleteProject` is checked against, so a table marked true whose store is
+   * not cascaded fails scripts/test-cascade.ts rather than silently leaking
+   * rows forever (#46). Mark a table false only when its records genuinely
+   * outlive a film: contacts and portfolio credits do, nothing else does.
+   */
   projectScoped: boolean;
   foreignKeys?: { field: string; referencesTable: string }[];
 }
@@ -13,7 +22,8 @@ export const SYNCABLE_TABLES: TableConfig[] = [
   { table: 'projects',            storageKey: 'mise_projects',          queryKey: 'projects',         projectScoped: false },
   { table: 'shots',               storageKey: 'mise_shots',             queryKey: 'shots',            projectScoped: true },
   { table: 'schedule_days',       storageKey: 'mise_schedule',          queryKey: 'schedule',         projectScoped: true },
-  { table: 'crew_members',        storageKey: 'mise_crew',              queryKey: 'crew',             projectScoped: true },
+  { table: 'crew_members',        storageKey: 'mise_crew',              queryKey: 'crew',             projectScoped: false },
+  { table: 'crew_assignments',    storageKey: 'mise_crew_assignments',  queryKey: 'crewAssignments',  projectScoped: true },
   { table: 'takes',               storageKey: 'mise_takes',             queryKey: 'takes',            projectScoped: true },
   { table: 'scenes',              storageKey: 'mise_scenes',            queryKey: 'scenes',           projectScoped: true },
   { table: 'scene_breakdowns',    storageKey: 'mise_scene_breakdowns',  queryKey: 'sceneBreakdowns',  projectScoped: true },
@@ -24,8 +34,7 @@ export const SYNCABLE_TABLES: TableConfig[] = [
   { table: 'festival_submissions', storageKey: 'mise_festivals',        queryKey: 'festivals',        projectScoped: true },
   { table: 'production_notes',    storageKey: 'mise_notes',             queryKey: 'notes',            projectScoped: true },
   { table: 'mood_board_items',    storageKey: 'mise_mood_board',        queryKey: 'moodBoard',        projectScoped: true },
-  { table: 'call_sheet_entries',  storageKey: 'mise_call_sheets',       queryKey: 'callSheets',       projectScoped: true },
-  { table: 'director_credits',    storageKey: 'mise_credits',           queryKey: 'credits',          projectScoped: true },
+  { table: 'director_credits',    storageKey: 'mise_credits',           queryKey: 'credits',          projectScoped: false },
   { table: 'shot_references',     storageKey: 'mise_shot_references',   queryKey: 'shotReferences',   projectScoped: true },
   { table: 'wrap_reports',        storageKey: 'mise_wrap_reports',      queryKey: 'wrapReports',      projectScoped: true },
   { table: 'location_weather',    storageKey: 'mise_location_weather',  queryKey: 'locationWeather',  projectScoped: false },
@@ -34,6 +43,8 @@ export const SYNCABLE_TABLES: TableConfig[] = [
   { table: 'time_entries',        storageKey: 'mise_time_entries',      queryKey: 'timeEntries',      projectScoped: true },
   { table: 'script_sides',        storageKey: 'mise_script_sides',      queryKey: 'scriptSides',      projectScoped: true },
   { table: 'cast_members',        storageKey: 'mise_cast',              queryKey: 'cast',             projectScoped: true },
+  { table: 'cast_call_times',     storageKey: 'mise_cast_call_times',   queryKey: 'castCallTimes',    projectScoped: true },
+  { table: 'call_sheet_details',  storageKey: 'mise_call_sheet_details', queryKey: 'callSheetDetails', projectScoped: true },
   { table: 'lookbook_items',      storageKey: 'mise_lookbook',          queryKey: 'lookbook',         projectScoped: true },
   { table: 'director_statements', storageKey: 'mise_director_statement',queryKey: 'directorStatement',projectScoped: true },
   { table: 'scene_selects',       storageKey: 'mise_selects',           queryKey: 'selects',          projectScoped: true },

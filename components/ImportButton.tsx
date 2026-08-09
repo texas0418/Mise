@@ -17,10 +17,10 @@
 
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Upload, Lock } from 'lucide-react-native';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 interface ImportButtonProps {
   /** The entity key matching importRegistry (e.g. 'crew', 'budget', 'shots') */
@@ -32,7 +32,7 @@ interface ImportButtonProps {
 }
 
 export default function ImportButton({ entityKey, variant = 'full', label = 'Import' }: ImportButtonProps) {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isPro } = useDeviceLicense();
   const needsPro = !isPro;
 

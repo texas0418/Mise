@@ -15,7 +15,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Alert, ActivityIndicator, FlatList,
 } from 'react-native';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import {
   Upload, FileSpreadsheet, ArrowRight, ArrowLeft, Check, X, Download,
   AlertCircle, ChevronDown, CheckCircle2, Columns, RefreshCw,
@@ -28,11 +28,12 @@ import { autoMapColumns, updateMapping, convertRows, ColumnMapping, MappingResul
 import { getEntityConfig, EntityConfig } from '@/utils/importRegistry';
 import { shareCSVTemplate } from '@/utils/csvTemplates';
 import { recordImport } from '@/utils/importHistory';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 type Step = 'pick' | 'map' | 'confirm';
 
 export default function ImportDataScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const params = useLocalSearchParams<{ entity?: string }>();
   const { isTablet, contentPadding } = useLayout();
   const projects = useProjects();

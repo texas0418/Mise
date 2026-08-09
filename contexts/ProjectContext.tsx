@@ -8,16 +8,18 @@ import {
   ProductionNote, MoodBoardItem, DirectorCredit, ShotReference, WrapReport,
   LocationWeather, BlockingNote, ColorReference, TimeEntry, ScriptSide,
   CastMember, LookbookItem, DirectorStatement, SceneSelect, DirectorMessage,
-  ScriptPDF, ScriptAnnotation, LightingDiagram, Scene
+  ScriptPDF, ScriptAnnotation, LightingDiagram, Scene, CrewAssignment, CastCallTime, CallSheetDetails
 } from '@/types';
 import { useSync } from '@/contexts/SyncContext';
 import { compareSceneNumbers } from '@/utils/eighths';
+import { castTimesForDay } from '@/utils/callSheet';
 
 const STORAGE_KEYS = {
   projects: 'mise_projects',
   shots: 'mise_shots',
   schedule: 'mise_schedule',
   crew: 'mise_crew',
+  crewAssignments: 'mise_crew_assignments',
   takes: 'mise_takes',
   activeProject: 'mise_active_project',
   scenes: 'mise_scenes',
@@ -38,6 +40,8 @@ const STORAGE_KEYS = {
   timeEntries: 'mise_time_entries',
   scriptSides: 'mise_script_sides',
   cast: 'mise_cast',
+  castCallTimes: 'mise_cast_call_times',
+  callSheetDetails: 'mise_call_sheet_details',
   lookbook: 'mise_lookbook',
   directorStatement: 'mise_director_statement',
   selects: 'mise_selects',
@@ -197,7 +201,57 @@ function useEntityStore<T extends { id: string }>(
     );
   }, [mutate, enqueueMutation, supabaseTable]);
 
-  return { items: query.data ?? [], add, addBulk, update, updateMany, remove, isLoading: query.isLoading };
+  // Remove every record matching a predicate, in one write.
+  //
+  // The removed items are captured inside the updater, which runs immediately
+  // before the sync step within the same serialized write, so the ids enqueued
+  // are exactly the ones that went. Filtering the render snapshot instead would
+  // miss anything added since it was taken.
+  const removeWhere = useCallback((predicate: (item: T) => boolean) => {
+    let removed: T[] = [];
+    return mutate(
+      prev => {
+        removed = prev.filter(predicate);
+        if (removed.length === 0) return prev;
+        return prev.filter(i => !predicate(i));
+      },
+      async () => {
+        for (const item of removed) {
+          await enqueueMutation(supabaseTable, item.id, 'delete', null);
+        }
+      },
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
+
+  // Create-or-edit in one serialized step.
+  //
+  // The match runs *inside* the write chain, against the freshest list, which
+  // is the whole point: deciding "does a row exist yet" from a render snapshot
+  // means two keystrokes in the same tick both decide "no" and both insert.
+  // That is #33 again, and here it would also breach the unique constraint on
+  // (schedule_day_id, cast_member_id) the moment it reached Supabase.
+  const upsert = useCallback((
+    match: (item: T) => boolean,
+    build: (existing: T | null) => T,
+  ) => {
+    void mutate(
+      prev => {
+        const index = prev.findIndex(match);
+        if (index === -1) return [...prev, build(null)];
+        const next = [...prev];
+        next[index] = build(next[index]);
+        return next;
+      },
+      async next => {
+        const item = next.find(match);
+        // 'update' rather than 'insert': pushSingleItem upserts on id either
+        // way, and this call cannot know which one it turned out to be.
+        if (item) await enqueueMutation(supabaseTable, item.id, 'update', item as any);
+      },
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
+
+  return { items: query.data ?? [], add, addBulk, update, updateMany, remove, removeWhere, upsert, isLoading: query.isLoading };
 }
 
 export const [ProjectProvider, useProjects] = createContextHook(() => {
@@ -210,6 +264,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const shotStore = useEntityStore<Shot>('shots', STORAGE_KEYS.shots, [], 'shots', enqueueMutation);
   const scheduleStore = useEntityStore<ScheduleDay>('schedule', STORAGE_KEYS.schedule, [], 'schedule_days', enqueueMutation);
   const crewStore = useEntityStore<CrewMember>('crew', STORAGE_KEYS.crew, [], 'crew_members', enqueueMutation);
+  const crewAssignmentStore = useEntityStore<CrewAssignment>('crewAssignments', STORAGE_KEYS.crewAssignments, [], 'crew_assignments', enqueueMutation);
   const takeStore = useEntityStore<Take>('takes', STORAGE_KEYS.takes, [], 'takes', enqueueMutation);
   const sceneStore = useEntityStore<Scene>('scenes', STORAGE_KEYS.scenes, [], 'scenes', enqueueMutation);
   const breakdownStore = useEntityStore<SceneBreakdown>('sceneBreakdowns', STORAGE_KEYS.sceneBreakdowns, [], 'scene_breakdowns', enqueueMutation);
@@ -229,6 +284,8 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const timeEntryStore = useEntityStore<TimeEntry>('timeEntries', STORAGE_KEYS.timeEntries, [], 'time_entries', enqueueMutation);
   const scriptSideStore = useEntityStore<ScriptSide>('scriptSides', STORAGE_KEYS.scriptSides, [], 'script_sides', enqueueMutation);
   const castStore = useEntityStore<CastMember>('cast', STORAGE_KEYS.cast, [], 'cast_members', enqueueMutation);
+  const castCallTimeStore = useEntityStore<CastCallTime>('castCallTimes', STORAGE_KEYS.castCallTimes, [], 'cast_call_times', enqueueMutation);
+  const callSheetDetailStore = useEntityStore<CallSheetDetails>('callSheetDetails', STORAGE_KEYS.callSheetDetails, [], 'call_sheet_details', enqueueMutation);
   const lookbookStore = useEntityStore<LookbookItem>('lookbook', STORAGE_KEYS.lookbook, [], 'lookbook_items', enqueueMutation);
   const directorStatementStore = useEntityStore<DirectorStatement>('directorStatement', STORAGE_KEYS.directorStatement, [], 'director_statements', enqueueMutation);
   const selectStore = useEntityStore<SceneSelect>('selects', STORAGE_KEYS.selects, [], 'scene_selects', enqueueMutation);
@@ -252,6 +309,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const shots = shotStore.items;
   const schedule = scheduleStore.items;
   const crew = crewStore.items;
+  const crewAssignments = crewAssignmentStore.items;
   const takes = takeStore.items;
   const scenes = sceneStore.items;
   const sceneBreakdowns = breakdownStore.items;
@@ -271,6 +329,8 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const timeEntries = timeEntryStore.items;
   const scriptSides = scriptSideStore.items;
   const castMembers = castStore.items;
+  const castCallTimes = castCallTimeStore.items;
+  const callSheetDetails = callSheetDetailStore.items;
   const lookbookItems = lookbookStore.items;
   const directorStatements = directorStatementStore.items;
   const sceneSelects = selectStore.items;
@@ -279,24 +339,104 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const scriptAnnotations = scriptAnnotationStore.items;
   const lightingDiagrams = lightingDiagramStore.items;
 
+  /**
+   * Delete a project and everything belonging to it.
+   *
+   * `deleteProject` used to remove the project row alone, leaving every shot,
+   * day, take and note behind permanently — storage grew without bound, every
+   * `useProjectX` filter walked dead records forever, and the rows stayed alive
+   * server-side. The confirmation said "this cannot be undone" while the data
+   * was in fact still there (#46).
+   *
+   * The store list is written out rather than derived, because getting it wrong
+   * is silent: a store left out leaves its rows behind forever. `crew` and
+   * `credits` are deliberately absent — contacts and portfolio credits are
+   * global and outlive any one film.
+   *
+   * Not wrapped in useCallback: the context object is rebuilt every render
+   * regardless, so a stable identity here would buy nothing and the store list
+   * would have to be a dependency of itself.
+   */
+  const deleteProject = (projectId: string) => {
+    const belongsToProject = (item: { projectId?: string }) => item.projectId === projectId;
+
+    // Location weather hangs off locations rather than the project, so its
+    // parents have to be resolved before those locations are removed.
+    const locationIds = new Set(
+      locationStore.items.filter(l => l.projectId === projectId).map(l => l.id),
+    );
+    if (locationIds.size > 0) {
+      void locationWeatherStore.removeWhere(w => locationIds.has(w.locationId));
+    }
+
+    void shotStore.removeWhere(belongsToProject);
+    void scheduleStore.removeWhere(belongsToProject);
+    void crewAssignmentStore.removeWhere(belongsToProject);
+    void takeStore.removeWhere(belongsToProject);
+    void sceneStore.removeWhere(belongsToProject);
+    void breakdownStore.removeWhere(belongsToProject);
+    void locationStore.removeWhere(belongsToProject);
+    void budgetStore.removeWhere(belongsToProject);
+    void continuityStore.removeWhere(belongsToProject);
+    void vfxStore.removeWhere(belongsToProject);
+    void festivalStore.removeWhere(belongsToProject);
+    void noteStore.removeWhere(belongsToProject);
+    void moodBoardStore.removeWhere(belongsToProject);
+    void shotRefStore.removeWhere(belongsToProject);
+    void wrapReportStore.removeWhere(belongsToProject);
+    void blockingStore.removeWhere(belongsToProject);
+    void colorRefStore.removeWhere(belongsToProject);
+    void timeEntryStore.removeWhere(belongsToProject);
+    void scriptSideStore.removeWhere(belongsToProject);
+    void castStore.removeWhere(belongsToProject);
+    void castCallTimeStore.removeWhere(belongsToProject);
+    void callSheetDetailStore.removeWhere(belongsToProject);
+    void lookbookStore.removeWhere(belongsToProject);
+    void directorStatementStore.removeWhere(belongsToProject);
+    void selectStore.removeWhere(belongsToProject);
+    void messageStore.removeWhere(belongsToProject);
+    void scriptPDFStore.removeWhere(belongsToProject);
+    void scriptAnnotationStore.removeWhere(belongsToProject);
+    void lightingDiagramStore.removeWhere(belongsToProject);
+
+    // The project goes last. If anything above fails, the film is still listed
+    // and the delete can be retried, rather than vanishing and stranding
+    // whatever was left behind.
+    void projectStore.remove(projectId);
+  };
+
+  /** Put a film away without destroying it, and bring it back. */
+  const archiveProject = (projectId: string) => {
+    const project = projectStore.items.find(p => p.id === projectId);
+    if (project) projectStore.update({ ...project, archivedAt: new Date().toISOString() });
+  };
+
+  const restoreProject = (projectId: string) => {
+    const project = projectStore.items.find(p => p.id === projectId);
+    if (project) projectStore.update({ ...project, archivedAt: undefined });
+  };
+
   const activeProject = projects.find(p => p.id === activeProjectId) ?? null;
   const isLoading = projectStore.isLoading || shotStore.isLoading || scheduleStore.isLoading || crewStore.isLoading || takeStore.isLoading;
 
   return {
-    projects, shots, schedule, crew, takes, scenes, sceneBreakdowns, locations,
+    projects, shots, schedule, crew, crewAssignments, takes, scenes, sceneBreakdowns, locations,
     budgetItems, continuityNotes, vfxShots, festivals, productionNotes,
     moodBoardItems, directorCredits, shotReferences, wrapReports,
     locationWeather, blockingNotes, colorReferences, timeEntries,
-    scriptSides, castMembers, lookbookItems, directorStatements,
+    scriptSides, castMembers, castCallTimes, callSheetDetails, lookbookItems, directorStatements,
     sceneSelects, directorMessages, scriptPDFs, scriptAnnotations,
     lightingDiagrams,
     activeProject, activeProjectId,
     isLoading, selectProject,
 
-    addProject: projectStore.add, updateProject: projectStore.update, deleteProject: projectStore.remove,
+    addProject: projectStore.add, updateProject: projectStore.update, deleteProject,
+    archiveProject, restoreProject,
     addShot: shotStore.add, updateShot: shotStore.update, updateShots: shotStore.updateMany, deleteShot: shotStore.remove,
     addScheduleDay: scheduleStore.add, updateScheduleDay: scheduleStore.update, deleteScheduleDay: scheduleStore.remove,
     addCrewMember: crewStore.add, updateCrewMember: crewStore.update, deleteCrewMember: crewStore.remove,
+    addCrewAssignment: crewAssignmentStore.add, updateCrewAssignment: crewAssignmentStore.update, deleteCrewAssignment: crewAssignmentStore.remove,
+    addCrewAssignmentBulk: crewAssignmentStore.addBulk,
     addTake: takeStore.add, updateTake: takeStore.update, deleteTake: takeStore.remove,
     addScene: sceneStore.add, updateScene: sceneStore.update, deleteScene: sceneStore.remove,
     addSceneBulk: sceneStore.addBulk,
@@ -317,6 +457,9 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     addTimeEntry: timeEntryStore.add, updateTimeEntry: timeEntryStore.update, deleteTimeEntry: timeEntryStore.remove,
     addScriptSide: scriptSideStore.add, updateScriptSide: scriptSideStore.update, deleteScriptSide: scriptSideStore.remove,
     addCastMember: castStore.add, updateCastMember: castStore.update, deleteCastMember: castStore.remove,
+    addCastCallTime: castCallTimeStore.add, updateCastCallTime: castCallTimeStore.update, deleteCastCallTime: castCallTimeStore.remove,
+    upsertCastCallTime: castCallTimeStore.upsert,
+    upsertCallSheetDetails: callSheetDetailStore.upsert,
     addLookbookItem: lookbookStore.add, updateLookbookItem: lookbookStore.update, deleteLookbookItem: lookbookStore.remove,
     addDirectorStatement: directorStatementStore.add, updateDirectorStatement: directorStatementStore.update, deleteDirectorStatement: directorStatementStore.remove,
     addSceneSelect: selectStore.add, updateSceneSelect: selectStore.update, deleteSceneSelect: selectStore.remove,
@@ -388,6 +531,40 @@ export function findScene(
   if (sceneNumber === undefined || sceneNumber === null || sceneNumber === '') return null;
   const wanted = String(sceneNumber).trim().toUpperCase();
   return scenes.find(s => String(s.number).trim().toUpperCase() === wanted) ?? null;
+}
+
+/** Someone on this production: the contact, plus what they are here. */
+export interface AssignedCrew extends CrewMember {
+  assignmentId: string;
+  /** Role on this production, falling back to the contact's default role. */
+  projectRole: string;
+  /** Their standard call, or undefined when they are on the general call. */
+  callTime?: string;
+}
+
+/**
+ * Crew working on this project — not every contact ever entered, which is what
+ * the directory and every call sheet used to show (#40).
+ */
+export function useProjectCrew(projectId: string | null): AssignedCrew[] {
+  const { crew, crewAssignments } = useProjects();
+  const byId = new Map(crew.map(c => [c.id, c]));
+
+  const assigned: AssignedCrew[] = [];
+  for (const a of crewAssignments ?? []) {
+    if (a.projectId !== projectId) continue;
+    const person = byId.get(a.crewMemberId);
+    if (!person) continue;               // contact deleted; assignment is stale
+    assigned.push({
+      ...person,
+      assignmentId: a.id,
+      projectRole: a.role?.trim() || person.role,
+      callTime: a.callTime?.trim() || undefined,
+    });
+  }
+
+  return assigned.sort((a, b) =>
+    a.department.localeCompare(b.department) || a.name.localeCompare(b.name));
 }
 
 export function useProjectBreakdowns(projectId: string | null) {
@@ -468,6 +645,25 @@ export function useProjectScriptSides(projectId: string | null) {
 export function useProjectCast(projectId: string | null) {
   const { castMembers } = useProjects();
   return castMembers.filter(c => c.projectId === projectId).sort((a, b) => a.characterName.localeCompare(b.characterName));
+}
+
+/**
+ * Cast call times for one shoot day, keyed by cast member id.
+ *
+ * A Map rather than a list because every lookup is "what is this person's
+ * makeup call", and the absence of a row is the common case — nobody has to be
+ * given a time for the sheet to be right.
+ */
+export function useDayCastCallTimes(scheduleDayId: string | null): Map<string, CastCallTime> {
+  const { castCallTimes } = useProjects();
+  return castTimesForDay(castCallTimes ?? [], scheduleDayId);
+}
+
+/** The call sheet block for one shoot day, or null before anything is filled in. */
+export function useCallSheetDetails(scheduleDayId: string | null): CallSheetDetails | null {
+  const { callSheetDetails } = useProjects();
+  if (!scheduleDayId) return null;
+  return (callSheetDetails ?? []).find(d => d.scheduleDayId === scheduleDayId) ?? null;
 }
 
 export function useProjectLookbook(projectId: string | null) {

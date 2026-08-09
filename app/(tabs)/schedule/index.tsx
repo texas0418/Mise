@@ -1,22 +1,25 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Plus, MapPin, Clock, FileText, CalendarDays, AlertCircle, Trash2, ChevronDown, ChevronUp, Film } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
-import { useProjects, useProjectSchedule } from '@/contexts/ProjectContext';
+import { useProjects, useProjectSchedule, useProjectScenes } from '@/contexts/ProjectContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { formatEighths, totalEighths } from '@/utils/eighths';
+import { runSceneMigration } from '@/lib/sceneMigration';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
-import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
+import ImportToolbar from '@/components/ImportToolbar';
 import NotificationSettings from '@/components/NotificationSettings';
 import { rescheduleAll } from '@/utils/notifications';
-import { ScheduleDay } from '@/types';
+import { ScheduleDay, Scene } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
-function ScheduleCard({ day, onDelete }: { day: ScheduleDay; onDelete: () => void }) {
+function ScheduleCard({ day, scenes, onDelete }: { day: ScheduleDay; scenes: Scene[]; onDelete: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const swipeableRef = useRef<Swipeable>(null);
 
+  const pages = formatEighths(totalEighths(scenes.map(sc => sc.pageEighths)));
   const dateObj = new Date(day.date + 'T00:00:00');
   const monthShort = dateObj.toLocaleDateString('en-US', { month: 'short' });
   const dayNum = dateObj.getDate();
@@ -57,7 +60,9 @@ function ScheduleCard({ day, onDelete }: { day: ScheduleDay; onDelete: () => voi
             <View style={styles.dayHeader}>
               <Text style={styles.dayLabel}>Day {day.dayNumber}</Text>
               <View style={styles.dayHeaderRight}>
-                <Text style={styles.scenes}>{day.scenes}</Text>
+                <Text style={styles.scenes}>
+                  {scenes.length > 0 ? scenes.map(sc => sc.number).join(', ') : day.scenes}
+                </Text>
                 {expanded ? (
                   <ChevronUp color={Colors.text.tertiary} size={14} />
                 ) : (
@@ -103,8 +108,26 @@ function ScheduleCard({ day, onDelete }: { day: ScheduleDay; onDelete: () => voi
 
             <View style={styles.expandedRow}>
               <Text style={styles.expandedLabel}>Scenes</Text>
-              <Text style={styles.expandedValue}>{day.scenes}</Text>
+              <Text style={styles.expandedValue}>
+                {scenes.length > 0 ? scenes.map(sc => sc.number).join(', ') : day.scenes}
+              </Text>
             </View>
+
+            {scenes.length > 0 && (
+              <>
+                <View style={styles.expandedRow}>
+                  <Text style={styles.expandedLabel}>Pages</Text>
+                  <Text style={[styles.expandedValue, { color: Colors.accent.goldLight }]}>{pages}</Text>
+                </View>
+                {scenes.map(sc => (
+                  <View key={sc.id} style={styles.sceneLine}>
+                    <Text style={styles.sceneLineNumber}>{sc.number}</Text>
+                    <Text style={styles.sceneLineHeading} numberOfLines={1}>{sc.heading}</Text>
+                    <Text style={styles.sceneLinePages}>{formatEighths(sc.pageEighths)}</Text>
+                  </View>
+                ))}
+              </>
+            )}
 
             <View style={styles.expandedRow}>
               <Text style={styles.expandedLabel}>Call Time</Text>
@@ -132,7 +155,25 @@ function ScheduleCard({ day, onDelete }: { day: ScheduleDay; onDelete: () => voi
 export default function ScheduleScreen() {
   const { activeProject, activeProjectId, deleteScheduleDay } = useProjects();
   const schedule = useProjectSchedule(activeProjectId);
-  const router = useRouter();
+  const scenes = useProjectScenes(activeProjectId);
+  const queryClient = useQueryClient();
+
+  // Same reconciliation the scenes screen does: resolve any day whose scene
+  // list is still only free text, without waiting for the next launch.
+  useEffect(() => {
+    runSceneMigration()
+      .then(r => { if (r.daysLinked || r.fromShots || r.fromBreakdowns) queryClient.invalidateQueries(); })
+      .catch(() => {});
+  }, [queryClient]);
+
+  // A day's scenes, in script order, falling back to nothing when the day
+  // predates linking and its free text could not be resolved.
+  const scenesForDay = useCallback((day: ScheduleDay) => {
+    if (!day.sceneIds || day.sceneIds.length === 0) return [];
+    const byId = new Map(scenes.map(sc => [sc.id, sc]));
+    return day.sceneIds.map(id => byId.get(id)).filter((sc): sc is Scene => !!sc);
+  }, [scenes]);
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
 
   const handleDelete = useCallback((day: ScheduleDay) => {
@@ -169,11 +210,13 @@ export default function ScheduleScreen() {
         <Text style={styles.projectBannerCount}>{schedule.length} day{schedule.length !== 1 ? 's' : ''}</Text>
       </View>
 
+      <ImportToolbar entityKey="schedule" />
+
       <FlatList
         data={schedule}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <ScheduleCard day={item} onDelete={() => handleDelete(item)} />
+          <ScheduleCard day={item} scenes={scenesForDay(item)} onDelete={() => handleDelete(item)} />
         )}
         contentContainerStyle={[
           styles.list,
@@ -198,9 +241,6 @@ export default function ScheduleScreen() {
           </View>
         }
       />
-
-            <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="schedule" variant="compact" />
-        <AIImportButton entityKey="schedule" variant="compact" /></View>
 
 <TouchableOpacity
         style={styles.fab}
@@ -348,6 +388,11 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontStyle: 'italic' as const,
   },
+
+  sceneLine: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
+  sceneLineNumber: { fontSize: 12, fontWeight: '700' as const, color: Colors.accent.gold, minWidth: 32 },
+  sceneLineHeading: { flex: 1, fontSize: 11, color: Colors.text.secondary },
+  sceneLinePages: { fontSize: 11, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
 
   // Expanded content
   expandedContent: {

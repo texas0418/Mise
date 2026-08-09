@@ -1,15 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Image } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, BookOpen, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2, Camera } from 'lucide-react-native';
 import { useProjects, useProjectContinuity } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { ContinuityNote } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 function ContinuityCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: ContinuityNote;
@@ -92,7 +92,7 @@ function ContinuityCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function ContinuityScreen() {
   const { activeProject, activeProjectId, deleteContinuityNote } = useProjects();
   const notes = useProjectContinuity(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -118,8 +118,7 @@ export default function ContinuityScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Continuity Notes' }} />
 
-      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="continuity" variant="compact" />
-        <AIImportButton entityKey="continuity" variant="compact" /></View>
+      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="continuity" variant="compact" /></View>
       <View style={styles.statsBar}>
         <BookOpen color={Colors.accent.gold} size={16} />
         <Text style={styles.statsText}>{notes.length} note{notes.length !== 1 ? 's' : ''}</Text>

@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, Trophy, AlertCircle, Calendar, DollarSign, ChevronDown, ChevronUp, Pencil, Trash2, ExternalLink } from 'lucide-react-native';
 import { useProjects, useProjectFestivals } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { FestivalSubmission, FestivalStatus } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const STATUS_CONFIG: Record<FestivalStatus, { color: string; label: string }> = {
   'researching': { color: Colors.text.tertiary, label: 'Researching' },
@@ -101,7 +101,7 @@ function FestivalCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function FestivalTrackerScreen() {
   const { activeProject, activeProjectId, deleteFestival } = useProjects();
   const festivals = useProjectFestivals(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<FestivalStatus | null>(null);
@@ -155,8 +155,7 @@ export default function FestivalTrackerScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={<View style={styles.emptyInner}><Trophy color={Colors.text.tertiary} size={48} /><Text style={styles.emptyTitle}>No festivals tracked</Text><Text style={styles.emptySubtitle}>Track your festival submission strategy</Text></View>}
       />
-            <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="festivals" variant="compact" />
-        <AIImportButton entityKey="festivals" variant="compact" /></View>
+            <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="festivals" variant="compact" /></View>
 
 <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-festival' as never)} activeOpacity={0.8}><Plus color={Colors.text.inverse} size={24} /></TouchableOpacity>
     </View>
