@@ -16,6 +16,7 @@ import {
   completeOnboarding,
 } from "@/utils/onboarding";
 import { hasRunPhotoMigration, runPhotoMigration } from "@/lib/photoMigration";
+import { hasRunSceneMigration, runSceneMigration } from "@/lib/sceneMigration";
 import OnboardingFlow from "@/components/OnboardingFlow";
 
 SplashScreen.preventAutoHideAsync();
@@ -40,6 +41,21 @@ export default function RootLayout() {
         }
       } catch (e) {
         console.warn("[photoMigration] skipped:", e);
+      }
+
+      // Build Scene records from existing breakdowns and shots (#53).
+      try {
+        if (!(await hasRunSceneMigration())) {
+          const r = await runSceneMigration();
+          if (r.fromBreakdowns || r.fromShots || r.shotsLinked) {
+            console.log(
+              `[sceneMigration] ${r.fromBreakdowns} from breakdowns, ` +
+              `${r.fromShots} from shots, ${r.shotsLinked} shots linked`,
+            );
+          }
+        }
+      } catch (e) {
+        console.warn("[sceneMigration] skipped:", e);
       }
 
       const done = await hasCompletedOnboarding();
@@ -113,13 +129,13 @@ export default function RootLayout() {
                   />
                   <Stack.Screen
                     name="script-breakdown"
-                    options={{ title: "Script Breakdown" }}
+                    options={{ title: "Scenes" }}
                   />
                   <Stack.Screen
                     name="new-breakdown"
                     options={{
                       presentation: "modal",
-                      title: "New Breakdown",
+                      title: "New Scene",
                     }}
                   />
                   <Stack.Screen

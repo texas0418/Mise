@@ -15,6 +15,7 @@ export const SYNCABLE_TABLES: TableConfig[] = [
   { table: 'schedule_days',       storageKey: 'mise_schedule',          queryKey: 'schedule',         projectScoped: true },
   { table: 'crew_members',        storageKey: 'mise_crew',              queryKey: 'crew',             projectScoped: true },
   { table: 'takes',               storageKey: 'mise_takes',             queryKey: 'takes',            projectScoped: true },
+  { table: 'scenes',              storageKey: 'mise_scenes',            queryKey: 'scenes',           projectScoped: true },
   { table: 'scene_breakdowns',    storageKey: 'mise_scene_breakdowns',  queryKey: 'sceneBreakdowns',  projectScoped: true },
   { table: 'location_scouts',     storageKey: 'mise_locations',         queryKey: 'locations',        projectScoped: true },
   { table: 'budget_items',        storageKey: 'mise_budget',            queryKey: 'budget',           projectScoped: true },

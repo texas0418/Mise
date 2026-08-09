@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, SectionList, Alert, Animated 
 import { useRouter } from 'expo-router';
 import { Plus, Camera, Check, Clock, Eye, AlertCircle, Trash2, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
-import { useProjects, useProjectShots } from '@/contexts/ProjectContext';
+import { useProjects, useProjectShots, useProjectScenes, findScene } from '@/contexts/ProjectContext';
+import { formatEighths, compareSceneNumbers } from '@/utils/eighths';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
@@ -137,19 +138,35 @@ function ShotCard({ shot, onEdit, onDelete }: { shot: Shot; onEdit: () => void; 
 export default function ShotsScreen() {
   const { activeProject, activeProjectId, deleteShot } = useProjects();
   const shots = useProjectShots(activeProjectId);
+  const scenes = useProjectScenes(activeProjectId);
   const router = useRouter();
   const { isTablet, contentPadding } = useLayout();
 
   const sections = useMemo(() => {
-    const grouped: Record<number, Shot[]> = {};
+    // Group by the linked Scene where there is one, falling back to the loose
+    // scene number so shots created before scenes existed still group.
+    const grouped = new Map<string, { title: string; subtitle: string; data: Shot[] }>();
+
     shots.forEach(shot => {
-      if (!grouped[shot.sceneNumber]) grouped[shot.sceneNumber] = [];
-      grouped[shot.sceneNumber].push(shot);
+      const scene = findScene(scenes, shot.sceneId, shot.sceneNumber);
+      const key = scene ? scene.number : String(shot.sceneNumber);
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          title: `Scene ${key}`,
+          subtitle: scene
+            ? [scene.heading, scene.pageEighths ? `${formatEighths(scene.pageEighths)} pg` : '']
+                .filter(Boolean).join(' · ')
+            : '',
+          data: [],
+        });
+      }
+      grouped.get(key)!.data.push(shot);
     });
-    return Object.entries(grouped)
-      .sort(([a], [b]) => Number(a) - Number(b))
-      .map(([scene, data]) => ({ title: `Scene ${scene}`, data }));
-  }, [shots]);
+
+    return Array.from(grouped.entries())
+      .sort(([a], [b]) => compareSceneNumbers(a, b))
+      .map(([, section]) => section);
+  }, [shots, scenes]);
 
   const stats = useMemo(() => ({
     total: shots.length,
@@ -195,7 +212,12 @@ export default function ShotsScreen() {
         )}
         renderSectionHeader={({ section }) => (
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <View style={styles.sectionHeaderText}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+              {section.subtitle ? (
+                <Text style={styles.sectionSubtitle} numberOfLines={1}>{section.subtitle}</Text>
+              ) : null}
+            </View>
             <Text style={styles.sectionCount}>{section.data.length} shot{section.data.length !== 1 ? 's' : ''}</Text>
           </View>
         )}
@@ -232,7 +254,9 @@ const styles = StyleSheet.create({
   statDivider: { width: 1, height: 28, backgroundColor: Colors.border.subtle },
   list: { padding: 20, paddingBottom: 100 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, marginTop: 8 },
+  sectionHeaderText: { flex: 1 },
   sectionTitle: { fontSize: 16, fontWeight: '700' as const, color: Colors.accent.gold, letterSpacing: 0.3 },
+  sectionSubtitle: { fontSize: 11, color: Colors.text.tertiary, marginTop: 2 },
   sectionCount: { fontSize: 12, color: Colors.text.tertiary },
   shotCard: { backgroundColor: Colors.bg.card, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 0.5, borderColor: Colors.border.subtle },
   shotCardExpanded: { borderColor: Colors.accent.gold + '44', borderWidth: 1 },

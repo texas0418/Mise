@@ -8,9 +8,10 @@ import {
   ProductionNote, MoodBoardItem, DirectorCredit, ShotReference, WrapReport,
   LocationWeather, BlockingNote, ColorReference, TimeEntry, ScriptSide,
   CastMember, LookbookItem, DirectorStatement, SceneSelect, DirectorMessage,
-  ScriptPDF, ScriptAnnotation, LightingDiagram
+  ScriptPDF, ScriptAnnotation, LightingDiagram, Scene
 } from '@/types';
 import { useSync } from '@/contexts/SyncContext';
+import { compareSceneNumbers } from '@/utils/eighths';
 
 const STORAGE_KEYS = {
   projects: 'mise_projects',
@@ -19,6 +20,7 @@ const STORAGE_KEYS = {
   crew: 'mise_crew',
   takes: 'mise_takes',
   activeProject: 'mise_active_project',
+  scenes: 'mise_scenes',
   sceneBreakdowns: 'mise_scene_breakdowns',
   locations: 'mise_locations',
   budget: 'mise_budget',
@@ -209,6 +211,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const scheduleStore = useEntityStore<ScheduleDay>('schedule', STORAGE_KEYS.schedule, [], 'schedule_days', enqueueMutation);
   const crewStore = useEntityStore<CrewMember>('crew', STORAGE_KEYS.crew, [], 'crew_members', enqueueMutation);
   const takeStore = useEntityStore<Take>('takes', STORAGE_KEYS.takes, [], 'takes', enqueueMutation);
+  const sceneStore = useEntityStore<Scene>('scenes', STORAGE_KEYS.scenes, [], 'scenes', enqueueMutation);
   const breakdownStore = useEntityStore<SceneBreakdown>('sceneBreakdowns', STORAGE_KEYS.sceneBreakdowns, [], 'scene_breakdowns', enqueueMutation);
   const locationStore = useEntityStore<LocationScout>('locations', STORAGE_KEYS.locations, [], 'location_scouts', enqueueMutation);
   const budgetStore = useEntityStore<BudgetItem>('budget', STORAGE_KEYS.budget, [], 'budget_items', enqueueMutation);
@@ -250,6 +253,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const schedule = scheduleStore.items;
   const crew = crewStore.items;
   const takes = takeStore.items;
+  const scenes = sceneStore.items;
   const sceneBreakdowns = breakdownStore.items;
   const locations = locationStore.items;
   const budgetItems = budgetStore.items;
@@ -279,7 +283,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const isLoading = projectStore.isLoading || shotStore.isLoading || scheduleStore.isLoading || crewStore.isLoading || takeStore.isLoading;
 
   return {
-    projects, shots, schedule, crew, takes, sceneBreakdowns, locations,
+    projects, shots, schedule, crew, takes, scenes, sceneBreakdowns, locations,
     budgetItems, continuityNotes, vfxShots, festivals, productionNotes,
     moodBoardItems, directorCredits, shotReferences, wrapReports,
     locationWeather, blockingNotes, colorReferences, timeEntries,
@@ -294,6 +298,8 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     addScheduleDay: scheduleStore.add, updateScheduleDay: scheduleStore.update, deleteScheduleDay: scheduleStore.remove,
     addCrewMember: crewStore.add, updateCrewMember: crewStore.update, deleteCrewMember: crewStore.remove,
     addTake: takeStore.add, updateTake: takeStore.update, deleteTake: takeStore.remove,
+    addScene: sceneStore.add, updateScene: sceneStore.update, deleteScene: sceneStore.remove,
+    addSceneBulk: sceneStore.addBulk,
     addBreakdown: breakdownStore.add, updateBreakdown: breakdownStore.update, deleteBreakdown: breakdownStore.remove,
     addLocation: locationStore.add, updateLocation: locationStore.update, deleteLocation: locationStore.remove,
     addBudgetItem: budgetStore.add, updateBudgetItem: budgetStore.update, deleteBudgetItem: budgetStore.remove,
@@ -357,6 +363,31 @@ export function useProjectSchedule(projectId: string | null) {
 export function useProjectTakes(projectId: string | null) {
   const { takes } = useProjects();
   return takes.filter(t => t.projectId === projectId);
+}
+
+export function useProjectScenes(projectId: string | null) {
+  const { scenes } = useProjects();
+  return (scenes ?? [])
+    .filter(s => s.projectId === projectId)
+    .sort((a, b) => compareSceneNumbers(a.number, b.number));
+}
+
+/**
+ * Resolve the Scene a record belongs to, preferring the explicit link and
+ * falling back to the loose scene number that predates it.
+ */
+export function findScene(
+  scenes: Scene[],
+  sceneId: string | undefined,
+  sceneNumber: number | string | undefined,
+): Scene | null {
+  if (sceneId) {
+    const byId = scenes.find(s => s.id === sceneId);
+    if (byId) return byId;
+  }
+  if (sceneNumber === undefined || sceneNumber === null || sceneNumber === '') return null;
+  const wanted = String(sceneNumber).trim().toUpperCase();
+  return scenes.find(s => String(s.number).trim().toUpperCase() === wanted) ?? null;
 }
 
 export function useProjectBreakdowns(projectId: string | null) {

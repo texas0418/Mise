@@ -1,13 +1,16 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Plus, FileText, MapPin, Clock, Users, Package, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
-import { useProjects, useProjectBreakdowns } from '@/contexts/ProjectContext';
+import { useProjects, useProjectScenes } from '@/contexts/ProjectContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { formatEighths, totalEighths } from '@/utils/eighths';
+import { runSceneMigration } from '@/lib/sceneMigration';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
 import AIImportButton from '@/components/AIImportButton';
-import { SceneBreakdown } from '@/types';
+import { Scene } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 
 const TIME_COLORS: Record<string, string> = {
@@ -20,7 +23,7 @@ const TIME_COLORS: Record<string, string> = {
 
 // eslint-disable-next-line complexity -- tracked in #14
 function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
-  item: SceneBreakdown;
+  item: Scene;
   isExpanded: boolean;
   onPress: () => void;
   onEdit: () => void;
@@ -34,12 +37,12 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   const specialEquipment = item.specialEquipment ?? [];
   const timeOfDay = item.timeOfDay ?? '';
   const intExt = item.intExt ?? '';
-  const pageCount = item.pageCount ?? '';
+  const pageLength = formatEighths(item.pageEighths);
 
   const timeColor = TIME_COLORS[timeOfDay] ?? Colors.text.tertiary;
 
   const handleDelete = () => {
-    Alert.alert('Delete Breakdown', `Remove Sc. ${item.sceneNumber} breakdown?`, [
+    Alert.alert('Delete Scene', `Remove Scene ${item.number}?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
@@ -53,10 +56,10 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
     >
       <View style={styles.cardHeader}>
         <View style={styles.sceneNum}>
-          <Text style={styles.sceneNumText}>{item.sceneNumber}</Text>
+          <Text style={styles.sceneNumText}>{item.number}</Text>
         </View>
         <View style={styles.cardHeaderText}>
-          <Text style={styles.sceneName}>{item.sceneName}</Text>
+          <Text style={styles.sceneName}>{item.heading}</Text>
           <View style={styles.tagRow}>
             <View style={[styles.tag, { backgroundColor: timeColor + '18' }]}>
               <Text style={[styles.tagText, { color: timeColor }]}>{intExt}</Text>
@@ -65,7 +68,7 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
               <Text style={[styles.tagText, { color: timeColor }]}>{timeOfDay.toUpperCase()}</Text>
             </View>
             <View style={styles.tag}>
-              <Text style={styles.tagText}>{pageCount} pg</Text>
+              <Text style={styles.tagText}>{pageLength} pg</Text>
             </View>
           </View>
         </View>
@@ -164,26 +167,32 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function ScriptBreakdownScreen() {
-  const { activeProject, activeProjectId, deleteBreakdown } = useProjects();
-  const breakdowns = useProjectBreakdowns(activeProjectId);
+  const { activeProject, activeProjectId, deleteScene } = useProjects();
+  const breakdowns = useProjectScenes(activeProjectId);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const stats = useMemo(() => {
-    const totalPages = breakdowns.reduce((sum, b) => {
-      const pageCount = b.pageCount ?? '';
-      const parts = pageCount.split(' ');
-      const whole = parseInt(parts[0]) || 0;
-      return sum + whole;
-    }, 0);
-    return { scenes: breakdowns.length, pages: totalPages };
-  }, [breakdowns]);
+  // CSV/AI import still writes legacy breakdown records (scene-native import
+  // needs eighths parsing the import registry cannot express yet). Reconciling
+  // on mount is idempotent and means an import shows up here immediately
+  // instead of after the next launch.
+  useEffect(() => {
+    runSceneMigration()
+      .then(r => { if (r.fromBreakdowns || r.fromShots) queryClient.invalidateQueries(); })
+      .catch(() => {});
+  }, [queryClient]);
+
+  const stats = useMemo(() => ({
+    scenes: breakdowns.length,
+    pages: formatEighths(totalEighths(breakdowns.map(b => b.pageEighths))),
+  }), [breakdowns]);
 
   if (!activeProject) {
     return (
       <View style={styles.emptyContainer}>
-        <Stack.Screen options={{ title: 'Script Breakdown' }} />
+        <Stack.Screen options={{ title: 'Scenes' }} />
         <AlertCircle color={Colors.text.tertiary} size={48} />
         <Text style={styles.emptyTitle}>No project selected</Text>
       </View>
@@ -193,7 +202,7 @@ export default function ScriptBreakdownScreen() {
   return (
     <PermissionGate resource="script_breakdown">
     <View style={styles.container}>
-      <Stack.Screen options={{ title: 'Script Breakdown' }} />
+      <Stack.Screen options={{ title: 'Scenes' }} />
 
       <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="sceneBreakdowns" variant="compact" />
         <AIImportButton entityKey="sceneBreakdowns" variant="compact" /></View>
@@ -212,7 +221,7 @@ export default function ScriptBreakdownScreen() {
             isExpanded={expandedId === item.id}
             onPress={() => setExpandedId(expandedId === item.id ? null : item.id)}
             onEdit={() => router.push(`/new-breakdown?id=${item.id}` as never)}
-            onDelete={() => deleteBreakdown(item.id)}
+            onDelete={() => deleteScene(item.id)}
           />
         )}
         contentContainerStyle={[styles.list, {

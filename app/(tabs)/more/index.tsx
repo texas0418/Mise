@@ -24,7 +24,7 @@ const PRE_PROD_TOOLS: ToolItem[] = [
   { icon: BookOpenCheck, label: 'Script Sides', subtitle: 'Daily shooting pages', route: '/script-sides', color: '#F59E0B' },
   { icon: Drama, label: 'Cast', subtitle: 'Actors & characters', route: '/cast-manager', color: '#FB7185' },
   { icon: BookHeart, label: 'Lookbook', subtitle: 'Director\'s vision deck', route: '/lookbook', color: '#C084FC' },
-  { icon: FileText, label: 'Script Breakdown', subtitle: 'Tag scenes & elements', route: '/script-breakdown', color: '#60A5FA' },
+  { icon: FileText, label: 'Scenes', subtitle: 'Scene list & breakdown', route: '/script-breakdown', color: '#60A5FA' },
   { icon: ScrollText, label: 'Scripts', subtitle: 'View & annotate PDFs', route: '/scripts', color: '#F97316' },
   { icon: MapPin, label: 'Locations', subtitle: 'Scout & manage sites', route: '/locations', color: '#4ADE80' },
   { icon: DollarSign, label: 'Budget', subtitle: 'Track spending', route: '/budget', color: '#FBBF24' },
