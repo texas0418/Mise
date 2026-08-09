@@ -80,6 +80,11 @@ export interface ScheduleDay {
   notes: string;
 }
 
+/**
+ * A person. Global, not per-project: a director reuses the same gaffer across
+ * films, so the contact is an address book entry and the *assignment* is what
+ * is project-specific. See CrewAssignment.
+ */
 export interface CrewMember {
   id: string;
   name: string;
@@ -87,6 +92,27 @@ export interface CrewMember {
   department: Department;
   phone: string;
   email: string;
+}
+
+/**
+ * Someone working on a particular production.
+ *
+ * This is what makes crew project-scoped (#40) without guessing which film an
+ * existing contact belonged to — the contacts stay put and assignments are
+ * added alongside them.
+ */
+export interface CrewAssignment {
+  id: string;
+  projectId: string;
+  crewMemberId: string;
+  /** Role on this production; a gaffer on one film is a best boy on another. */
+  role?: string;
+  /**
+   * This person's standard call for this production. Empty means they are on
+   * the general call — which is what every call sheet printed before (#39).
+   */
+  callTime?: string;
+  createdAt: string;
 }
 
 export interface Take {

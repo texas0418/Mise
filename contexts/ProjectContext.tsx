@@ -8,7 +8,7 @@ import {
   ProductionNote, MoodBoardItem, DirectorCredit, ShotReference, WrapReport,
   LocationWeather, BlockingNote, ColorReference, TimeEntry, ScriptSide,
   CastMember, LookbookItem, DirectorStatement, SceneSelect, DirectorMessage,
-  ScriptPDF, ScriptAnnotation, LightingDiagram, Scene
+  ScriptPDF, ScriptAnnotation, LightingDiagram, Scene, CrewAssignment
 } from '@/types';
 import { useSync } from '@/contexts/SyncContext';
 import { compareSceneNumbers } from '@/utils/eighths';
@@ -18,6 +18,7 @@ const STORAGE_KEYS = {
   shots: 'mise_shots',
   schedule: 'mise_schedule',
   crew: 'mise_crew',
+  crewAssignments: 'mise_crew_assignments',
   takes: 'mise_takes',
   activeProject: 'mise_active_project',
   scenes: 'mise_scenes',
@@ -210,6 +211,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const shotStore = useEntityStore<Shot>('shots', STORAGE_KEYS.shots, [], 'shots', enqueueMutation);
   const scheduleStore = useEntityStore<ScheduleDay>('schedule', STORAGE_KEYS.schedule, [], 'schedule_days', enqueueMutation);
   const crewStore = useEntityStore<CrewMember>('crew', STORAGE_KEYS.crew, [], 'crew_members', enqueueMutation);
+  const crewAssignmentStore = useEntityStore<CrewAssignment>('crewAssignments', STORAGE_KEYS.crewAssignments, [], 'crew_assignments', enqueueMutation);
   const takeStore = useEntityStore<Take>('takes', STORAGE_KEYS.takes, [], 'takes', enqueueMutation);
   const sceneStore = useEntityStore<Scene>('scenes', STORAGE_KEYS.scenes, [], 'scenes', enqueueMutation);
   const breakdownStore = useEntityStore<SceneBreakdown>('sceneBreakdowns', STORAGE_KEYS.sceneBreakdowns, [], 'scene_breakdowns', enqueueMutation);
@@ -252,6 +254,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const shots = shotStore.items;
   const schedule = scheduleStore.items;
   const crew = crewStore.items;
+  const crewAssignments = crewAssignmentStore.items;
   const takes = takeStore.items;
   const scenes = sceneStore.items;
   const sceneBreakdowns = breakdownStore.items;
@@ -283,7 +286,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const isLoading = projectStore.isLoading || shotStore.isLoading || scheduleStore.isLoading || crewStore.isLoading || takeStore.isLoading;
 
   return {
-    projects, shots, schedule, crew, takes, scenes, sceneBreakdowns, locations,
+    projects, shots, schedule, crew, crewAssignments, takes, scenes, sceneBreakdowns, locations,
     budgetItems, continuityNotes, vfxShots, festivals, productionNotes,
     moodBoardItems, directorCredits, shotReferences, wrapReports,
     locationWeather, blockingNotes, colorReferences, timeEntries,
@@ -297,6 +300,8 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     addShot: shotStore.add, updateShot: shotStore.update, updateShots: shotStore.updateMany, deleteShot: shotStore.remove,
     addScheduleDay: scheduleStore.add, updateScheduleDay: scheduleStore.update, deleteScheduleDay: scheduleStore.remove,
     addCrewMember: crewStore.add, updateCrewMember: crewStore.update, deleteCrewMember: crewStore.remove,
+    addCrewAssignment: crewAssignmentStore.add, updateCrewAssignment: crewAssignmentStore.update, deleteCrewAssignment: crewAssignmentStore.remove,
+    addCrewAssignmentBulk: crewAssignmentStore.addBulk,
     addTake: takeStore.add, updateTake: takeStore.update, deleteTake: takeStore.remove,
     addScene: sceneStore.add, updateScene: sceneStore.update, deleteScene: sceneStore.remove,
     addSceneBulk: sceneStore.addBulk,
@@ -388,6 +393,40 @@ export function findScene(
   if (sceneNumber === undefined || sceneNumber === null || sceneNumber === '') return null;
   const wanted = String(sceneNumber).trim().toUpperCase();
   return scenes.find(s => String(s.number).trim().toUpperCase() === wanted) ?? null;
+}
+
+/** Someone on this production: the contact, plus what they are here. */
+export interface AssignedCrew extends CrewMember {
+  assignmentId: string;
+  /** Role on this production, falling back to the contact's default role. */
+  projectRole: string;
+  /** Their standard call, or undefined when they are on the general call. */
+  callTime?: string;
+}
+
+/**
+ * Crew working on this project — not every contact ever entered, which is what
+ * the directory and every call sheet used to show (#40).
+ */
+export function useProjectCrew(projectId: string | null): AssignedCrew[] {
+  const { crew, crewAssignments } = useProjects();
+  const byId = new Map(crew.map(c => [c.id, c]));
+
+  const assigned: AssignedCrew[] = [];
+  for (const a of crewAssignments ?? []) {
+    if (a.projectId !== projectId) continue;
+    const person = byId.get(a.crewMemberId);
+    if (!person) continue;               // contact deleted; assignment is stale
+    assigned.push({
+      ...person,
+      assignmentId: a.id,
+      projectRole: a.role?.trim() || person.role,
+      callTime: a.callTime?.trim() || undefined,
+    });
+  }
+
+  return assigned.sort((a, b) =>
+    a.department.localeCompare(b.department) || a.name.localeCompare(b.name));
 }
 
 export function useProjectBreakdowns(projectId: string | null) {

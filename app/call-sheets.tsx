@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { ClipboardList, MapPin, Clock, Users, AlertCircle, Plus, ChevronDown, ChevronUp, Pencil, Trash2, Calendar } from 'lucide-react-native';
-import { useProjects, useProjectSchedule } from '@/contexts/ProjectContext';
+import { useProjects, useProjectSchedule, useProjectCrew, AssignedCrew } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { ScheduleDay } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 
-function CallSheetCard({ day, crew, projectTitle, isExpanded, onPress, onEdit, onDelete }: {
+function CallSheetCard({ day, crew, projectTitle, isExpanded, onPress, onEdit, onDelete, onSetCallTime }: {
   day: ScheduleDay;
-  crew: { id: string; name: string; role: string; department: string }[];
+  crew: AssignedCrew[];
   projectTitle: string;
   isExpanded: boolean;
   onPress: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onSetCallTime: (assignmentId: string, callTime: string) => void;
 }) {
   const dateObj = new Date(day.date + 'T00:00:00');
   const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -111,10 +112,22 @@ function CallSheetCard({ day, crew, projectTitle, isExpanded, onPress, onEdit, o
               <Text style={[styles.crewColHeader, { flex: 1, textAlign: 'right' }]}>CALL</Text>
             </View>
             {crew.map(member => (
-              <View key={member.id} style={styles.crewRow}>
+              <View key={member.assignmentId} style={styles.crewRow}>
                 <Text style={[styles.crewName, { flex: 2 }]}>{member.name}</Text>
-                <Text style={[styles.crewRole, { flex: 2 }]}>{member.role}</Text>
-                <Text style={[styles.crewCall, { flex: 1, textAlign: 'right' }]}>{day.callTime}</Text>
+                <Text style={[styles.crewRole, { flex: 2 }]}>{member.projectRole}</Text>
+                {/* Their own call when they have one, otherwise the general
+                    call — which is what everyone used to get (#39). */}
+                {/* Editable: this is the whole point of a call sheet. Blank
+                    means they are on the general call. */}
+                <TextInput
+                  style={[styles.crewCall, styles.crewCallInput, { flex: 1 }]}
+                  value={member.callTime ?? ''}
+                  placeholder={day.callTime}
+                  placeholderTextColor={Colors.text.tertiary}
+                  onChangeText={t => onSetCallTime(member.assignmentId, t)}
+                  textAlign="right"
+                  accessibilityLabel={`Call time for ${member.name}`}
+                />
               </View>
             ))}
           </View>
@@ -137,7 +150,15 @@ function CallSheetCard({ day, crew, projectTitle, isExpanded, onPress, onEdit, o
 }
 
 export default function CallSheetsScreen() {
-  const { activeProject, activeProjectId, crew, deleteScheduleDay } = useProjects();
+  const { activeProject, activeProjectId, deleteScheduleDay } = useProjects();
+  const crew = useProjectCrew(activeProjectId);
+  const { crewAssignments, updateCrewAssignment } = useProjects();
+
+  const setCallTime = useCallback((assignmentId: string, callTime: string) => {
+    const assignment = (crewAssignments ?? []).find(a => a.id === assignmentId);
+    if (!assignment) return;
+    updateCrewAssignment({ ...assignment, callTime });
+  }, [crewAssignments, updateCrewAssignment]);
   const schedule = useProjectSchedule(activeProjectId);
   const router = useRouter();
   const { isTablet, contentPadding } = useLayout();
@@ -176,6 +197,7 @@ export default function CallSheetsScreen() {
             onPress={() => setExpandedId(expandedId === item.id ? null : item.id)}
             onEdit={() => router.push(`/new-schedule-day?id=${item.id}` as never)}
             onDelete={() => deleteScheduleDay(item.id)}
+            onSetCallTime={setCallTime}
           />
         )}
         contentContainerStyle={[styles.list, {
@@ -252,6 +274,7 @@ const styles = StyleSheet.create({
   crewName: { fontSize: 13, fontWeight: '600' as const, color: Colors.text.primary },
   crewRole: { fontSize: 12, color: Colors.text.secondary },
   crewCall: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold, fontVariant: ['tabular-nums'] },
+  crewCallInput: { paddingVertical: 2, paddingHorizontal: 4, borderRadius: 4, backgroundColor: Colors.bg.elevated, minWidth: 68 },
   // Actions
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 14, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },

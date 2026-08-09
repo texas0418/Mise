@@ -7,7 +7,7 @@ import {
 } from 'lucide-react-native';
 import {
   useProjects, useProjectShots, useProjectSchedule, useProjectBudget,
-  useProjectWrapReports, useProjectScenes, useProjectSelects, useProjectTakes,
+  useProjectWrapReports, useProjectScenes, useProjectSelects, useProjectTakes, useProjectCrew,
 } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -80,7 +80,8 @@ function DayPicker<T extends { id: string; dayNumber: number; date: string }>({
 }
 
 export default function ExportShareScreen() {
-  const { activeProject, activeProjectId, crew } = useProjects();
+  const { activeProject, activeProjectId } = useProjects();
+  const crew = useProjectCrew(activeProjectId);
   const shots = useProjectShots(activeProjectId);
   const schedule = useProjectSchedule(activeProjectId);
   const scenes = useProjectScenes(activeProjectId);

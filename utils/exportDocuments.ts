@@ -7,8 +7,9 @@
  */
 
 import {
-  Project, Shot, ScheduleDay, Scene, CrewMember, BudgetItem, WrapReport, SceneSelect, Take,
+  Project, Shot, ScheduleDay, Scene, BudgetItem, WrapReport, SceneSelect, Take,
 } from '@/types';
+import type { AssignedCrew } from '@/contexts/ProjectContext';
 import { renderDocument, renderTable, escapeHtml, DocumentMeta } from '@/utils/documentStyle';
 import { formatEighths, totalEighths, compareSceneNumbers } from '@/utils/eighths';
 
@@ -101,7 +102,7 @@ export function buildScheduleHtml(project: Project, schedule: ScheduleDay[], sce
 // ─── Call sheet ─────────────────────────────────────────────────────────────
 
 export function buildCallSheetHtml(
-  project: Project, day: ScheduleDay, scenes: Scene[], crew: CrewMember[],
+  project: Project, day: ScheduleDay, scenes: Scene[], crew: AssignedCrew[],
 ): string {
   const linked = scenesFor(day, scenes);
   const pages = linked.length > 0 ? formatEighths(totalEighths(linked.map(s => s.pageEighths))) : '—';
@@ -128,11 +129,10 @@ export function buildCallSheetHtml(
       : `<p class="empty">${escapeHtml(day.scenes || 'No scenes listed.')}</p>`
   );
 
-  // Per-person call times are not modelled yet (#39), so this prints the
-  // general call for everyone rather than inventing times that are not real.
+  // Each person's own call where they have one, the general call otherwise.
   const crewRows = crew.map(c => [
-    escapeHtml(c.name), escapeHtml(c.role), escapeHtml(c.department),
-    `<span class="num">${escapeHtml(day.callTime)}</span>`,
+    escapeHtml(c.name), escapeHtml(c.projectRole), escapeHtml(c.department),
+    `<span class="num">${escapeHtml(c.callTime ?? day.callTime)}</span>`,
   ]);
   const crewTable = `<h2>Crew (${crew.length})</h2>` +
     renderTable(['Name', 'Role', 'Department', 'Call'], crewRows, 'No crew added.');
