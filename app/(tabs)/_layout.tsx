@@ -3,10 +3,20 @@
 // (The TABS layout — Tab navigator)
 // ============================================
 import { Tabs } from "expo-router";
-import { Clapperboard, Camera, CalendarDays, CircleDot, LayoutGrid } from "lucide-react-native";
+import { Clapperboard, Camera, CalendarDays, CircleDot, LayoutGrid, Sunrise } from "lucide-react-native";
 import React from "react";
 import { useLayout } from "@/utils/useLayout";
 import Colors from "@/constants/colors";
+
+// Day-of-shoot is where the app opens (#50).
+//
+// It owns `/` — the group is unnamed in the URL, so whichever group holds the
+// index route is the landing surface, and `initialRouteName` alone could not
+// move it: the root path still resolved to the projects list. Projects moved to
+// its own `/projects` route to free `/` up.
+export const unstable_settings = {
+  initialRouteName: "(today)",
+};
 
 export default function TabLayout() {
   const { isTablet } = useLayout();
@@ -52,7 +62,16 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="(home)"
+        name="(today)"
+        options={{
+          title: "Today",
+          tabBarIcon: ({ color, size }) => (
+            <Sunrise color={color} size={isTablet ? 28 : size - 2} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="projects"
         options={{
           title: "Projects",
           tabBarIcon: ({ color, size }) => (
