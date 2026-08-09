@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Plus, Film, ChevronRight, Trash2, Check } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useProjects } from '@/contexts/ProjectContext';
+import { maybeAskForReview } from '@/utils/reviewPrompt';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { Project, ProjectStatus } from '@/types';
@@ -113,10 +114,21 @@ function ProjectCard({ project, index, isActive, onPress, onDelete }: { project:
 }
 
 export default function ProjectsScreen() {
-  const { projects, activeProjectId, selectProject, deleteProject, isLoading } = useProjects();
+  const { projects, activeProjectId, selectProject, deleteProject, isLoading, takes, wrapReports } = useProjects();
   const router = useRouter();
   const { isTablet, gridColumns, contentPadding } = useLayout();
   const columns = isTablet ? Math.min(gridColumns, 2) : 1;
+
+  // Asked here rather than on set: this screen is where someone lands between
+  // shoots, not mid-take. Silent unless the use has earned the ask.
+  useEffect(() => {
+    if (isLoading) return;
+    maybeAskForReview({
+      wrapReports: wrapReports.length,
+      takes: takes.length,
+      projects: projects.length,
+    });
+  }, [isLoading, wrapReports.length, takes.length, projects.length]);
 
   const handleProjectPress = useCallback((project: Project) => {
     selectProject(project.id);

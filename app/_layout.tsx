@@ -17,6 +17,7 @@ import {
 } from "@/utils/onboarding";
 import { hasRunPhotoMigration, runPhotoMigration } from "@/lib/photoMigration";
 import { hasRunSceneMigration, runSceneMigration } from "@/lib/sceneMigration";
+import { noteFirstLaunch } from "@/utils/reviewPrompt";
 import OnboardingFlow from "@/components/OnboardingFlow";
 
 SplashScreen.preventAutoHideAsync();
@@ -88,6 +89,10 @@ export default function RootLayout() {
       } catch (e) {
         console.warn("[sceneMigration] skipped:", e);
       }
+
+      // Stamped once, so the review prompt can tell a new install from a
+      // long-running one.
+      await noteFirstLaunch();
 
       const done = await hasCompletedOnboarding();
       setShowOnboarding(!done);
