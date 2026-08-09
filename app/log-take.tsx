@@ -8,6 +8,7 @@ import { useProjects, useProjectTakes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { Take } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { toggleLabel, saveTakeHint } from '@/utils/a11yLabels';
 
 /** Existing take -> form field values. Module-level so the screen stays under
  *  the lint complexity ceiling. */
@@ -36,10 +37,27 @@ function TakeStatusRow({ isCircled, isNG, onToggleCircle, onToggleNG }: {
   };
   return (
     <View style={styles.statusRow}>
+      {/* Both are toggles that signal only through colour — the visible text
+          reads "Circle Take" whether it is on or off, so on/off has to be
+          announced or the state is carried by the green alone.
+
+          The state goes in the *label* rather than relying on the role. These
+          started as accessibilityRole="switch" with accessibilityState.checked,
+          which is the idiomatic form, and react-native-web renders the role
+          without ever emitting aria-checked — a switch announcing an unknown
+          state. iOS maps it through a different path and probably does honour
+          it, but "probably" is not worth a silent control, so the label says it
+          outright and the state is left on as well for the platform that reads
+          it. See the note in the PR: this pair is worth listening to on the
+          device. */}
       <TouchableOpacity
         style={[styles.statusBtn, isCircled && styles.statusBtnCircled]}
         onPress={press(onToggleCircle)}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={isCircled ? 'Circled' : 'Circle take'}
+        accessibilityState={{ selected: isCircled }}
+        accessibilityHint={isCircled ? 'Removes the circle' : 'Marks this take as the one to print'}
       >
         <CircleCheck color={isCircled ? Colors.status.active : Colors.text.tertiary} size={24} />
         <Text style={[styles.statusBtnText, isCircled && { color: Colors.status.active }]}>Circle Take</Text>
@@ -48,6 +66,10 @@ function TakeStatusRow({ isCircled, isNG, onToggleCircle, onToggleNG }: {
         style={[styles.statusBtn, isNG && styles.statusBtnNG]}
         onPress={press(onToggleNG)}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={isNG ? 'No good' : 'Mark no good'}
+        accessibilityState={{ selected: isNG }}
+        accessibilityHint={isNG ? 'Clears the no-good mark' : 'Marks this take as unusable'}
       >
         <CircleX color={isNG ? Colors.status.error : Colors.text.tertiary} size={24} />
         <Text style={[styles.statusBtnText, isNG && { color: Colors.status.error }]}>No Good</Text>
@@ -140,6 +162,12 @@ export default function LogTakeScreen() {
     );
   }, [existingItem, deleteTake, router]);
 
+  // Composed in utils/a11yLabels.ts: inline, the branches count against this
+  // component's complexity budget, which is already at the limit — and the fix
+  // for that should not be a shorter, less useful hint.
+  const saveLabel = toggleLabel(isEditing, 'Save take', 'Log take');
+  const saveHint = saveTakeHint(isEditing, sceneNumber, shotNumber, takeNumber);
+
   if (!activeProject) {
     return (
       <View style={styles.emptyContainer}>
@@ -219,7 +247,10 @@ export default function LogTakeScreen() {
         />
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-take-button">
+      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-take-button"
+        accessibilityRole="button"
+        accessibilityLabel={saveLabel}
+        accessibilityHint={saveHint}>
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Take' : 'Log Take'}</Text>
       </TouchableOpacity>
 
@@ -229,6 +260,9 @@ export default function LogTakeScreen() {
           onPress={handleDelete}
           activeOpacity={0.8}
           testID="delete-take-button"
+          accessibilityRole="button"
+          accessibilityLabel="Delete take"
+          accessibilityHint="Removes this take from the log"
         >
           <Trash2 color={Colors.status.error} size={16} />
           <Text style={styles.deleteButtonText}>Delete Take</Text>

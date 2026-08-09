@@ -7,6 +7,7 @@ import { useProjects, useProjectTakes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { Take } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { describeTake, formatTakeTime } from '@/utils/a11yLabels';
 
 // ─── Compact Slate ───────────────────────────────────────────────
 function CompactSlate({ 
@@ -41,8 +42,10 @@ function CompactSlate({
     outputRange: ['0deg', '-12deg'],
   });
 
+  // The wrapper is a tap-anywhere keyboard dismisser, not a control. Left
+  // focusable it becomes a full-screen unlabelled button over the slate.
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.slateContainer}>
         <Animated.View style={[styles.flash, { opacity: flashAnim }]} pointerEvents="none" />
         
@@ -91,10 +94,19 @@ function CompactSlate({
 
           {/* Controls */}
           <View style={styles.slateControls}>
-            <TouchableOpacity style={styles.nextTakeBtn} onPress={onNextTake} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.nextTakeBtn} onPress={onNextTake} activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Next take, take ${take || 1}`}
+              accessibilityHint="Advances the slate to the next take number">
               <Text style={styles.nextTakeText}>Next Take</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.clapBtn} onPress={handleClap} activeOpacity={0.8}>
+            {/* "CLAP" and "MARK!" are the same control in two states. Read out,
+                the word alone does not say which, so the label carries it. */}
+            <TouchableOpacity style={styles.clapBtn} onPress={handleClap} activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={isClapped ? 'Marked' : 'Clap the slate'}
+              accessibilityState={{ selected: isClapped }}
+              accessibilityHint={isClapped ? 'This take is marked' : 'Marks this take as clapped'}>
               <Text style={styles.clapBtnText}>{isClapped ? 'MARK!' : 'CLAP'}</Text>
             </TouchableOpacity>
           </View>
@@ -124,14 +136,21 @@ function TakeCard({ take, onToggleCircle, onToggleNG, onEdit, onDelete }: {
     onToggleCircle(take);
   }, [take, onToggleCircle]);
 
-  const time = new Date(take.timestamp);
-  const timeStr = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  // An unreadable timestamp printed the literal string "Invalid Date" into the
+  // row and read out as it too; the label is composed from whatever fields the
+  // record actually has. Both live in utils/a11yLabels.ts — pure, and asserted
+  // on under node.
+  const timeStr = formatTakeTime(take.timestamp);
+  const describes = describeTake(take, timeStr);
 
   const renderRightActions = () => (
     <TouchableOpacity
       style={styles.deleteAction}
       onPress={() => { swipeableRef.current?.close(); onDelete(take); }}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`Delete ${describes}`}
+      accessibilityHint="Removes this take from the log"
     >
       <Trash2 color="#fff" size={18} />
       <Text style={styles.deleteActionText}>Delete</Text>
@@ -141,6 +160,15 @@ function TakeCard({ take, onToggleCircle, onToggleNG, onEdit, onDelete }: {
   return (
     <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
       <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
+        {/* The card carries a label but deliberately no accessibilityRole. It
+            contains the circle and NG buttons, and giving the container the
+            button role makes react-native-web emit a button wrapping two more
+            buttons — invalid HTML, which React reports as a hydration error.
+            The same shape on iOS is a focusable element containing focusable
+            elements, where VoiceOver tends to reach the container and never
+            the controls inside it. Labelled and role-less, the container
+            announces its contents while the two controls stay individually
+            reachable. Worth listening to on the device. */}
         <TouchableOpacity
           style={[
             styles.takeCard,
@@ -149,18 +177,29 @@ function TakeCard({ take, onToggleCircle, onToggleNG, onEdit, onDelete }: {
           ]}
           onPress={() => onEdit(take)}
           activeOpacity={0.7}
-          testID={`take-card-${take.id}`}
+          accessibilityLabel={describes}
+          accessibilityHint="Opens this take to edit it"
         >
           {/* Circle and NG are the two calls made at the moment of the take,
-              so both are one tap from the log rather than behind the form. */}
-          <TouchableOpacity style={styles.circleBtn} onPress={handleCircle} activeOpacity={0.7}>
+              so both are one tap from the log rather than behind the form.
+              Icon-only, and identical in shape to anyone not looking closely —
+              the label is the only thing that says which is which. */}
+          <TouchableOpacity style={styles.circleBtn} onPress={handleCircle} activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={take.isCircled ? 'Circled' : 'Circle this take'}
+            accessibilityState={{ selected: take.isCircled }}
+            accessibilityHint={take.isCircled ? 'Removes the circle' : 'Marks this take as the one to print'}>
             {take.isCircled ? (
               <CircleCheck color={Colors.status.active} size={26} />
             ) : (
               <CircleDot color={Colors.text.tertiary} size={26} />
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.circleBtn} onPress={() => onToggleNG(take)} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.circleBtn} onPress={() => onToggleNG(take)} activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={take.isNG ? 'No good' : 'Mark no good'}
+            accessibilityState={{ selected: take.isNG }}
+            accessibilityHint={take.isNG ? 'Clears the no-good mark' : 'Marks this take as unusable'}>
             <CircleX color={take.isNG ? Colors.status.error : Colors.text.tertiary} size={22} />
           </TouchableOpacity>
           <View style={styles.takeInfo}>
@@ -315,10 +354,13 @@ export default function OnSetScreen() {
       </View>
 
       {/* Collapse toggle */}
-      <TouchableOpacity 
-        style={styles.collapseToggle} 
-        onPress={() => setSlateCollapsed(!slateCollapsed)} 
+      <TouchableOpacity
+        style={styles.collapseToggle}
+        onPress={() => setSlateCollapsed(!slateCollapsed)}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={slateCollapsed ? 'Show slate' : 'Hide slate'}
+        accessibilityState={{ expanded: !slateCollapsed }}
       >
         <Text style={styles.collapseText}>
           {slateCollapsed ? 'Show Slate' : 'Hide Slate'}
@@ -381,10 +423,15 @@ export default function OnSetScreen() {
         }
       />
 
-      <TouchableOpacity 
-        style={styles.fab} 
-        onPress={() => router.push(`/log-take?scene=${encodeURIComponent(scene)}&shot=${encodeURIComponent(shot)}&take=${encodeURIComponent(take)}` as never)} 
+      {/* Icon-only, and the primary action on the screen — a bare plus glyph
+          announces as nothing at all. */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push(`/log-take?scene=${encodeURIComponent(scene)}&shot=${encodeURIComponent(shot)}&take=${encodeURIComponent(take)}` as never)}
         activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel="Log a take"
+        accessibilityHint={`Opens the take form for scene ${scene}, shot ${shot}, take ${take}`}
       >
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>

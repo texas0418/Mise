@@ -279,7 +279,9 @@ const styles = StyleSheet.create({
   colorChipText: { fontSize: 11, color: Colors.text.secondary, textTransform: 'capitalize' as const },
   annotationRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bg.card, borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 0.5, borderColor: Colors.border.subtle },
   annotationContent: { flex: 1 },
-  annotationTypeLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.accent.goldDim, letterSpacing: 0.8, marginBottom: 2 },
+  // goldDim is an icon/border accent and sits below the 4.5:1 text threshold
+  // by design; words go in the full gold.
+  annotationTypeLabel: { fontSize: 11, fontWeight: '700' as const, color: Colors.accent.gold, letterSpacing: 0.8, marginBottom: 2 },
   annotationTextPreview: { fontSize: 13, color: Colors.text.secondary },
   annotationTypeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   annotationTypeChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: Colors.bg.card, borderWidth: 0.5, borderColor: Colors.border.subtle },
