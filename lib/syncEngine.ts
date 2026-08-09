@@ -26,6 +26,7 @@ import {
   pruneFailedItems,
   type SyncQueueItem,
 } from '@/lib/syncQueue';
+import { isProEntitled } from '@/lib/entitlement';
 
 // ---------------------------------------------------------------------------
 // UUID helpers — app uses numeric IDs, Supabase expects UUIDs
@@ -435,6 +436,14 @@ export async function runMigrationsIfNeeded(): Promise<boolean> {
   }
 }
 
+/**
+ * Whether this device should sync at all.
+ *
+ * Being signed in used to be the whole test, so every free account pushed and
+ * pulled against Supabase while the paywall advertised Multi-Device Sync as a
+ * paid feature — the claim and the behaviour disagreed, and the bill was real
+ * (#43). Sync now requires a paid entitlement as well as a session.
+ */
 export function isSyncEnabled(userId: string | null | undefined): boolean {
-  return !!userId;
+  return !!userId && isProEntitled();
 }

@@ -13,8 +13,6 @@ import {
 import {
   Crown,
   Upload,
-  Sparkles,
-  FolderOpen,
   FileSpreadsheet,
   History,
   X,
@@ -36,16 +34,6 @@ const PRO_FEATURES = [
     icon: Upload,
     title: 'Spreadsheet Import',
     description: 'Import crew lists, budgets, and shot lists from CSV & Excel files',
-  },
-  {
-    icon: Sparkles,
-    title: 'AI Import',
-    description: 'Describe your data in plain language or photograph handwritten sheets',
-  },
-  {
-    icon: FolderOpen,
-    title: 'Unlimited Projects',
-    description: 'Manage as many productions as you need simultaneously',
   },
   {
     icon: FileSpreadsheet,

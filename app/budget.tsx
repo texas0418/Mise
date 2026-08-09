@@ -7,7 +7,6 @@ import { useProjects, useProjectBudget } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { BudgetItem, BudgetCategory } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { generateBudgetTemplate, TEMPLATE_LINE_COUNT } from '@/utils/budgetTemplate';
@@ -305,8 +304,7 @@ export default function BudgetScreen() {
         <TouchableOpacity style={styles.templateBtnSmall} onPress={handleLoadTemplate} activeOpacity={0.7}>
                 <FileText color={Colors.accent.gold} size={13} />
                 <Text style={styles.templateBtnSmallText}>Template</Text>
-              </TouchableOpacity>
-        <AIImportButton entityKey="budget" variant="compact" /></View>
+              </TouchableOpacity></View>
               <Text style={styles.progressText}>{spentPercent.toFixed(0)}% of budget used · {budget.length} items</Text>
             </View>
 

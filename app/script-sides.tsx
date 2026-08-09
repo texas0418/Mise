@@ -5,7 +5,6 @@ import { useProjects, useProjectScriptSides, useProjectShots } from '@/contexts/
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { ScriptSide, SidesStatus, SideAnnotation } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -258,8 +257,7 @@ export default function ScriptSidesScreen() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
-      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="scriptSides" variant="compact" />
-        <AIImportButton entityKey="scriptSides" variant="compact" /></View>
+      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="scriptSides" variant="compact" /></View>
             <View style={styles.statsBar}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{sides.length}</Text>

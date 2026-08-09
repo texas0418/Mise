@@ -6,7 +6,6 @@ import { useProjects, useProjectCrew } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { CrewMember, Department } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -228,7 +227,6 @@ export default function CrewDirectoryScreen() {
         <Text style={styles.statsText}>{crew.length} member{crew.length !== 1 ? 's' : ''}</Text>
         <Text style={styles.statsDetail}>{Object.keys(deptCounts).length} dept{Object.keys(deptCounts).length !== 1 ? 's' : ''}</Text>
         <ImportButton entityKey="crew" variant="compact" />
-        <AIImportButton entityKey="crew" variant="compact" />
       </View>
 
       <View style={styles.scopeRow}>

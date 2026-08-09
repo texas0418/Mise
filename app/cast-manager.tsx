@@ -6,7 +6,6 @@ import { useProjects, useProjectCast } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { CastMember, CastStatus } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { resolvePhotoUri } from '@/utils/photoStorage';
@@ -264,8 +263,7 @@ export default function CastManagerScreen() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
-      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="cast" variant="compact" />
-        <AIImportButton entityKey="cast" variant="compact" /></View>
+      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="cast" variant="compact" /></View>
             <View style={styles.statsBar}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{cast.length}</Text>
