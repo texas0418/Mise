@@ -3,7 +3,9 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert,
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { useProjects, useProjectSchedule } from '@/contexts/ProjectContext';
+import { useProjects, useProjectSchedule, useProjectScenes } from '@/contexts/ProjectContext';
+import { formatEighths, totalEighths } from '@/utils/eighths';
+import { Scene } from '@/types';
 import Colors from '@/constants/colors';
 import { scheduleNotificationsForDay } from '@/utils/notifications';
 
@@ -18,6 +20,7 @@ export default function NewScheduleDayScreen() {
 
   const [date, setDate] = useState('');
   const [scenes, setScenes] = useState('');
+  const [sceneIds, setSceneIds] = useState<string[]>([]);
   const [location, setLocation] = useState('');
   const [callTime, setCallTime] = useState('7:00 AM');
   const [wrapTime, setWrapTime] = useState('6:00 PM');
@@ -30,12 +33,21 @@ export default function NewScheduleDayScreen() {
     if (existingItem) {
       setDate(existingItem.date);
       setScenes(existingItem.scenes);
+      setSceneIds(existingItem.sceneIds ?? []);
       setLocation(existingItem.location);
       setCallTime(existingItem.callTime);
       setWrapTime(existingItem.wrapTime);
       setNotes(existingItem.notes);
     }
   }, [existingItem?.id]);
+
+  const projectScenes = useProjectScenes(activeProjectId);
+  const selected: Scene[] = projectScenes.filter(sc => sceneIds.includes(sc.id));
+  const selectedPages = formatEighths(totalEighths(selected.map(sc => sc.pageEighths)));
+
+  const toggleScene = useCallback((id: string) => {
+    setSceneIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  }, []);
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
@@ -54,7 +66,12 @@ export default function NewScheduleDayScreen() {
       projectId: activeProjectId,
       date: date.trim(),
       dayNumber: isEditing ? existingItem!.dayNumber : nextDayNumber,
-      scenes: scenes.trim(),
+      sceneIds,
+      // Derived, so the six places still reading the free-text list keep
+      // working. Falls back to whatever was typed when nothing is selected.
+      scenes: selected.length > 0
+        ? selected.map(sc => sc.number).join(', ')
+        : scenes.trim(),
       location: location.trim(),
       callTime: callTime.trim(),
       wrapTime: wrapTime.trim(),
@@ -69,7 +86,7 @@ export default function NewScheduleDayScreen() {
     // Schedule notifications for new day
       // scheduleNotificationsForDay(newDay, activeProject?.title).catch(() => {});
       router.back();
-  }, [activeProjectId, date, scenes, location, callTime, wrapTime, notes, nextDayNumber, addScheduleDay, updateScheduleDay, router, isEditing, existingItem]);
+  }, [activeProjectId, date, scenes, sceneIds, selected, location, callTime, wrapTime, notes, nextDayNumber, addScheduleDay, updateScheduleDay, router, isEditing, existingItem]);
 
   if (!activeProject) {
     return (
@@ -98,9 +115,44 @@ export default function NewScheduleDayScreen() {
       </View>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Scenes</Text>
-        <TextInput style={styles.input} value={scenes} onChangeText={setScenes}
-          placeholder="e.g. Sc. 1, 5, 8" placeholderTextColor={Colors.text.tertiary} />
+        <View style={styles.sceneHeader}>
+          <Text style={styles.label}>Scenes</Text>
+          {selected.length > 0 && (
+            <Text style={styles.scenePageTotal}>{selectedPages} pages</Text>
+          )}
+        </View>
+
+        {projectScenes.length > 0 ? (
+          <View style={styles.sceneGrid}>
+            {projectScenes.map(sc => {
+              const isOn = sceneIds.includes(sc.id);
+              return (
+                <TouchableOpacity
+                  key={sc.id}
+                  style={[styles.sceneChip, isOn && styles.sceneChipOn]}
+                  onPress={() => toggleScene(sc.id)}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isOn }}
+                  accessibilityLabel={`Scene ${sc.number}, ${sc.heading}`}
+                >
+                  <Text style={[styles.sceneChipText, isOn && styles.sceneChipTextOn]}>{sc.number}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : (
+          // No scenes yet — fall back to the free-text list rather than
+          // leaving the day with no way to record what is being shot.
+          <TextInput style={styles.input} value={scenes} onChangeText={setScenes}
+            placeholder="e.g. Sc. 1, 5, 8" placeholderTextColor={Colors.text.tertiary} />
+        )}
+
+        {projectScenes.length > 0 && selected.length > 0 && (
+          <Text style={styles.sceneSummary}>
+            {selected.map(sc => `${sc.number} ${sc.heading}`).join('  ·  ')}
+          </Text>
+        )}
       </View>
 
       <View style={styles.field}>
@@ -139,6 +191,14 @@ export default function NewScheduleDayScreen() {
 }
 
 const styles = StyleSheet.create({
+  sceneHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  scenePageTotal: { fontSize: 12, fontWeight: '700' as const, color: Colors.accent.goldLight, marginBottom: 8 },
+  sceneGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  sceneChip: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, backgroundColor: Colors.bg.input, borderWidth: 1, borderColor: Colors.border.subtle, minWidth: 48, alignItems: 'center' },
+  sceneChipOn: { backgroundColor: Colors.accent.goldBg, borderColor: Colors.accent.gold },
+  sceneChipText: { fontSize: 15, fontWeight: '600' as const, color: Colors.text.secondary },
+  sceneChipTextOn: { color: Colors.accent.gold },
+  sceneSummary: { fontSize: 11, color: Colors.text.tertiary, marginTop: 10, lineHeight: 16 },
   container: { flex: 1, backgroundColor: Colors.bg.primary },
   content: { padding: 20, paddingBottom: 40 },
   projectLabel: { backgroundColor: Colors.accent.goldBg, borderRadius: 8, padding: 10, marginBottom: 20 },

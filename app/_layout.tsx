@@ -78,10 +78,11 @@ export default function RootLayout() {
       try {
         if (!(await hasRunSceneMigration())) {
           const r = await runSceneMigration();
-          if (r.fromBreakdowns || r.fromShots || r.shotsLinked) {
+          if (r.fromBreakdowns || r.fromShots || r.shotsLinked || r.daysLinked) {
             console.log(
               `[sceneMigration] ${r.fromBreakdowns} from breakdowns, ` +
-              `${r.fromShots} from shots, ${r.shotsLinked} shots linked`,
+              `${r.fromShots} from shots, ${r.shotsLinked} shots linked, ` +
+              `${r.daysLinked} days linked`,
             );
           }
         }
