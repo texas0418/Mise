@@ -114,7 +114,7 @@ function definitionRows(pairs: [string, string | undefined][]): string[][] {
 function labelledBlock(title: string, pairs: [string, string | undefined][]): string {
   const rows = definitionRows(pairs);
   if (rows.length === 0) return '';
-  return `<h2>${escapeHtml(title)}</h2>` + renderTable(['', ''], rows);
+  return `<h2>${escapeHtml(title)}</h2>` + renderTable(['', ''], rows, undefined, 'defs');
 }
 
 /** Safety first, literally: the hospital is the reason this block exists. */
@@ -287,7 +287,18 @@ export function buildWrapReportHtml(project: Project, report: WrapReport): strin
 
 // ─── Budget ─────────────────────────────────────────────────────────────────
 
-const money = (n: number) => `$${(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+/** Category keys are stored lowercase; a printed budget is not. */
+const titleCase = (text: string) =>
+  text.replace(/\b[a-z]/g, letter => letter.toUpperCase());
+
+// The sign goes outside the currency symbol. `$${n}` printed an overspend as
+// "$-2,100", which is not how money is written anywhere and reads as a typo on
+// a document that goes to a financier. Caught by printing the budget.
+const money = (n: number) => {
+  const value = n || 0;
+  const magnitude = Math.abs(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  return `${value < 0 ? '-' : ''}$${magnitude}`;
+};
 
 export function buildBudgetHtml(project: Project, items: BudgetItem[]): string {
   const byCategory = new Map<string, { est: number; act: number }>();
@@ -299,24 +310,24 @@ export function buildBudgetHtml(project: Project, items: BudgetItem[]): string {
   }
 
   const rows = Array.from(byCategory.entries()).map(([category, v]) => [
-    escapeHtml(category.replace(/-/g, ' ')),
-    `<span class="num right">${money(v.est)}</span>`,
-    `<span class="num right">${money(v.act)}</span>`,
-    `<span class="num right">${money(v.est - v.act)}</span>`,
+    escapeHtml(titleCase(category.replace(/-/g, ' '))),
+    `<span class="num">${money(v.est)}</span>`,
+    `<span class="num">${money(v.act)}</span>`,
+    `<span class="num">${money(v.est - v.act)}</span>`,
   ]);
 
   const totalEst = items.reduce((s, i) => s + (i.estimated || 0), 0);
   const totalAct = items.reduce((s, i) => s + (i.actual || 0), 0);
-  const totals = `<table><tbody><tr class="total">
-      <td>Total</td>
-      <td class="num right">${money(totalEst)}</td>
-      <td class="num right">${money(totalAct)}</td>
-      <td class="num right">${money(totalEst - totalAct)}</td>
-    </tr></tbody></table>`;
+  const totals = [
+    'Total',
+    `<span class="num">${money(totalEst)}</span>`,
+    `<span class="num">${money(totalAct)}</span>`,
+    `<span class="num">${money(totalEst - totalAct)}</span>`,
+  ];
 
   return renderDocument(meta(project, 'Budget Summary'),
-    renderTable(['Category', 'Estimated', 'Actual', 'Variance'], rows, 'No budget items.') +
-    (rows.length > 0 ? totals : ''));
+    renderTable(['Category', 'Estimated', 'Actual', 'Variance'], rows,
+      'No budget items.', 'money', totals));
 }
 
 // ─── Selects (the editor's copy) ────────────────────────────────────────────

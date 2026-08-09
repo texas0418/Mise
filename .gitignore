@@ -67,3 +67,6 @@ android/
 *.swp
 *.swo
 *~
+
+# Rendered documents (scripts/render-documents.ts) — proofs, not sources
+.render/

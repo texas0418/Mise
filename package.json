@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "render:docs": "bun run scripts/render-documents.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

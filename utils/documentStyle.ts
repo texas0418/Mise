@@ -62,8 +62,16 @@ const CSS = `
   td { font-size: 10pt; padding: 5px 6px; border-bottom: 1px solid #e3e3e3; vertical-align: top; }
   /* Rows should not be split across a page break — a half-row reads as an error. */
   tr { page-break-inside: avoid; }
+  /* Label / value blocks: safety, logistics, weather, the advance. A fixed
+     label column stops "Nearest hospital" wrapping onto two lines while the
+     value beside it runs the width of the page. */
+  .defs td:first-child { width: 22%; color: #444; }
   .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .right { text-align: right; }
+  /* Money columns align right, headers included, so the figures form a column
+     that can be read down. This lives on the table because text-align on the
+     inline span inside a cell does nothing — which is why the budget printed
+     with its totals row right-aligned and every row above it left-aligned. */
+  .money th:not(:first-child), .money td:not(:first-child) { text-align: right; }
   .muted { color: #666; }
   .total td { font-weight: 700; border-top: 1.5px solid #111; border-bottom: none; }
   .note { font-size: 9.5pt; color: #444; font-style: italic; }
@@ -93,11 +101,28 @@ export function renderTable(
   headers: string[],
   rows: string[][],
   emptyMessage = 'Nothing recorded.',
+  className = '',
+  /**
+   * A totals row, rendered inside this table rather than beside it. A separate
+   * <table> sizes its own columns, so a totals row built that way lands at
+   * different x positions from the figures it is totalling.
+   */
+  totalRow?: string[],
 ): string {
   if (rows.length === 0) return `<p class="empty">${escapeHtml(emptyMessage)}</p>`;
-  const head = headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
-  const body = rows
-    .map(cells => `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`)
-    .join('');
-  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  const tr = (cells: string[], cls = '') =>
+    `<tr${cls ? ` class="${cls}"` : ''}>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
+  const body = rows.map(cells => tr(cells)).join('')
+    + (totalRow ? tr(totalRow, 'total') : '');
+  // Label/value blocks pass all-blank headers. Printing them anyway leaves an
+  // empty header band — a stray rule and a finger of dead space under the
+  // section title, which reads as a heading with its table missing. Found by
+  // printing a call sheet and looking at it; the markup assertions cannot see
+  // whitespace.
+  const labelled = headers.some(h => h.trim().length > 0);
+  const head = labelled
+    ? `<thead><tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead>`
+    : '';
+  const attr = className ? ` class="${className}"` : '';
+  return `<table${attr}>${head}<tbody>${body}</tbody></table>`;
 }

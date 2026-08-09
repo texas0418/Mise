@@ -13,7 +13,7 @@
  * This checks composition, not rendering. `Print.printToFileAsync` is native
  * and has still never run on a device — see the note in the PR.
  */
-import { buildCallSheetHtml } from '@/utils/exportDocuments';
+import { buildCallSheetHtml, buildBudgetHtml } from '@/utils/exportDocuments';
 
 const project = { id: 'p1', title: 'The Lighthouse Keeper', logline: '', genre: 'Drama', status: 'production', format: 'Feature', createdAt: '' } as any;
 const day = { id: 'd2', projectId: 'p1', date: '2026-08-09', dayNumber: 2, sceneIds: ['s12', 's12a'], scenes: 'Sc. 12, 12A', location: 'Stage B', callTime: '7:00 AM', wrapTime: '7:00 PM', notes: 'Night interiors.' } as any;
@@ -119,6 +119,32 @@ const empty = buildCallSheetHtml(project, day, scenes, crew, cast, times, {
   id: 'x', projectId: 'p1', scheduleDayId: 'd2', version: 1, createdAt: '',
 } as any);
 more.push(['blank details print no safety heading', !empty.includes('<h2>Safety</h2>')]);
+
+// ─── What printing one actually caught ─────────────────────────────────────
+//
+// These three were invisible to every assertion above: the markup was present
+// and correct, and the document still looked wrong on paper. They are pinned
+// here because the next person to touch renderTable will not be printing one.
+
+const printed = buildCallSheetHtml(project, day, scenes, contactCrew, cast, times, details, advance, weather);
+// An all-blank header row printed an empty header band — a stray rule and a
+// finger of dead space under Safety, Logistics, Weather and Advance.
+more.push(['no empty header cells anywhere', !printed.includes('<th></th>')]);
+more.push(['label blocks carry the defs class', printed.includes('<table class="defs">')]);
+more.push(['tables that do have headers keep them', printed.includes('<thead>')]);
+
+// Budget: the sign belongs outside the currency symbol, the figures right-align
+// as a column, and the totals row sits in the same table as the rows it totals
+// — three separate tables cannot share column widths.
+const overspent = buildBudgetHtml(project, [
+  { id: 'b1', projectId: 'p1', category: 'camera', description: '', estimated: 1000, actual: 3100, notes: '', paid: true },
+] as any);
+more.push(['overspend reads -$2,100', overspent.includes('-$2,100')]);
+more.push(['overspend is never $-2,100', !overspent.includes('$-')]);
+more.push(['money table right-aligns', overspent.includes('<table class="money">')]);
+more.push(['one table, not two', (overspent.match(/<table/g) || []).length === 1]);
+more.push(['totals row is inside it', overspent.includes('<tr class="total">')]);
+more.push(['category is title-cased', overspent.includes('>Camera<')]);
 
 checks.push(...more);
 
