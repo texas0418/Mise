@@ -79,7 +79,7 @@ function convertRowIds(row: Record<string, any>): Record<string, any> {
 // WHERE table_schema = 'public' ORDER BY table_name, ordinal_position;
 // ---------------------------------------------------------------------------
 const KNOWN_COLUMNS: Record<string, string[] | null> = {
-  projects: ['id', 'user_id', 'title', 'logline', 'genre', 'status', 'format', 'image_url', 'budget', 'director', 'producer', 'created_at', 'updated_at', 'deleted_at'],
+  projects: ['id', 'user_id', 'title', 'logline', 'genre', 'status', 'format', 'image_url', 'budget', 'director', 'producer', 'created_at', 'updated_at', 'archived_at', 'deleted_at'],
   shots: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'type', 'movement', 'lens', 'description', 'notes', 'status', 'created_at', 'updated_at', 'deleted_at'],
   schedule_days: ['id', 'user_id', 'project_id', 'date', 'day_number', 'scenes', 'location', 'call_time', 'wrap_time', 'notes', 'created_at', 'updated_at', 'deleted_at'],
   crew_members: ['id', 'user_id', 'project_id', 'name', 'role', 'department', 'phone', 'email', 'created_at', 'updated_at', 'deleted_at'],

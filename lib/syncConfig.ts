@@ -5,6 +5,15 @@ export interface TableConfig {
   table: string;
   storageKey: string;
   queryKey: string;
+  /**
+   * Whether these records belong to one project and die with it.
+   *
+   * Declarative — the sync engine does not branch on it. It is the list
+   * `deleteProject` is checked against, so a table marked true whose store is
+   * not cascaded fails scripts/test-cascade.ts rather than silently leaking
+   * rows forever (#46). Mark a table false only when its records genuinely
+   * outlive a film: contacts and portfolio credits do, nothing else does.
+   */
   projectScoped: boolean;
   foreignKeys?: { field: string; referencesTable: string }[];
 }
@@ -25,8 +34,7 @@ export const SYNCABLE_TABLES: TableConfig[] = [
   { table: 'festival_submissions', storageKey: 'mise_festivals',        queryKey: 'festivals',        projectScoped: true },
   { table: 'production_notes',    storageKey: 'mise_notes',             queryKey: 'notes',            projectScoped: true },
   { table: 'mood_board_items',    storageKey: 'mise_mood_board',        queryKey: 'moodBoard',        projectScoped: true },
-  { table: 'call_sheet_entries',  storageKey: 'mise_call_sheets',       queryKey: 'callSheets',       projectScoped: true },
-  { table: 'director_credits',    storageKey: 'mise_credits',           queryKey: 'credits',          projectScoped: true },
+  { table: 'director_credits',    storageKey: 'mise_credits',           queryKey: 'credits',          projectScoped: false },
   { table: 'shot_references',     storageKey: 'mise_shot_references',   queryKey: 'shotReferences',   projectScoped: true },
   { table: 'wrap_reports',        storageKey: 'mise_wrap_reports',      queryKey: 'wrapReports',      projectScoped: true },
   { table: 'location_weather',    storageKey: 'mise_location_weather',  queryKey: 'locationWeather',  projectScoped: false },
