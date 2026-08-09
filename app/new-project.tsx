@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -9,7 +10,6 @@ import { ProjectStatus } from '@/types';
 import { PROJECT_STATUSES, GENRES } from '@/constants/filmData';
 import { generateBudgetTemplate, TEMPLATE_LINE_COUNT } from '@/utils/budgetTemplate';
 
-// eslint-disable-next-line complexity -- form with one field per Project property
 export default function NewProjectScreen() {
   const router = useRouter();
   const { projects, addProject, updateProject, addBudgetItemBulk } = useProjects();
@@ -89,7 +89,8 @@ export default function NewProjectScreen() {
       isEditing, existingItem, addProject, updateProject, addBudgetItemBulk, router]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Project' : 'New Project' }} />
 
       <View style={styles.field}>
@@ -238,6 +239,7 @@ export default function NewProjectScreen() {
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Create Project'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router';
 import { Plus, X, MessageSquare, Camera, Users, Eye } from 'lucide-react-native';
@@ -122,7 +123,7 @@ export default function NewScriptSideScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.container} behavior={KEYBOARD_BEHAVIOR}>
       <Stack.Screen options={{ title: isEditing ? 'Edit Side' : 'New Side' }} />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, {

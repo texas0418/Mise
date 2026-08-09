@@ -17,6 +17,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import {
   Sparkles, Camera, X, Check, ArrowLeft, ArrowRight,
@@ -246,7 +247,7 @@ export default function AIImportScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={KEYBOARD_BEHAVIOR}
     >
       <Stack.Screen options={{ presentation: 'modal', title: `AI Import ${entityConfig.label}` }} />
 

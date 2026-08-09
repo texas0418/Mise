@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Image } from 'expo-image';
 import { Camera } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
@@ -84,7 +85,7 @@ export default function NewLookbookItemScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.container} behavior={KEYBOARD_BEHAVIOR}>
       <Stack.Screen options={{ title: isEditing ? 'Edit Lookbook Item' : 'New Lookbook Item' }} />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, {

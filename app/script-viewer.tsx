@@ -14,6 +14,7 @@ import {
   Alert, Dimensions, SafeAreaView, StatusBar, Modal, TextInput,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft, ChevronLeft, ChevronRight,
@@ -413,7 +414,7 @@ function NoteModal({
     >
       <KeyboardAvoidingView
         style={styles.modalBackdrop}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={KEYBOARD_BEHAVIOR}
       >
         <View style={styles.modalCard}>
           <View style={styles.modalHeader}>

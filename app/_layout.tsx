@@ -103,16 +103,19 @@ export default function RootLayout() {
                   />
                   <Stack.Screen
                     name="new-project"
-                    options={{ presentation: "modal", title: "New Project" }}
+                    options={{ presentation: "modal",
+                      gestureEnabled: false, title: "New Project" }}
                   />
                   <Stack.Screen
                     name="new-shot"
-                    options={{ presentation: "modal", title: "New Shot" }}
+                    options={{ presentation: "modal",
+                      gestureEnabled: false, title: "New Shot" }}
                   />
                   <Stack.Screen
                     name="new-crew"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Crew Member",
                     }}
                   />
@@ -120,12 +123,14 @@ export default function RootLayout() {
                     name="new-schedule-day"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Shoot Day",
                     }}
                   />
                   <Stack.Screen
                     name="log-take"
-                    options={{ presentation: "modal", title: "Log Take" }}
+                    options={{ presentation: "modal",
+                      gestureEnabled: false, title: "Log Take" }}
                   />
                   <Stack.Screen
                     name="script-breakdown"
@@ -135,6 +140,7 @@ export default function RootLayout() {
                     name="new-breakdown"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Scene",
                     }}
                   />
@@ -146,6 +152,7 @@ export default function RootLayout() {
                     name="new-location"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Location",
                     }}
                   />
@@ -161,6 +168,7 @@ export default function RootLayout() {
                     name="new-budget-item"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Budget Item",
                     }}
                   />
@@ -179,6 +187,7 @@ export default function RootLayout() {
                     name="new-continuity"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Continuity Note",
                     }}
                   />
@@ -194,6 +203,7 @@ export default function RootLayout() {
                     name="new-vfx"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New VFX Shot",
                     }}
                   />
@@ -205,6 +215,7 @@ export default function RootLayout() {
                     name="new-festival"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Festival",
                     }}
                   />
@@ -214,7 +225,8 @@ export default function RootLayout() {
                   />
                   <Stack.Screen
                     name="new-note"
-                    options={{ presentation: "modal", title: "New Note" }}
+                    options={{ presentation: "modal",
+                      gestureEnabled: false, title: "New Note" }}
                   />
                   <Stack.Screen
                     name="mood-boards"
@@ -224,6 +236,7 @@ export default function RootLayout() {
                     name="new-mood-item"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Mood Item",
                     }}
                   />
@@ -251,6 +264,7 @@ export default function RootLayout() {
                     name="new-shot-reference"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Reference",
                     }}
                   />
@@ -262,6 +276,7 @@ export default function RootLayout() {
                     name="new-wrap-report"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Wrap Report",
                     }}
                   />
@@ -277,6 +292,7 @@ export default function RootLayout() {
                     name="new-blocking-note"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Blocking Note",
                     }}
                   />
@@ -288,6 +304,7 @@ export default function RootLayout() {
                     name="new-lighting-diagram"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Lighting Diagram",
                     }}
                   />
@@ -303,6 +320,7 @@ export default function RootLayout() {
                     name="new-color-reference"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Color Reference",
                     }}
                   />
@@ -318,6 +336,7 @@ export default function RootLayout() {
                     name="new-time-entry"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Time Entry",
                     }}
                   />
@@ -327,7 +346,8 @@ export default function RootLayout() {
                   />
                   <Stack.Screen
                     name="new-script-side"
-                    options={{ presentation: "modal", title: "New Side" }}
+                    options={{ presentation: "modal",
+                      gestureEnabled: false, title: "New Side" }}
                   />
                   <Stack.Screen
                     name="cast-manager"
@@ -337,6 +357,7 @@ export default function RootLayout() {
                     name="new-cast-member"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Cast Member",
                     }}
                   />
@@ -352,6 +373,7 @@ export default function RootLayout() {
                     name="new-lookbook-item"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Lookbook Item",
                     }}
                   />
@@ -361,7 +383,8 @@ export default function RootLayout() {
                   />
                   <Stack.Screen
                     name="new-select"
-                    options={{ presentation: "modal", title: "New Select" }}
+                    options={{ presentation: "modal",
+                      gestureEnabled: false, title: "New Select" }}
                   />
                   <Stack.Screen
                     name="comms-hub"
@@ -371,16 +394,19 @@ export default function RootLayout() {
                     name="new-message"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "New Message",
                     }}
                   />
                   <Stack.Screen
                     name="import-data"
-                    options={{ presentation: "modal", title: "Import Data" }}
+                    options={{ presentation: "modal",
+                      gestureEnabled: false, title: "Import Data" }}
                   />
                   <Stack.Screen
                     name="ai-import"
-                    options={{ presentation: "modal", title: "AI Import" }}
+                    options={{ presentation: "modal",
+                      gestureEnabled: false, title: "AI Import" }}
                   />
                   <Stack.Screen
                     name="paywall"
@@ -394,6 +420,7 @@ export default function RootLayout() {
                     name="auth/sign-up"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "Create Account",
                     }}
                   />
@@ -401,6 +428,7 @@ export default function RootLayout() {
                     name="auth/forgot-password"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "Reset Password",
                     }}
                   />
@@ -424,6 +452,7 @@ export default function RootLayout() {
                     name="project/invite"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "Invite Member",
                     }}
                   />
@@ -435,6 +464,7 @@ export default function RootLayout() {
                     name="new-script"
                     options={{
                       presentation: "modal",
+                      gestureEnabled: false,
                       title: "Upload Script",
                     }}
                   />
