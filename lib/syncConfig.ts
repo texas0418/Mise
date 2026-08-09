@@ -95,6 +95,18 @@ interface TableAliases {
 const FIELD_ALIASES: Record<string, TableAliases> = {
   // projects.imageUrl → image_url is correct auto-conversion, no alias needed
   // Add aliases here only if a mismatch is discovered
+
+  // `cast` is a reserved word in Postgres, so the column is `cast_list`.
+  // scene_breakdowns has the same column and no alias, which is why its cast
+  // list has been silently dropped on every push — see the note on #53.
+  scenes: {
+    push: { cast: 'cast_list' },
+    pull: { cast_list: 'cast' },
+  },
+  scene_breakdowns: {
+    push: { cast: 'cast_list' },
+    pull: { cast_list: 'cast' },
+  },
 };
 
 /**
