@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -76,7 +77,8 @@ export default function NewFestivalScreen() {
   if (!activeProject) { return (<View style={styles.emptyContainer}><Text style={styles.emptyTitle}>No project selected</Text></View>); }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Festival' : 'New Festival' }} />
       <View style={styles.projectLabel}>
         <Text style={styles.projectLabelText}>{isEditing ? `Editing: ${existingItem!.festivalName}` : `Festival for: ${activeProject.title}`}</Text>
@@ -134,6 +136,7 @@ export default function NewFestivalScreen() {
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Festival'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

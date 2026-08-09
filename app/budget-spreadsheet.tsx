@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter } from 'expo-router';
 import {
   Plus,
@@ -436,7 +437,7 @@ export default function BudgetSpreadsheetScreen() {
 
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={KEYBOARD_BEHAVIOR}
           keyboardVerticalOffset={100}
         >
           {/* Summary strip */}

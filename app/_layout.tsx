@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState, useCallback } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SyncProvider } from "@/contexts/SyncContext";
@@ -15,11 +15,44 @@ import {
   hasCompletedOnboarding,
   completeOnboarding,
 } from "@/utils/onboarding";
+import { hasRunPhotoMigration, runPhotoMigration } from "@/lib/photoMigration";
+import { hasRunSceneMigration, runSceneMigration } from "@/lib/sceneMigration";
 import OnboardingFlow from "@/components/OnboardingFlow";
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
+
+/**
+ * Explicit way out of a data-entry form.
+ *
+ * Form modals have swipe-to-dismiss disabled (#65) so a stray touch cannot
+ * throw away what you typed. That makes a labelled exit essential rather than
+ * optional — the inherited back chevron reads as "go back a screen", not
+ * "discard this". Cancel replaces it so there is exactly one obvious way out.
+ */
+function ModalCancelButton() {
+  const router = useRouter();
+  return (
+    <TouchableOpacity
+      onPress={() => router.back()}
+      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      accessibilityRole="button"
+      accessibilityLabel="Cancel and close this form"
+      testID="modal-cancel-button"
+    >
+      <Text style={styles.modalCancel}>Cancel</Text>
+    </TouchableOpacity>
+  );
+}
+
+/** Shared options for every data-entry modal. */
+const FORM_MODAL_OPTIONS = {
+  presentation: "modal" as const,
+  gestureEnabled: false,
+  headerBackVisible: false,
+  headerLeft: () => <ModalCancelButton />,
+};
 
 // eslint-disable-next-line max-lines-per-function -- tracked in #2
 export default function RootLayout() {
@@ -27,11 +60,40 @@ export default function RootLayout() {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    hasCompletedOnboarding().then((done) => {
+    (async () => {
+      // Runs before the providers mount, so the stores read already-migrated
+      // photo references rather than a stale in-memory copy.
+      try {
+        if (!(await hasRunPhotoMigration())) {
+          const { rescued, lost } = await runPhotoMigration();
+          if (rescued || lost) {
+            console.log(`[photoMigration] rescued ${rescued}, cleared ${lost}`);
+          }
+        }
+      } catch (e) {
+        console.warn("[photoMigration] skipped:", e);
+      }
+
+      // Build Scene records from existing breakdowns and shots (#53).
+      try {
+        if (!(await hasRunSceneMigration())) {
+          const r = await runSceneMigration();
+          if (r.fromBreakdowns || r.fromShots || r.shotsLinked) {
+            console.log(
+              `[sceneMigration] ${r.fromBreakdowns} from breakdowns, ` +
+              `${r.fromShots} from shots, ${r.shotsLinked} shots linked`,
+            );
+          }
+        }
+      } catch (e) {
+        console.warn("[sceneMigration] skipped:", e);
+      }
+
+      const done = await hasCompletedOnboarding();
       setShowOnboarding(!done);
       setChecked(true);
       SplashScreen.hideAsync();
-    });
+    })();
   }, []);
 
   const handleOnboardingComplete = useCallback(async () => {
@@ -72,39 +134,39 @@ export default function RootLayout() {
                   />
                   <Stack.Screen
                     name="new-project"
-                    options={{ presentation: "modal", title: "New Project" }}
+                    options={{ ...FORM_MODAL_OPTIONS, title: "New Project" }}
                   />
                   <Stack.Screen
                     name="new-shot"
-                    options={{ presentation: "modal", title: "New Shot" }}
+                    options={{ ...FORM_MODAL_OPTIONS, title: "New Shot" }}
                   />
                   <Stack.Screen
                     name="new-crew"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Crew Member",
                     }}
                   />
                   <Stack.Screen
                     name="new-schedule-day"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Shoot Day",
                     }}
                   />
                   <Stack.Screen
                     name="log-take"
-                    options={{ presentation: "modal", title: "Log Take" }}
+                    options={{ ...FORM_MODAL_OPTIONS, title: "Log Take" }}
                   />
                   <Stack.Screen
                     name="script-breakdown"
-                    options={{ title: "Script Breakdown" }}
+                    options={{ title: "Scenes" }}
                   />
                   <Stack.Screen
                     name="new-breakdown"
                     options={{
-                      presentation: "modal",
-                      title: "New Breakdown",
+                      ...FORM_MODAL_OPTIONS,
+                      title: "New Scene",
                     }}
                   />
                   <Stack.Screen
@@ -114,7 +176,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-location"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Location",
                     }}
                   />
@@ -129,7 +191,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-budget-item"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Budget Item",
                     }}
                   />
@@ -147,7 +209,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-continuity"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Continuity Note",
                     }}
                   />
@@ -162,7 +224,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-vfx"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New VFX Shot",
                     }}
                   />
@@ -173,7 +235,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-festival"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Festival",
                     }}
                   />
@@ -183,7 +245,7 @@ export default function RootLayout() {
                   />
                   <Stack.Screen
                     name="new-note"
-                    options={{ presentation: "modal", title: "New Note" }}
+                    options={{ ...FORM_MODAL_OPTIONS, title: "New Note" }}
                   />
                   <Stack.Screen
                     name="mood-boards"
@@ -192,7 +254,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-mood-item"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Mood Item",
                     }}
                   />
@@ -219,7 +281,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-shot-reference"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Reference",
                     }}
                   />
@@ -230,7 +292,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-wrap-report"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Wrap Report",
                     }}
                   />
@@ -245,7 +307,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-blocking-note"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Blocking Note",
                     }}
                   />
@@ -256,7 +318,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-lighting-diagram"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Lighting Diagram",
                     }}
                   />
@@ -271,7 +333,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-color-reference"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Color Reference",
                     }}
                   />
@@ -286,7 +348,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-time-entry"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Time Entry",
                     }}
                   />
@@ -296,7 +358,7 @@ export default function RootLayout() {
                   />
                   <Stack.Screen
                     name="new-script-side"
-                    options={{ presentation: "modal", title: "New Side" }}
+                    options={{ ...FORM_MODAL_OPTIONS, title: "New Side" }}
                   />
                   <Stack.Screen
                     name="cast-manager"
@@ -305,7 +367,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-cast-member"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Cast Member",
                     }}
                   />
@@ -320,7 +382,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-lookbook-item"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Lookbook Item",
                     }}
                   />
@@ -330,7 +392,7 @@ export default function RootLayout() {
                   />
                   <Stack.Screen
                     name="new-select"
-                    options={{ presentation: "modal", title: "New Select" }}
+                    options={{ ...FORM_MODAL_OPTIONS, title: "New Select" }}
                   />
                   <Stack.Screen
                     name="comms-hub"
@@ -339,17 +401,17 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-message"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "New Message",
                     }}
                   />
                   <Stack.Screen
                     name="import-data"
-                    options={{ presentation: "modal", title: "Import Data" }}
+                    options={{ ...FORM_MODAL_OPTIONS, title: "Import Data" }}
                   />
                   <Stack.Screen
                     name="ai-import"
-                    options={{ presentation: "modal", title: "AI Import" }}
+                    options={{ ...FORM_MODAL_OPTIONS, title: "AI Import" }}
                   />
                   <Stack.Screen
                     name="paywall"
@@ -362,14 +424,14 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="auth/sign-up"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "Create Account",
                     }}
                   />
                   <Stack.Screen
                     name="auth/forgot-password"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "Reset Password",
                     }}
                   />
@@ -392,7 +454,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="project/invite"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "Invite Member",
                     }}
                   />
@@ -403,7 +465,7 @@ export default function RootLayout() {
                   <Stack.Screen
                     name="new-script"
                     options={{
-                      presentation: "modal",
+                      ...FORM_MODAL_OPTIONS,
                       title: "Upload Script",
                     }}
                   />
@@ -423,3 +485,10 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  modalCancel: {
+    fontSize: 17,
+    color: Colors.accent.gold,
+  },
+});

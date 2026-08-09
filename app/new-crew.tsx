@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { Department } from '@/types';
-import { DEPARTMENTS } from '@/mocks/data';
+import { DEPARTMENTS } from '@/constants/filmData';
 
 export default function NewCrewScreen() {
   const router = useRouter();
@@ -60,7 +61,8 @@ export default function NewCrewScreen() {
   }, [name, role, department, phone, email, addCrewMember, updateCrewMember, router, isEditing, existingItem]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Crew Member' : 'New Crew Member' }} />
 
       {isEditing && (
@@ -117,6 +119,7 @@ export default function NewCrewScreen() {
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Crew Member'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -10,6 +10,7 @@ import ImportButton from '@/components/ImportButton';
 import AIImportButton from '@/components/AIImportButton';
 import { CastMember, CastStatus } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 const STATUS_CONFIG: Record<CastStatus, { label: string; color: string }> = {
   'confirmed': { label: 'CONFIRMED', color: '#4ADE80' },
@@ -59,7 +60,7 @@ function CastCard({ member, index, onEdit, onDelete, onStatusChange }: {
         {/* Top row: headshot + basic info */}
         <View style={styles.cardTop}>
           {member.headshot ? (
-            <Image source={{ uri: member.headshot }} style={styles.headshot} contentFit="cover" />
+            <Image source={{ uri: resolvePhotoUri(member.headshot) }} style={styles.headshot} contentFit="cover" />
           ) : (
             <View style={[styles.headshot, styles.headshotPlaceholder]}>
               <User color={Colors.text.tertiary} size={24} />

@@ -41,6 +41,13 @@ export interface Project {
 export interface Shot {
   id: string;
   projectId: string;
+  /**
+   * Link to the Scene record. Optional because shots created before scenes
+   * existed are backfilled by matching `sceneNumber`, and a shot can be typed
+   * against a scene number that has no Scene record yet.
+   */
+  sceneId?: string;
+  /** Legacy loose link, kept so existing shots keep grouping while sceneId spreads. */
   sceneNumber: number;
   shotNumber: string;
   type: ShotType;
@@ -84,6 +91,50 @@ export interface Take {
   timestamp: string;
 }
 
+/**
+ * A scene — the spine the rest of the app hangs off.
+ *
+ * Everything used to reference scenes by a loose `sceneNumber: number`, which
+ * cannot express "14A", breaks on every renumbered revision, and makes page
+ * counts, cast day-out-of-days and "today's shots" unanswerable. Scene records
+ * are the thing shots, shoot days, sides, continuity and selects point at.
+ */
+export interface Scene {
+  id: string;
+  projectId: string;
+  /** As written on the page — "14", "14A", "A14". Deliberately not a number. */
+  number: string;
+  /** Slugline: "INT. LIGHTHOUSE - NIGHT". */
+  heading: string;
+  intExt: SceneIntExt;
+  timeOfDay: SceneTimeOfDay;
+  location: string;
+  /**
+   * Page length in eighths (20 = 2 4/8 pages). Integer so day totals stay
+   * exact — see utils/eighths.ts.
+   */
+  pageEighths: number;
+  /**
+   * Character names. Not CastMember ids yet: the data being migrated holds
+   * names, and inventing ids for them would be a lossy guess. Linking these to
+   * cast records is a follow-up.
+   */
+  cast: string[];
+  extras: string;
+  props: string[];
+  wardrobe: string[];
+  specialEquipment: string[];
+  synopsis: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * @deprecated Superseded by `Scene`, which absorbs these fields. Retained so
+ * lib/sceneMigration.ts can read records written by earlier versions; no screen
+ * reads this any more.
+ */
 export interface SceneBreakdown {
   id: string;
   projectId: string;
@@ -140,6 +191,8 @@ export interface ContinuityNote {
   description: string;
   details: string;
   timestamp: string;
+  /** Stored via persistPhoto — resolve with resolvePhotoUri before rendering. */
+  photoUrl?: string;
 }
 
 export interface VFXShot {

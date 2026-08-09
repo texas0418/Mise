@@ -10,6 +10,7 @@ import ImportButton from '@/components/ImportButton';
 import AIImportButton from '@/components/AIImportButton';
 import { LocationScout } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 // eslint-disable-next-line complexity -- tracked in #8
 function LocationCard({ item, isExpanded, onPress, onEdit, onDelete }: {
@@ -117,7 +118,7 @@ function LocationCard({ item, isExpanded, onPress, onEdit, onDelete }: {
               <Text style={styles.detailLabel}>PHOTOS</Text>
               <View style={styles.photoRow}>
                 {item.photoUrls.slice(0, 4).map((uri, i) => (
-                  <Image key={i} source={{ uri }} style={styles.photoThumb} contentFit="cover" />
+                  <Image key={i} source={{ uri: resolvePhotoUri(uri) }} style={styles.photoThumb} contentFit="cover" />
                 ))}
                 {item.photoUrls.length > 4 && (
                   <View style={styles.morePhotos}>

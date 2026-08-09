@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useProjects, useProjectColorReferences } from '@/contexts/ProjectContext';
-import { LUT_STYLES } from '@/mocks/data';
+import { LUT_STYLES } from '@/constants/filmData';
 import Colors from '@/constants/colors';
 import { LUTStyle } from '@/types';
 
@@ -85,7 +86,8 @@ export default function NewColorReferenceScreen() {
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Color Reference' : 'New Color Reference' }} />
 
       {isEditing && (
@@ -160,6 +162,7 @@ export default function NewColorReferenceScreen() {
         <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Save Color Reference'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

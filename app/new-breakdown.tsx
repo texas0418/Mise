@@ -1,9 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { useProjects, useProjectBreakdowns } from '@/contexts/ProjectContext';
+import { useProjects, useProjectScenes } from '@/contexts/ProjectContext';
+import { parseEighths, formatEighths } from '@/utils/eighths';
 import Colors from '@/constants/colors';
 import { SceneIntExt, SceneTimeOfDay } from '@/types';
 
@@ -23,8 +25,8 @@ const TIME_OPTIONS: { label: string; value: SceneTimeOfDay }[] = [
 
 export default function NewBreakdownScreen() {
   const router = useRouter();
-  const { addBreakdown, updateBreakdown, activeProjectId, activeProject } = useProjects();
-  const breakdowns = useProjectBreakdowns(activeProjectId);
+  const { addScene, updateScene, activeProjectId, activeProject } = useProjects();
+  const breakdowns = useProjectScenes(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id;
   const existingItem = editId ? breakdowns.find(b => b.id === editId) : null;
@@ -48,8 +50,8 @@ export default function NewBreakdownScreen() {
   // Pre-fill form when editing
   useEffect(() => {
     if (existingItem) {
-      setSceneNumber(existingItem.sceneNumber.toString());
-      setSceneName(existingItem.sceneName);
+      setSceneNumber(existingItem.number);
+      setSceneName(existingItem.heading);
       setIntExt(existingItem.intExt);
       setTimeOfDay(existingItem.timeOfDay);
       setLocation(existingItem.location);
@@ -59,7 +61,7 @@ export default function NewBreakdownScreen() {
       setWardrobe(existingItem.wardrobe.join(', '));
       setSpecialEquipment(existingItem.specialEquipment.join(', '));
       setNotes(existingItem.notes);
-      setPageCount(existingItem.pageCount);
+      setPageCount(formatEighths(existingItem.pageEighths));
     }
   }, [existingItem?.id]);
 
@@ -69,17 +71,21 @@ export default function NewBreakdownScreen() {
       return;
     }
     if (!sceneNumber.trim() || !sceneName.trim()) {
-      Alert.alert('Missing Info', 'Enter scene number and name.');
+      Alert.alert('Missing Info', 'Enter a scene number and heading.');
       return;
     }
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
+    const stamp = new Date().toISOString();
     const data = {
+      ...(existingItem ?? {}),
       id: isEditing ? existingItem!.id : Date.now().toString(),
       projectId: activeProjectId,
-      sceneNumber: parseInt(sceneNumber, 10) || 1,
-      sceneName: sceneName.trim(),
+      // Scene numbers stay text: "14A" is a real scene number, 14 is not the
+      // same scene, and parseInt would silently merge them.
+      number: sceneNumber.trim(),
+      heading: sceneName.trim(),
       intExt,
       timeOfDay,
       location: location.trim(),
@@ -89,16 +95,19 @@ export default function NewBreakdownScreen() {
       wardrobe: wardrobe.trim() ? wardrobe.split(',').map(s => s.trim()) : [],
       specialEquipment: specialEquipment.trim() ? specialEquipment.split(',').map(s => s.trim()) : [],
       notes: notes.trim(),
-      pageCount: pageCount.trim() || '1',
+      pageEighths: parseEighths(pageCount),
+      synopsis: existingItem?.synopsis ?? '',
+      createdAt: existingItem?.createdAt ?? stamp,
+      updatedAt: stamp,
     };
 
     if (isEditing) {
-      updateBreakdown(data);
+      updateScene(data);
     } else {
-      addBreakdown(data);
+      addScene(data);
     }
     router.back();
-  }, [activeProjectId, sceneNumber, sceneName, intExt, timeOfDay, location, cast, extras, props, wardrobe, specialEquipment, notes, pageCount, addBreakdown, updateBreakdown, router, isEditing, existingItem]);
+  }, [activeProjectId, sceneNumber, sceneName, intExt, timeOfDay, location, cast, extras, props, wardrobe, specialEquipment, notes, pageCount, addScene, updateScene, router, isEditing, existingItem]);
 
   if (!activeProject) {
     return (
@@ -109,12 +118,13 @@ export default function NewBreakdownScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Stack.Screen options={{ title: isEditing ? 'Edit Breakdown' : 'New Breakdown' }} />
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <Stack.Screen options={{ title: isEditing ? 'Edit Scene' : 'New Scene' }} />
 
       <View style={styles.projectLabel}>
         <Text style={styles.projectLabelText}>
-          {isEditing ? `Editing: Sc. ${existingItem!.sceneNumber} — ${existingItem!.sceneName}` : `Breaking down: ${activeProject.title}`}
+          {isEditing ? `Editing: Sc. ${existingItem!.number} — ${existingItem!.heading}` : `New scene in: ${activeProject.title}`}
         </Text>
       </View>
 
@@ -225,6 +235,7 @@ export default function NewBreakdownScreen() {
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Scene Breakdown'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

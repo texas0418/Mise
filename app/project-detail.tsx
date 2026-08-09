@@ -113,6 +113,14 @@ export default function ProjectDetailScreen() {
         <View style={styles.infoSection}>
           <View style={styles.titleRow}>
             <Text style={styles.projectTitle}>{project.title}</Text>
+            <TouchableOpacity
+              onPress={() => router.push(`/new-project?id=${project.id}` as never)}
+              style={styles.editBtn}
+              activeOpacity={0.7}
+              testID="edit-project-button"
+            >
+              <Edit3 color={Colors.accent.gold} size={18} />
+            </TouchableOpacity>
             <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn} activeOpacity={0.7}>
               <Trash2 color={Colors.status.error} size={18} />
             </TouchableOpacity>
@@ -329,6 +337,15 @@ const styles = StyleSheet.create({
     flex: 1,
     letterSpacing: -0.5,
   },
+  editBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.accent.goldBg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
   deleteBtn: {
     width: 40,
     height: 40,
@@ -336,7 +353,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.status.error + '18',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
+    marginLeft: 8,
   },
   badgeRow: {
     flexDirection: 'row',

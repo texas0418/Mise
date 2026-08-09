@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Camera, ImagePlus, X } from 'lucide-react-native';
@@ -7,6 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectLocations } from '@/contexts/ProjectContext';
 import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 export default function NewLocationScreen() {
   const router = useRouter();
@@ -104,7 +106,8 @@ export default function NewLocationScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Location' : 'New Location' }} />
 
       <View style={styles.projectLabel}>
@@ -188,7 +191,7 @@ export default function NewLocationScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScroll}>
           {photoUrls.map((uri, i) => (
             <View key={i} style={styles.photoThumb}>
-              <Image source={{ uri }} style={styles.photoImage} contentFit="cover" />
+              <Image source={{ uri: resolvePhotoUri(uri) }} style={styles.photoImage} contentFit="cover" />
               <TouchableOpacity style={styles.photoRemove} onPress={() => handleRemovePhoto(i)}>
                 <X color="#fff" size={12} />
               </TouchableOpacity>
@@ -212,6 +215,7 @@ export default function NewLocationScreen() {
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Location'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

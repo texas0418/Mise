@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { ChevronDown, ImagePlus } from 'lucide-react-native';
@@ -8,6 +9,7 @@ import { useProjects, useProjectMoodBoard } from '@/contexts/ProjectContext';
 import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { MoodBoardItemType } from '@/types';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 const TYPE_OPTIONS: { label: string; value: MoodBoardItemType }[] = [
   { label: 'Color Swatch', value: 'color' },
@@ -80,7 +82,8 @@ export default function NewMoodItemScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Mood Board Item' : 'New Mood Board Item' }} />
 
       <View style={styles.projectLabel}>
@@ -125,7 +128,7 @@ export default function NewMoodItemScreen() {
           <Text style={styles.label}>Image</Text>
           {imageUrl ? (
             <View style={styles.imagePreviewWrap}>
-              <Image source={{ uri: imageUrl }} style={styles.imagePreview} contentFit="cover" />
+              <Image source={{ uri: resolvePhotoUri(imageUrl) }} style={styles.imagePreview} contentFit="cover" />
               <TouchableOpacity style={styles.changePhotoBtn} onPress={() => {
                 showImagePickerOptions((uri) => setImageUrl(uri));
               }}>
@@ -171,6 +174,7 @@ export default function NewMoodItemScreen() {
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add to Mood Board'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

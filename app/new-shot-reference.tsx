@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { ImagePlus } from 'lucide-react-native';
 import { useProjects, useProjectShotReferences } from '@/contexts/ProjectContext';
 import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 export default function NewShotReferenceScreen() {
   const router = useRouter();
@@ -60,7 +62,8 @@ export default function NewShotReferenceScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Reference' : 'New Shot Reference' }} />
 
       {isEditing && (
@@ -76,7 +79,7 @@ export default function NewShotReferenceScreen() {
       <Text style={styles.label}>Image</Text>
       {imageUrl ? (
         <View style={styles.imagePreviewWrap}>
-          <Image source={{ uri: imageUrl }} style={styles.imagePreview} contentFit="cover" />
+          <Image source={{ uri: resolvePhotoUri(imageUrl) }} style={styles.imagePreview} contentFit="cover" />
           <TouchableOpacity style={styles.changePhotoBtn} onPress={() => {
             showImagePickerOptions((uri) => setImageUrl(uri));
           }}>
@@ -120,6 +123,7 @@ export default function NewShotReferenceScreen() {
         <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Save Reference'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { useProjects, useProjectShots, useProjectLightingDiagrams } from '@/contexts/ProjectContext';
+import { useProjects, useProjectShots, useProjectLightingDiagrams, useProjectScenes, findScene } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { ShotType, ShotMovement, ShotStatus } from '@/types';
-import { SHOT_TYPES, SHOT_MOVEMENTS } from '@/mocks/data';
+import { SHOT_TYPES, SHOT_MOVEMENTS } from '@/constants/filmData';
 import { Lightbulb } from 'lucide-react-native';
 
 const STATUS_OPTIONS: { value: ShotStatus; label: string; color: string }[] = [
@@ -26,6 +27,7 @@ export default function NewShotScreen() {
   const existingItem = editId ? shots.find(s => s.id === editId) : null;
   const isEditing = !!existingItem;
   const lightingDiagrams = useProjectLightingDiagrams(activeProjectId);
+  const scenes = useProjectScenes(activeProjectId);
 
   // Find a lighting diagram linked to this shot's scene/shot
   const linkedDiagram = isEditing ? lightingDiagrams.find(d =>
@@ -71,9 +73,14 @@ export default function NewShotScreen() {
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
+    // Link to a real Scene when the typed number matches one, so new shots
+    // join the spine instead of adding another loose reference.
+    const linkedScene = findScene(scenes, existingItem?.sceneId, sceneNumber);
+
     const shotData = {
       id: isEditing ? existingItem!.id : Date.now().toString(),
       projectId: activeProjectId,
+      sceneId: linkedScene?.id,
       sceneNumber: parseInt(sceneNumber, 10) || 1,
       shotNumber: shotNumber.trim(),
       type,
@@ -90,7 +97,7 @@ export default function NewShotScreen() {
       addShot(shotData);
     }
     router.back();
-  }, [activeProjectId, sceneNumber, shotNumber, type, movement, lens, description, notes, status, isEditing, existingItem, addShot, updateShot, router]);
+  }, [activeProjectId, sceneNumber, shotNumber, type, movement, lens, description, notes, status, isEditing, existingItem, scenes, addShot, updateShot, router]);
 
   if (!activeProject) {
     return (
@@ -102,7 +109,7 @@ export default function NewShotScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.container} behavior={KEYBOARD_BEHAVIOR}>
       <Stack.Screen options={{ title: isEditing ? 'Edit Shot' : 'New Shot' }} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.projectLabel}>

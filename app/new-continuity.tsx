@@ -1,11 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Image, KeyboardAvoidingView } from 'react-native';
+import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { Camera, X, Image as ImageIcon } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectContinuity } from '@/contexts/ProjectContext';
 import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
+import { resolvePhotoUri } from '@/utils/photoStorage';
 
 export default function NewContinuityScreen() {
   const router = useRouter();
@@ -29,7 +31,7 @@ export default function NewContinuityScreen() {
       setShotNumber(existingItem.shotNumber);
       setDescription(existingItem.description);
       setDetails(existingItem.details || '');
-      setPhotoUrl((existingItem as any).photoUrl || null);
+      setPhotoUrl(existingItem.photoUrl ?? null);
     }
   }, [existingItem?.id]);
 
@@ -79,7 +81,8 @@ export default function NewContinuityScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Continuity Note' : 'New Continuity Note' }} />
 
       <View style={styles.projectLabel}>
@@ -121,7 +124,7 @@ export default function NewContinuityScreen() {
 
         {photoUrl ? (
           <View style={styles.photoContainer}>
-            <Image source={{ uri: photoUrl }} style={styles.photoPreview} resizeMode="cover" />
+            <Image source={{ uri: resolvePhotoUri(photoUrl) }} style={styles.photoPreview} resizeMode="cover" />
             <View style={styles.photoActions}>
               <TouchableOpacity onPress={handleAddPhoto} style={styles.photoChangeBtn}>
                 <Camera color={Colors.accent.gold} size={14} />
@@ -146,6 +149,7 @@ export default function NewContinuityScreen() {
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Continuity Note'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
