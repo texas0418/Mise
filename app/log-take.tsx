@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   projectLabelText: {
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.accent.gold,
     fontWeight: '600' as const,
   },
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600' as const,
     color: Colors.text.secondary,
     textTransform: 'uppercase' as const,

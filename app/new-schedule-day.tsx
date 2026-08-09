@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   sceneChipOn: { backgroundColor: Colors.accent.goldBg, borderColor: Colors.accent.gold },
   sceneChipText: { fontSize: 15, fontWeight: '600' as const, color: Colors.text.secondary },
   sceneChipTextOn: { color: Colors.accent.gold },
-  sceneSummary: { fontSize: 11, color: Colors.text.tertiary, marginTop: 10, lineHeight: 16 },
+  sceneSummary: { fontSize: 12, color: Colors.text.tertiary, marginTop: 10, lineHeight: 16 },
   container: { flex: 1, backgroundColor: Colors.bg.primary },
   content: { padding: 20, paddingBottom: 40 },
   projectLabel: { backgroundColor: Colors.accent.goldBg, borderRadius: 8, padding: 10, marginBottom: 20 },

@@ -1,100 +1,109 @@
 /**
  * utils/typography.ts
  *
- * Type sizes that respond to the system text-size setting.
+ * Type sizes, and the floor beneath them.
  *
- * Every font size in this app was a hardcoded number in a StyleSheet, and 270
- * of them sat below 12px — tool card subtitles at 10, stat labels at 9, call
- * sheet column headers at 9. None of it moved when the reader turned their
- * text size up. On a phone clipped to a rig in the dark, that is not a
- * preference setting.
+ * ## Read this before multiplying anything by fontScale
  *
- * Two rules, and they interact:
+ * React Native's `<Text>` has `allowFontScaling` defaulting to **true** (see
+ * Libraries/Text/TextProps.js in RN 0.81). Every `fontSize` in a StyleSheet is
+ * already multiplied by the reader's Dynamic Type setting before it reaches the
+ * screen. #47 says the app has "no Dynamic Type"; what it actually has is text
+ * that scales from bases too small to be worth scaling.
  *
- * 1. **A floor.** Nothing renders below `MIN_SIZE`, and nothing on a surface
- *    read at arm's length below `MIN_ONSET_SIZE`. The floor applies *before*
- *    scaling, so a 9px label becomes 12px at the default setting rather than
- *    staying 9px until the reader goes looking for the accessibility menu.
+ * So `fontSize` must **not** be multiplied by `fontScale` in application code.
+ * Doing that scales twice — 16px at the largest accessibility setting would
+ * render near 150px rather than 50. An earlier version of this module exported
+ * exactly that trap; it had no call sites, and it is gone.
  *
- * 2. **A ceiling on the multiplier, not on the result.** iOS accessibility
- *    sizes reach roughly 3.1x, which turns a table into a column of single
- *    words. `MAX_SCALE` bounds how far layout is allowed to be stretched
- *    while still honouring most of the reader's choice. Text that is not in a
- *    constrained layout should pass `maxScale: Infinity` and simply grow.
+ * What genuinely needs manual scaling is everything that is *not* text and
+ * therefore does not scale on its own: icon glyph sizes, hit targets, and the
+ * gaps around text that has grown. Those are `scaleNonText` and the hook in
+ * utils/useTypography.ts.
  *
- * Kept dependency-free: no react-native import, so node can run the suite.
- * The hook that reads the live system scale is utils/useTypography.ts.
+ * ## What this module is for
+ *
+ * 1. **The floor.** 270 font sizes in this app sat below 12px — subtitles at
+ *    10, stat labels at 9, call sheet headers at 9. Scaling does not fix a base
+ *    that small; at the default setting they render exactly as written.
+ *    `floorFont` raises a base before it is ever scaled.
+ *
+ * 2. **A ceiling on the multiplier**, for dense layouts that stop being rows at
+ *    3x. That is applied through React Native's own `maxFontSizeMultiplier`
+ *    prop rather than by arithmetic here — see MAX_TEXT_SCALE.
+ *
+ * Kept dependency-free so node can run the suite.
  */
 
-/** Nothing smaller than this, anywhere. */
+/** Nothing smaller than this, anywhere, before scaling. */
 export const MIN_SIZE = 12;
 
 /**
  * Surfaces read at arm's length, in the dark, on a rig — the Today view, the
- * shot checklist, the take log. 12px is legible on a desk and not on set.
+ * slate, the take log and the take form. 12px is legible on a desk and not on
+ * set.
  */
 export const MIN_ONSET_SIZE = 14;
 
 /**
- * How far a constrained layout will stretch. Above roughly 2x, dense rows stop
- * being rows. Unconstrained text should opt out with `Infinity` rather than
- * inherit this.
+ * The cap handed to `<Text maxFontSizeMultiplier>` on dense surfaces. Above
+ * roughly 2x a table stops being a table. Text that is not in a constrained
+ * layout should be left uncapped so it simply grows.
  */
-export const MAX_SCALE = 2;
+export const MAX_TEXT_SCALE = 2;
 
 /**
- * The reader is allowed to make text smaller, but not below the floor — which
- * is what the floor is for.
+ * Raise a base font size to the floor. **Not** a scaling function — the
+ * platform does the scaling.
  */
-export const MIN_SCALE = 0.85;
-
-export interface ScaleOptions {
-  /** Smallest permitted result. Defaults to MIN_SIZE. */
-  floor?: number;
-  /** Largest permitted multiplier. Defaults to MAX_SCALE; pass Infinity to opt out. */
-  maxScale?: number;
+export function floorFont(base: number, onSet = false): number {
+  const floor = onSet ? MIN_ONSET_SIZE : MIN_SIZE;
+  return Number.isFinite(base) ? Math.max(base, floor) : floor;
 }
+
+/** How far a non-text dimension is allowed to be stretched. */
+export const MAX_NON_TEXT_SCALE = 1.6;
+/** A reader who prefers smaller text still gets usable hit targets. */
+export const MIN_NON_TEXT_SCALE = 1;
 
 const clamp = (value: number, low: number, high: number) =>
   Math.min(high, Math.max(low, value));
 
 /**
- * A font size for the reader's current text-size setting.
+ * Scale something that does *not* scale itself — an icon's glyph size, a hit
+ * target, the gap under a label that has grown.
  *
- * `fontScale` is the system multiplier — 1 at the default, up to about 3.1 at
- * the largest accessibility size on iOS. Non-finite or absent values fall back
- * to 1 rather than collapsing the type.
+ * Clamped harder than text: an icon at 3x is not more legible, it is just in
+ * the way, and hit targets past a point start pushing content off screen.
  */
-export function scaleFont(base: number, fontScale: number, options: ScaleOptions = {}): number {
-  const floor = options.floor ?? MIN_SIZE;
-  const maxScale = options.maxScale ?? MAX_SCALE;
-
-  const size = Number.isFinite(base) ? Math.max(base, floor) : floor;
-  const scale = Number.isFinite(fontScale) ? clamp(fontScale, MIN_SCALE, maxScale) : 1;
-
-  return Math.max(floor, Math.round(size * scale));
+export function scaleNonText(base: number, fontScale: number): number {
+  const scale = Number.isFinite(fontScale)
+    ? clamp(fontScale, MIN_NON_TEXT_SCALE, MAX_NON_TEXT_SCALE)
+    : 1;
+  return Math.round((Number.isFinite(base) ? base : 0) * scale);
 }
 
-/** The on-set floor, for anything read at arm's length. */
-export const scaleOnSetFont = (base: number, fontScale: number, options: ScaleOptions = {}): number =>
-  scaleFont(base, fontScale, { floor: MIN_ONSET_SIZE, ...options });
-
 /**
- * A line height for a scaled size.
+ * A line height for a font size.
  *
- * Line height has to scale with the text or large type clips against its own
- * next line — the failure looks like a rendering bug rather than a setting, so
- * it rarely gets reported as one.
+ * Line height set as a raw number does **not** scale with Dynamic Type the way
+ * fontSize does, so a fixed `lineHeight` clips scaled text against its own next
+ * line — which reads as a rendering bug rather than a setting, and so rarely
+ * gets reported as an accessibility one. Prefer omitting lineHeight entirely on
+ * scalable text; use this only where a specific rhythm is needed.
  */
 export function lineHeightFor(size: number, ratio = 1.35): number {
   return Math.round(size * ratio);
 }
 
+/** Past this, dense rows need to wrap or stack rather than shrink. */
+export const LARGE_TEXT_THRESHOLD = 1.3;
+
 /**
  * The named steps. Screens should reach for these rather than inventing a
- * number, so that "the small label size" means one thing across the app.
+ * number, so "the small label size" means one thing across the app.
  *
- * Values are the pre-scale bases; every one is at or above MIN_SIZE.
+ * These are pre-scale bases, and every one is at or above MIN_SIZE.
  */
 export const TYPE = {
   /** Column headers, timestamps, unit labels. */

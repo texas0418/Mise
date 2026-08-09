@@ -170,15 +170,15 @@ const styles = StyleSheet.create({
   sceneBadgeText: { fontSize: 12, fontWeight: '700' as const, color: Colors.status.info },
   headerCenter: { flex: 1 },
   title: { fontSize: 15, fontWeight: '700' as const, color: Colors.text.primary },
-  dateText: { fontSize: 11, color: Colors.text.tertiary, marginTop: 2 },
+  dateText: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2 },
   // Expanded
   expandedBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   detailBlock: { marginBottom: 10 },
-  detailLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 4 },
+  detailLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 4 },
   description: { fontSize: 13, color: Colors.text.secondary, lineHeight: 20 },
   detailSection: { gap: 8, marginBottom: 10 },
   detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
-  detailRowLabel: { fontSize: 11, fontWeight: '700' as const, color: Colors.text.tertiary, width: 70 },
+  detailRowLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, width: 70 },
   detailRowText: { fontSize: 12, color: Colors.text.primary, flex: 1, lineHeight: 18 },
   notesText: { fontSize: 12, color: Colors.accent.goldLight, fontStyle: 'italic' as const, lineHeight: 18 },
   // Actions

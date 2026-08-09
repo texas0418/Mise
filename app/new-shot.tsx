@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5, borderColor: Colors.border.subtle,
   },
   lightingLinkText: { fontSize: 14, fontWeight: '600' as const, color: Colors.text.primary },
-  lightingLinkSub: { fontSize: 11, color: Colors.text.tertiary, marginTop: 1 },
+  lightingLinkSub: { fontSize: 12, color: Colors.text.tertiary, marginTop: 1 },
   emptyContainer: { flex: 1, backgroundColor: Colors.bg.primary, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyTitle: { fontSize: 18, fontWeight: '600' as const, color: Colors.text.primary },
   emptySubtitle: { fontSize: 14, color: Colors.text.secondary, marginTop: 4 },

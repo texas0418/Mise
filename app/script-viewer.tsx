@@ -942,7 +942,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.bg.elevated, justifyContent: 'center', alignItems: 'center' },
   titleWrap: { flex: 1 },
   title: { fontSize: 15, fontWeight: '700', color: Colors.text.primary },
-  versionText: { fontSize: 11, color: Colors.text.secondary, marginTop: 1 },
+  versionText: { fontSize: 12, color: Colors.text.secondary, marginTop: 1 },
   undoBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.bg.elevated, justifyContent: 'center', alignItems: 'center' },
   revDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
 
@@ -969,7 +969,7 @@ const styles = StyleSheet.create({
   toolButtons: { flexDirection: 'row', gap: 4, alignItems: 'center' },
   toolBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
   toolBtnActive: { backgroundColor: Colors.accent.goldBg },
-  toolBtnLabel: { fontSize: 11, fontWeight: '600', color: Colors.accent.gold },
+  toolBtnLabel: { fontSize: 12, fontWeight: '600', color: Colors.accent.gold },
   colorToggleBtn: { marginLeft: 4 },
   colorIndicator: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)' },
 

@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   revBadgeText: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: '700' as const,
     textTransform: 'uppercase' as const,
     letterSpacing: 0.5,
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   expandedBody: { padding: 14, paddingTop: 0 },
   detailRow: { marginBottom: 10 },
   detailLabel: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: '700' as const,
     color: Colors.text.tertiary,
     letterSpacing: 0.8,

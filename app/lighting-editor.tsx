@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
   },
   elementLabel: {
-    fontSize: 8, color: Colors.text.secondary, fontWeight: '600' as const,
+    fontSize: 12, color: Colors.text.secondary, fontWeight: '600' as const,
     textAlign: 'center', marginTop: 1, maxWidth: ELEMENT_SIZE,
   },
 
@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
   },
   selectedInfo: { flex: 1, minWidth: 0 },
   selectedLabel: { fontSize: 13, fontWeight: '700' as const, color: Colors.text.primary },
-  selectedType: { fontSize: 10, color: Colors.text.tertiary, textTransform: 'capitalize' as const },
+  selectedType: { fontSize: 12, color: Colors.text.tertiary, textTransform: 'capitalize' as const },
   controlBtn: {
     width: 36, height: 36, borderRadius: 10,
     backgroundColor: Colors.bg.elevated, justifyContent: 'center', alignItems: 'center',
@@ -706,7 +706,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FBBF2412', borderColor: '#FBBF2444',
   },
   intensityLabel: {
-    fontSize: 8, fontWeight: '800' as const, color: '#FBBF24', marginTop: -2,
+    fontSize: 12, fontWeight: '800' as const, color: '#FBBF24', marginTop: -2,
   },
   hintRow: { alignItems: 'center', paddingVertical: 4 },
   hintText: { fontSize: 12, color: Colors.text.tertiary },
@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
   },
   toolbarSection: { marginBottom: 16 },
   toolbarSectionTitle: {
-    fontSize: 10, fontWeight: '700' as const, color: Colors.text.tertiary,
+    fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary,
     textTransform: 'uppercase' as const, letterSpacing: 0.8, marginBottom: 8,
   },
   toolbarRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -740,7 +740,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
     borderWidth: 0.5, borderColor: Colors.border.subtle,
   },
-  toolbarItemLabel: { fontSize: 9, color: Colors.text.secondary, textAlign: 'center', fontWeight: '500' as const },
+  toolbarItemLabel: { fontSize: 12, color: Colors.text.secondary, textAlign: 'center', fontWeight: '500' as const },
 
   // Modal
   modalOverlay: {
@@ -753,7 +753,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.text.primary, marginBottom: 16 },
   modalLabel: {
-    fontSize: 11, fontWeight: '700' as const, color: Colors.text.tertiary,
+    fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary,
     textTransform: 'uppercase' as const, letterSpacing: 0.5, marginBottom: 6, marginTop: 10,
   },
   modalInput: {

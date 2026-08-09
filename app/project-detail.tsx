@@ -377,12 +377,12 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700' as const,
     letterSpacing: 0.5,
   },
   formatBadge: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '600' as const,
     textTransform: 'uppercase' as const,
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   genreBadge: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.accent.goldLight,
     fontWeight: '600' as const,
     backgroundColor: Colors.accent.goldBg,
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   },
   creditItem: {},
   creditLabel: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '600' as const,
     textTransform: 'uppercase' as const,
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '600' as const,
     textTransform: 'uppercase' as const,
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   legendText: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.secondary,
   },
 
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
   },
   scheduleMiniScenes: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
     marginTop: 1,
   },
@@ -548,7 +548,7 @@ const styles = StyleSheet.create({
     maxWidth: 120,
   },
   scheduleMiniLocation: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
   },
   moreText: {

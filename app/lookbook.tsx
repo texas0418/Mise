@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   statementBody: { padding: 16 },
   statementText: { fontSize: 14, color: Colors.text.secondary, lineHeight: 22 },
   statementPlaceholder: { fontSize: 14, color: Colors.text.tertiary, fontStyle: 'italic' as const, lineHeight: 22 },
-  tapToEdit: { fontSize: 10, color: Colors.text.tertiary, marginTop: 8, textAlign: 'right' },
+  tapToEdit: { fontSize: 12, color: Colors.text.tertiary, marginTop: 8, textAlign: 'right' },
   statementInput: { backgroundColor: Colors.bg.tertiary, borderRadius: 10, padding: 14, fontSize: 14, color: Colors.text.primary, lineHeight: 22, minHeight: 160, textAlignVertical: 'top' as const, borderWidth: 0.5, borderColor: Colors.accent.gold + '33' },
   statementActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 10 },
   cancelBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: Colors.bg.tertiary },

@@ -145,5 +145,5 @@ const styles = StyleSheet.create({
   imagePreview: { width: '100%', height: 200, borderRadius: 12 },
   changePhotoBtn: { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   changePhotoText: { fontSize: 12, color: '#fff', fontWeight: '600' as const },
-  orText: { fontSize: 11, color: Colors.text.tertiary, marginTop: 10, marginBottom: 6 },
+  orText: { fontSize: 12, color: Colors.text.tertiary, marginTop: 10, marginBottom: 6 },
 });

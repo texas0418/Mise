@@ -699,7 +699,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   savingsBadgeText: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: '700',
     color: Colors.text.inverse,
     letterSpacing: 0.3,
@@ -769,7 +769,7 @@ const styles = StyleSheet.create({
   // Legal
   legalFooter: { paddingTop: 16, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   legalText: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     lineHeight: 15,
     textAlign: 'center',
@@ -783,11 +783,11 @@ const styles = StyleSheet.create({
   },
   legalLink: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   legalLinkText: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
     textDecorationLine: 'underline',
   },
-  legalDot: { color: Colors.text.tertiary, fontSize: 10 },
+  legalDot: { color: Colors.text.tertiary, fontSize: 12 },
 
   // Success state
   successContainer: {

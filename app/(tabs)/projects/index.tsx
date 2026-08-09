@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   activePillText: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: '800' as const,
     color: Colors.text.inverse,
     letterSpacing: 0.8,
@@ -423,12 +423,12 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   statusText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700' as const,
     letterSpacing: 1,
   },
   projectFormat: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '500' as const,
     textTransform: 'uppercase' as const,
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
   },
   archiveActionText: {
     color: Colors.text.inverse,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600' as const,
     marginTop: 4,
   },
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   archivedHeaderText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800' as const,
     color: Colors.text.tertiary,
     letterSpacing: 1,
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   },
   deleteActionText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600' as const,
     marginTop: 4,
   },

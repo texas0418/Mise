@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   headshotPicker: { alignSelf: 'center', marginBottom: 16, marginTop: 8 },
   headshotPreview: { width: 100, height: 130, borderRadius: 14 },
   headshotPlaceholder: { width: 100, height: 130, borderRadius: 14, backgroundColor: Colors.bg.card, borderWidth: 1, borderColor: Colors.border.subtle, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
-  headshotPlaceholderText: { fontSize: 10, color: Colors.text.tertiary, marginTop: 4 },
+  headshotPlaceholderText: { fontSize: 12, color: Colors.text.tertiary, marginTop: 4 },
   sectionTitle: { fontSize: 16, fontWeight: '700' as const, color: Colors.accent.gold, marginTop: 20, marginBottom: 12, letterSpacing: 0.3 },
   label: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.secondary, marginBottom: 6, marginTop: 12, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   input: { backgroundColor: Colors.bg.card, borderRadius: 10, padding: 14, fontSize: 15, color: Colors.text.primary, borderWidth: 0.5, borderColor: Colors.border.subtle },

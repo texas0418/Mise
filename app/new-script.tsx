@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
   },
   pickPdfHint: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
     marginTop: 2,
   },
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   colorOptionText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700' as const,
   },
 

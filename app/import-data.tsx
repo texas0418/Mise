@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
   stepCircleDone: { borderColor: Colors.accent.gold, backgroundColor: Colors.accent.gold },
   stepNumber: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary },
   stepNumberActive: { color: Colors.accent.gold },
-  stepLabel: { fontSize: 10, fontWeight: '600' as const, color: Colors.text.tertiary },
+  stepLabel: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.tertiary },
   stepLabelActive: { color: Colors.accent.gold },
 
   // Error
@@ -723,7 +723,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
     backgroundColor: Colors.bg.card, borderWidth: 0.5, borderColor: Colors.border.subtle,
   },
-  formatBadgeText: { fontSize: 11, fontWeight: '600' as const, color: Colors.text.tertiary },
+  formatBadgeText: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.tertiary },
   templateBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8,
@@ -740,8 +740,8 @@ const styles = StyleSheet.create({
   fieldInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   fieldDot: { width: 6, height: 6, borderRadius: 3 },
   fieldInfoText: { fontSize: 13, color: Colors.text.secondary, flex: 1 },
-  fieldRequired: { fontSize: 10, fontWeight: '600' as const, color: Colors.status.error },
-  fieldsMore: { fontSize: 11, color: Colors.text.tertiary, marginTop: 4, fontStyle: 'italic' as const },
+  fieldRequired: { fontSize: 12, fontWeight: '600' as const, color: Colors.status.error },
+  fieldsMore: { fontSize: 12, color: Colors.text.tertiary, marginTop: 4, fontStyle: 'italic' as const },
 
   // File info bar
   fileInfoBar: {
@@ -750,7 +750,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent.goldBg, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle,
   },
   fileInfoName: { flex: 1, fontSize: 13, fontWeight: '600' as const, color: Colors.accent.gold },
-  fileInfoMeta: { fontSize: 11, color: Colors.text.tertiary },
+  fileInfoMeta: { fontSize: 12, color: Colors.text.tertiary },
 
   // Mapping stats
   mappingStats: {
@@ -764,7 +764,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
     backgroundColor: Colors.status.warning + '18',
   },
-  warningText: { fontSize: 10, fontWeight: '600' as const, color: Colors.status.warning },
+  warningText: { fontSize: 12, fontWeight: '600' as const, color: Colors.status.warning },
 
   // Map list
   mapList: { padding: 16, paddingBottom: 100, gap: 8 },
@@ -784,12 +784,12 @@ const styles = StyleSheet.create({
   mappedFieldBadge: {
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 0.5,
   },
-  mappedFieldText: { fontSize: 11, fontWeight: '600' as const },
-  unmappedText: { fontSize: 11, color: Colors.text.tertiary, fontStyle: 'italic' as const },
+  mappedFieldText: { fontSize: 12, fontWeight: '600' as const },
+  unmappedText: { fontSize: 12, color: Colors.text.tertiary, fontStyle: 'italic' as const },
 
   // Preview values
   previewRow: { flexDirection: 'row', gap: 6, paddingHorizontal: 12, paddingBottom: 10 },
-  previewValue: { fontSize: 10, color: Colors.text.tertiary, backgroundColor: Colors.bg.elevated, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, maxWidth: 120 },
+  previewValue: { fontSize: 12, color: Colors.text.tertiary, backgroundColor: Colors.bg.elevated, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, maxWidth: 120 },
 
   // Field selector (expanded)
   fieldSelector: {
@@ -797,7 +797,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0.5, borderTopColor: Colors.border.subtle,
     marginTop: 4, paddingTop: 10,
   },
-  fieldSelectorTitle: { fontSize: 10, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5, textTransform: 'uppercase' as const, marginBottom: 4 },
+  fieldSelectorTitle: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5, textTransform: 'uppercase' as const, marginBottom: 4 },
   fieldOption: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingVertical: 8, paddingHorizontal: 10, borderRadius: 8,
@@ -805,7 +805,7 @@ const styles = StyleSheet.create({
   fieldOptionSelected: { backgroundColor: Colors.accent.goldBg },
   fieldOptionDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 1.5, borderColor: Colors.border.medium },
   fieldOptionText: { fontSize: 13, color: Colors.text.secondary, flex: 1 },
-  fieldOptionRequired: { fontSize: 9, fontWeight: '700' as const, color: Colors.status.error, textTransform: 'uppercase' as const },
+  fieldOptionRequired: { fontSize: 12, fontWeight: '700' as const, color: Colors.status.error, textTransform: 'uppercase' as const },
 
   // Missing required
   missingCard: {
@@ -816,7 +816,7 @@ const styles = StyleSheet.create({
   missingCardBody: { flex: 1 },
   missingCardTitle: { fontSize: 13, fontWeight: '700' as const, color: Colors.status.error, marginBottom: 6 },
   missingFieldText: { fontSize: 12, color: Colors.text.secondary, marginBottom: 2 },
-  missingHint: { fontSize: 11, color: Colors.text.tertiary, marginTop: 6, fontStyle: 'italic' as const },
+  missingHint: { fontSize: 12, color: Colors.text.tertiary, marginTop: 6, fontStyle: 'italic' as const },
 
   // Bottom nav
   bottomNav: {
@@ -850,10 +850,10 @@ const styles = StyleSheet.create({
   summaryValue: { fontSize: 13, fontWeight: '600' as const, color: Colors.text.primary },
 
   // Preview table
-  previewTitle: { fontSize: 11, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5, textTransform: 'uppercase' as const, marginBottom: 8, marginTop: 4 },
+  previewTitle: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5, textTransform: 'uppercase' as const, marginBottom: 8, marginTop: 4 },
   previewTable: { borderRadius: 10, overflow: 'hidden', borderWidth: 0.5, borderColor: Colors.border.subtle },
   previewTableHeader: { flexDirection: 'row', backgroundColor: Colors.bg.elevated },
-  previewTableHeaderText: { fontSize: 10, fontWeight: '700' as const, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 0.3 },
+  previewTableHeaderText: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 0.3 },
   previewTableRow: { flexDirection: 'row', backgroundColor: Colors.bg.card },
   previewTableRowAlt: { backgroundColor: Colors.bg.secondary },
   previewTableRowNum: { width: 36, paddingVertical: 8, paddingHorizontal: 8, justifyContent: 'center' },

@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   // Photo
   photoPlaceholder: { backgroundColor: Colors.bg.card, borderRadius: 12, borderWidth: 1.5, borderColor: Colors.border.subtle, borderStyle: 'dashed', padding: 30, alignItems: 'center', justifyContent: 'center', gap: 8 },
   photoPlaceholderText: { fontSize: 14, fontWeight: '600' as const, color: Colors.text.secondary },
-  photoPlaceholderHint: { fontSize: 11, color: Colors.text.tertiary },
+  photoPlaceholderHint: { fontSize: 12, color: Colors.text.tertiary },
   photoContainer: { borderRadius: 12, overflow: 'hidden', borderWidth: 0.5, borderColor: Colors.border.subtle },
   photoPreview: { width: '100%', height: 220, backgroundColor: Colors.bg.elevated },
   photoActions: { flexDirection: 'row', justifyContent: 'center', gap: 16, padding: 10, backgroundColor: Colors.bg.card },

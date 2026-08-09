@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   photoImage: { width: 80, height: 80 },
   photoRemove: { position: 'absolute', top: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 10, width: 20, height: 20, justifyContent: 'center', alignItems: 'center' },
   addPhotoBtn: { width: 80, height: 80, borderRadius: 10, backgroundColor: Colors.bg.elevated, borderWidth: 1, borderColor: Colors.border.subtle, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', gap: 4 },
-  addPhotoText: { fontSize: 9, color: Colors.accent.gold, fontWeight: '600' as const },
+  addPhotoText: { fontSize: 12, color: Colors.accent.gold, fontWeight: '600' as const },
   emptyContainer: { flex: 1, backgroundColor: Colors.bg.primary, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyTitle: { fontSize: 18, fontWeight: '600' as const, color: Colors.text.primary },
 });

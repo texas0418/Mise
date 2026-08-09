@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   section: { marginBottom: 32 },
   sectionTitle: { fontSize: 12, fontWeight: '600', color: Colors.text.secondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
   infoRow: { backgroundColor: Colors.bg.card, borderRadius: 10, padding: 14, borderWidth: 0.5, borderColor: Colors.border.subtle },
-  infoLabel: { fontSize: 11, color: Colors.text.tertiary, marginBottom: 4 },
+  infoLabel: { fontSize: 12, color: Colors.text.tertiary, marginBottom: 4 },
   infoValue: { fontSize: 16, color: Colors.text.primary },
   field: { marginBottom: 12 },
   inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bg.input, borderRadius: 10, borderWidth: 0.5, borderColor: Colors.border.subtle },

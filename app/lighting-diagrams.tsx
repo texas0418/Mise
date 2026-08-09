@@ -208,22 +208,22 @@ const styles = StyleSheet.create({
   title: { fontSize: 15, fontWeight: '700' as const, color: Colors.text.primary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   sceneBadge: { backgroundColor: Colors.status.info + '18', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  sceneBadgeText: { fontSize: 10, fontWeight: '700' as const, color: Colors.status.info },
+  sceneBadgeText: { fontSize: 12, fontWeight: '700' as const, color: Colors.status.info },
   shotBadge: { backgroundColor: Colors.accent.goldBg, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  shotBadgeText: { fontSize: 10, fontWeight: '700' as const, color: Colors.accent.gold },
+  shotBadgeText: { fontSize: 12, fontWeight: '700' as const, color: Colors.accent.gold },
   templateBadge: { backgroundColor: Colors.bg.elevated, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 0.5, borderColor: Colors.border.subtle },
-  templateBadgeText: { fontSize: 10, fontWeight: '600' as const, color: Colors.text.tertiary },
+  templateBadgeText: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.tertiary },
 
   // Expanded
   expandedBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   countsRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
   countChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.bg.elevated, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  countText: { fontSize: 11, color: Colors.text.secondary, fontWeight: '500' as const },
+  countText: { fontSize: 12, color: Colors.text.secondary, fontWeight: '500' as const },
   detailBlock: { marginBottom: 10 },
-  detailLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 4 },
+  detailLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 4 },
   descText: { fontSize: 13, color: Colors.text.secondary, lineHeight: 20 },
   notesText: { fontSize: 12, color: Colors.accent.goldLight, fontStyle: 'italic' as const, lineHeight: 18 },
-  dateText: { fontSize: 10, color: Colors.text.tertiary, marginBottom: 10 },
+  dateText: { fontSize: 12, color: Colors.text.tertiary, marginBottom: 10 },
 
   // Actions
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },

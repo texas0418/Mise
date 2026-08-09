@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     fontWeight: '500' as const,
   },
   switchHint: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
     marginTop: 2,
   },
