@@ -33,6 +33,7 @@ import {
 } from 'lucide-react-native';
 import { useSync } from '@/contexts/SyncContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
@@ -60,6 +61,7 @@ function StatusCard({
   isSyncing,
   isSyncEnabled,
   isAuthenticated,
+  isPro,
 }: {
   syncStatus: string;
   pendingCount: number;
@@ -67,6 +69,7 @@ function StatusCard({
   isSyncing: boolean;
   isSyncEnabled: boolean;
   isAuthenticated: boolean;
+  isPro: boolean;
 }) {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   useEffect(() => {
@@ -85,11 +88,31 @@ function StatusCard({
 
   // eslint-disable-next-line complexity -- tracked in #18
   const getStatusConfig = () => {
-    if (!isAuthenticated || !isSyncEnabled) {
+    // Signed out and not subscribed are different problems with different
+    // fixes; telling a signed-in subscriber to "sign in" helps nobody (#43).
+    if (!isAuthenticated) {
       return {
         icon: <CloudOff color={Colors.text.tertiary} size={20} />,
         label: 'Sync Disabled',
         sublabel: 'Sign in to sync across devices',
+        color: Colors.text.tertiary,
+        bg: Colors.bg.tertiary,
+      };
+    }
+    if (!isPro) {
+      return {
+        icon: <CloudOff color={Colors.accent.gold} size={20} />,
+        label: 'Sync Is a Pro Feature',
+        sublabel: 'Your work stays on this device until you upgrade',
+        color: Colors.accent.gold,
+        bg: Colors.accent.goldBg,
+      };
+    }
+    if (!isSyncEnabled) {
+      return {
+        icon: <CloudOff color={Colors.text.tertiary} size={20} />,
+        label: 'Sync Disabled',
+        sublabel: 'Sync is currently turned off',
         color: Colors.text.tertiary,
         bg: Colors.bg.tertiary,
       };
@@ -239,6 +262,7 @@ export default function SyncSettingsScreen() {
     resetSync,
   } = useSync();
   const { isAuthenticated, user } = useAuth();
+  const { isPro } = useDeviceLicense();
 
   const [uploading, setUploading] = useState(false);
   const [resyncing, setResyncing] = useState(false);
@@ -342,7 +366,26 @@ export default function SyncSettingsScreen() {
         isSyncing={isSyncing}
         isSyncEnabled={isSyncEnabled}
         isAuthenticated={isAuthenticated}
+        isPro={isPro}
       />
+
+      {/* A signed-in free user can see exactly what they are missing, and
+          the one action that fixes it. */}
+      {isAuthenticated && !isPro ? (
+        <TouchableOpacity
+          style={styles.upgradeCard}
+          onPress={() => router.push('/paywall' as never)}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Upgrade to Pro to enable multi-device sync"
+          testID="sync-upgrade-button"
+        >
+          <Cloud color={Colors.accent.gold} size={18} />
+          <Text style={styles.upgradeText}>
+            Upgrade to sync this project across your devices
+          </Text>
+        </TouchableOpacity>
+      ) : null}
 
       {/* ── Stats ───────────────────────────────────────────────────── */}
       {isAuthenticated && (
@@ -443,6 +486,12 @@ export default function SyncSettingsScreen() {
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  upgradeCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: Colors.accent.goldBg, borderRadius: 12, padding: 14,
+    marginBottom: 16, borderWidth: 1, borderColor: Colors.accent.gold + '44',
+  },
+  upgradeText: { flex: 1, fontSize: 13, fontWeight: '600' as const, color: Colors.accent.gold },
   container: {
     flex: 1,
     backgroundColor: Colors.bg.primary,

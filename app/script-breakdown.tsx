@@ -9,7 +9,6 @@ import { runSceneMigration } from '@/lib/sceneMigration';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { Scene } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -205,8 +204,7 @@ export default function ScriptBreakdownScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Scenes' }} />
 
-      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="sceneBreakdowns" variant="compact" />
-        <AIImportButton entityKey="sceneBreakdowns" variant="compact" /></View>
+      <View style={{ position: 'absolute', top: 10, right: 16, zIndex: 10 }}><ImportButton entityKey="sceneBreakdowns" variant="compact" /></View>
       <View style={styles.statsBar}>
         <FileText color={Colors.accent.gold} size={16} />
         <Text style={styles.statsText}>{stats.scenes} scenes</Text>

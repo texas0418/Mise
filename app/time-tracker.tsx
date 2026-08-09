@@ -6,7 +6,6 @@ import { useProjects, useProjectTimeEntries } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { TimeEntry } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -188,8 +187,7 @@ export default function TimeTrackerScreen() {
         }
       />
 
-            <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="timeEntries" variant="compact" />
-        <AIImportButton entityKey="timeEntries" variant="compact" /></View>
+            <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="timeEntries" variant="compact" /></View>
 
 <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-time-entry' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />

@@ -436,10 +436,6 @@ export default function RootLayout() {
                     options={{ ...FORM_MODAL_OPTIONS, title: "Import Data" }}
                   />
                   <Stack.Screen
-                    name="ai-import"
-                    options={{ ...FORM_MODAL_OPTIONS, title: "AI Import" }}
-                  />
-                  <Stack.Screen
                     name="paywall"
                     options={{ presentation: "modal", headerShown: false }}
                   />

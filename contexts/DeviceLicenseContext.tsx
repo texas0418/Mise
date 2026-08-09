@@ -39,6 +39,7 @@ import {
   PRICING,
   type DeviceRecord,
 } from '@/lib/deviceManager';
+import { setProEntitled } from '@/lib/entitlement';
 
 // ----------------------------------------------------------------------------
 // Result type returned by purchase functions
@@ -365,6 +366,12 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
 
   // isPro = device licensed in Supabase OR active RC entitlement (legacy + anon)
   const isPro = isDeviceLicensed || isRevenueCatPro;
+
+  // Publish it where non-React code can read it. The sync engine gates on this;
+  // see lib/entitlement.ts for why it is a module cell and not a hook (#43).
+  useEffect(() => {
+    setProEntitled(isPro);
+  }, [isPro]);
 
   // Which purchase function to call — smart picker for the paywall
   const isFirstDevice = licensedCount === 0;

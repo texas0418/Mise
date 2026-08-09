@@ -13,14 +13,12 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import Colors from '@/constants/colors';
 
 export default function ImportToolbar({ entityKey }: { entityKey: string }) {
   return (
     <View style={styles.row} testID={`import-toolbar-${entityKey}`}>
       <ImportButton entityKey={entityKey} variant="compact" />
-      <AIImportButton entityKey={entityKey} variant="compact" />
     </View>
   );
 }

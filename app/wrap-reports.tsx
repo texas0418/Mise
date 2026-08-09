@@ -6,7 +6,6 @@ import { useProjects, useProjectWrapReports } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
 import { WrapReport } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -137,8 +136,7 @@ export default function WrapReportsScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={<View style={styles.emptyInner}><FileText color={Colors.text.tertiary} size={48} /><Text style={styles.emptyTitle}>No wrap reports yet</Text><Text style={styles.emptySub}>Generate a report after each shoot day</Text></View>}
       />
-            <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="wrapReports" variant="compact" />
-        <AIImportButton entityKey="wrapReports" variant="compact" /></View>
+            <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="wrapReports" variant="compact" /></View>
 
 <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-wrap-report' as never)} activeOpacity={0.8}><Plus color={Colors.text.inverse} size={24} /></TouchableOpacity>
     </View>
