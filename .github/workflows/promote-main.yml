@@ -24,6 +24,14 @@ jobs:
       - name: Expo doctor (dependency/config health)
         run: npx expo-doctor
         continue-on-error: false
+      # The branch that ships had the weaker pipeline: typecheck and lint pass
+      # against import graphs Metro cannot resolve, which is exactly how a
+      # missing peer dependency reached main unnoticed (#55). Bundling is the
+      # only check that walks the real graph, so it belongs on both gates.
+      - name: Bundle iOS
+        run: npx expo export --platform ios --output-dir /tmp/expo-export-ios
+      - name: Bundle Android
+        run: npx expo export --platform android --output-dir /tmp/expo-export-android
 
   secrets:
     name: secrets
