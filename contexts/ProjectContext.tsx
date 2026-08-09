@@ -8,10 +8,11 @@ import {
   ProductionNote, MoodBoardItem, DirectorCredit, ShotReference, WrapReport,
   LocationWeather, BlockingNote, ColorReference, TimeEntry, ScriptSide,
   CastMember, LookbookItem, DirectorStatement, SceneSelect, DirectorMessage,
-  ScriptPDF, ScriptAnnotation, LightingDiagram, Scene, CrewAssignment
+  ScriptPDF, ScriptAnnotation, LightingDiagram, Scene, CrewAssignment, CastCallTime
 } from '@/types';
 import { useSync } from '@/contexts/SyncContext';
 import { compareSceneNumbers } from '@/utils/eighths';
+import { castTimesForDay } from '@/utils/callSheet';
 
 const STORAGE_KEYS = {
   projects: 'mise_projects',
@@ -39,6 +40,7 @@ const STORAGE_KEYS = {
   timeEntries: 'mise_time_entries',
   scriptSides: 'mise_script_sides',
   cast: 'mise_cast',
+  castCallTimes: 'mise_cast_call_times',
   lookbook: 'mise_lookbook',
   directorStatement: 'mise_director_statement',
   selects: 'mise_selects',
@@ -198,7 +200,35 @@ function useEntityStore<T extends { id: string }>(
     );
   }, [mutate, enqueueMutation, supabaseTable]);
 
-  return { items: query.data ?? [], add, addBulk, update, updateMany, remove, isLoading: query.isLoading };
+  // Create-or-edit in one serialized step.
+  //
+  // The match runs *inside* the write chain, against the freshest list, which
+  // is the whole point: deciding "does a row exist yet" from a render snapshot
+  // means two keystrokes in the same tick both decide "no" and both insert.
+  // That is #33 again, and here it would also breach the unique constraint on
+  // (schedule_day_id, cast_member_id) the moment it reached Supabase.
+  const upsert = useCallback((
+    match: (item: T) => boolean,
+    build: (existing: T | null) => T,
+  ) => {
+    void mutate(
+      prev => {
+        const index = prev.findIndex(match);
+        if (index === -1) return [...prev, build(null)];
+        const next = [...prev];
+        next[index] = build(next[index]);
+        return next;
+      },
+      async next => {
+        const item = next.find(match);
+        // 'update' rather than 'insert': pushSingleItem upserts on id either
+        // way, and this call cannot know which one it turned out to be.
+        if (item) await enqueueMutation(supabaseTable, item.id, 'update', item as any);
+      },
+    );
+  }, [mutate, enqueueMutation, supabaseTable]);
+
+  return { items: query.data ?? [], add, addBulk, update, updateMany, remove, upsert, isLoading: query.isLoading };
 }
 
 export const [ProjectProvider, useProjects] = createContextHook(() => {
@@ -231,6 +261,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const timeEntryStore = useEntityStore<TimeEntry>('timeEntries', STORAGE_KEYS.timeEntries, [], 'time_entries', enqueueMutation);
   const scriptSideStore = useEntityStore<ScriptSide>('scriptSides', STORAGE_KEYS.scriptSides, [], 'script_sides', enqueueMutation);
   const castStore = useEntityStore<CastMember>('cast', STORAGE_KEYS.cast, [], 'cast_members', enqueueMutation);
+  const castCallTimeStore = useEntityStore<CastCallTime>('castCallTimes', STORAGE_KEYS.castCallTimes, [], 'cast_call_times', enqueueMutation);
   const lookbookStore = useEntityStore<LookbookItem>('lookbook', STORAGE_KEYS.lookbook, [], 'lookbook_items', enqueueMutation);
   const directorStatementStore = useEntityStore<DirectorStatement>('directorStatement', STORAGE_KEYS.directorStatement, [], 'director_statements', enqueueMutation);
   const selectStore = useEntityStore<SceneSelect>('selects', STORAGE_KEYS.selects, [], 'scene_selects', enqueueMutation);
@@ -274,6 +305,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const timeEntries = timeEntryStore.items;
   const scriptSides = scriptSideStore.items;
   const castMembers = castStore.items;
+  const castCallTimes = castCallTimeStore.items;
   const lookbookItems = lookbookStore.items;
   const directorStatements = directorStatementStore.items;
   const sceneSelects = selectStore.items;
@@ -290,7 +322,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     budgetItems, continuityNotes, vfxShots, festivals, productionNotes,
     moodBoardItems, directorCredits, shotReferences, wrapReports,
     locationWeather, blockingNotes, colorReferences, timeEntries,
-    scriptSides, castMembers, lookbookItems, directorStatements,
+    scriptSides, castMembers, castCallTimes, lookbookItems, directorStatements,
     sceneSelects, directorMessages, scriptPDFs, scriptAnnotations,
     lightingDiagrams,
     activeProject, activeProjectId,
@@ -322,6 +354,8 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     addTimeEntry: timeEntryStore.add, updateTimeEntry: timeEntryStore.update, deleteTimeEntry: timeEntryStore.remove,
     addScriptSide: scriptSideStore.add, updateScriptSide: scriptSideStore.update, deleteScriptSide: scriptSideStore.remove,
     addCastMember: castStore.add, updateCastMember: castStore.update, deleteCastMember: castStore.remove,
+    addCastCallTime: castCallTimeStore.add, updateCastCallTime: castCallTimeStore.update, deleteCastCallTime: castCallTimeStore.remove,
+    upsertCastCallTime: castCallTimeStore.upsert,
     addLookbookItem: lookbookStore.add, updateLookbookItem: lookbookStore.update, deleteLookbookItem: lookbookStore.remove,
     addDirectorStatement: directorStatementStore.add, updateDirectorStatement: directorStatementStore.update, deleteDirectorStatement: directorStatementStore.remove,
     addSceneSelect: selectStore.add, updateSceneSelect: selectStore.update, deleteSceneSelect: selectStore.remove,
@@ -507,6 +541,18 @@ export function useProjectScriptSides(projectId: string | null) {
 export function useProjectCast(projectId: string | null) {
   const { castMembers } = useProjects();
   return castMembers.filter(c => c.projectId === projectId).sort((a, b) => a.characterName.localeCompare(b.characterName));
+}
+
+/**
+ * Cast call times for one shoot day, keyed by cast member id.
+ *
+ * A Map rather than a list because every lookup is "what is this person's
+ * makeup call", and the absence of a row is the common case — nobody has to be
+ * given a time for the sheet to be right.
+ */
+export function useDayCastCallTimes(scheduleDayId: string | null): Map<string, CastCallTime> {
+  const { castCallTimes } = useProjects();
+  return castTimesForDay(castCallTimes ?? [], scheduleDayId);
 }
 
 export function useProjectLookbook(projectId: string | null) {
