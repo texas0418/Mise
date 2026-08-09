@@ -9,8 +9,7 @@ import { formatEighths, totalEighths } from '@/utils/eighths';
 import { runSceneMigration } from '@/lib/sceneMigration';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
-import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
+import ImportToolbar from '@/components/ImportToolbar';
 import NotificationSettings from '@/components/NotificationSettings';
 import { rescheduleAll } from '@/utils/notifications';
 import { ScheduleDay, Scene } from '@/types';
@@ -211,6 +210,8 @@ export default function ScheduleScreen() {
         <Text style={styles.projectBannerCount}>{schedule.length} day{schedule.length !== 1 ? 's' : ''}</Text>
       </View>
 
+      <ImportToolbar entityKey="schedule" />
+
       <FlatList
         data={schedule}
         keyExtractor={item => item.id}
@@ -240,9 +241,6 @@ export default function ScheduleScreen() {
           </View>
         }
       />
-
-            <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="schedule" variant="compact" />
-        <AIImportButton entityKey="schedule" variant="compact" /></View>
 
 <TouchableOpacity
         style={styles.fab}
