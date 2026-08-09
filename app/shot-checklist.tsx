@@ -6,9 +6,9 @@ import { useProjects, useProjectShots } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { Shot, ShotStatus } from '@/types';
+import { nextStatus, previousStatus, isComplete, describeTap } from '@/utils/shotStatus';
 import PermissionGate from '@/contexts/PermissionGate';
 
-const STATUS_FLOW: ShotStatus[] = ['planned', 'ready', 'shot', 'approved'];
 const STATUS_CONFIG: Record<ShotStatus, { label: string; color: string; icon: React.ElementType }> = {
   'planned': { label: 'Planned', color: Colors.text.tertiary, icon: Circle },
   'ready': { label: 'Ready', color: '#60A5FA', icon: CircleDot },
@@ -16,16 +16,25 @@ const STATUS_CONFIG: Record<ShotStatus, { label: string; color: string; icon: Re
   'approved': { label: 'Approved', color: '#4ADE80', icon: CheckCheck },
 };
 
-function ShotRow({ shot, onCycleStatus }: { shot: Shot; onCycleStatus: () => void }) {
+function ShotRow({ shot, onCycleStatus, onStepBack }: {
+  shot: Shot;
+  onCycleStatus: () => void;
+  onStepBack: () => void;
+}) {
   const status = STATUS_CONFIG[shot.status];
   const StatusIcon = status.icon;
-  const isDone = shot.status === 'shot' || shot.status === 'approved';
+  const isDone = isComplete(shot.status);
 
   return (
     <TouchableOpacity
       style={[styles.shotRow, isDone && styles.shotRowDone]}
       onPress={onCycleStatus}
+      onLongPress={onStepBack}
       activeOpacity={0.6}
+      accessibilityRole="button"
+      accessibilityLabel={`Shot ${shot.sceneNumber}.${shot.shotNumber}, ${status.label}`}
+      accessibilityHint={describeTap(shot.status)}
+      testID={`shot-row-${shot.id}`}
     >
       <View style={[styles.statusCircle, { borderColor: status.color }]}>
         <StatusIcon color={status.color} size={16} />
@@ -59,10 +68,28 @@ export default function ShotChecklistScreen() {
   const router = useRouter();
   const [collapsedScenes, setCollapsedScenes] = useState<Set<number>>(new Set());
 
+  // Forward only, and it stops at approved. It used to wrap, so a stray tap on
+  // a finished shot silently returned it to planned and erased the record that
+  // it had been shot (#49).
   const cycleStatus = useCallback((shot: Shot) => {
-    const currentIndex = STATUS_FLOW.indexOf(shot.status);
-    const nextIndex = (currentIndex + 1) % STATUS_FLOW.length;
-    updateShot({ ...shot, status: STATUS_FLOW[nextIndex] });
+    const next = nextStatus(shot.status);
+    if (!next) return;
+    updateShot({ ...shot, status: next as ShotStatus });
+  }, [updateShot]);
+
+  // Backwards is a correction, so it asks first and lives on a long press
+  // rather than sharing the tap that moves work forwards.
+  const stepBack = useCallback((shot: Shot) => {
+    const previous = previousStatus(shot.status);
+    if (!previous) return;
+    Alert.alert(
+      `Move back to ${previous}?`,
+      `Shot ${shot.sceneNumber}.${shot.shotNumber} is currently ${shot.status}.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: `Set ${previous}`, onPress: () => updateShot({ ...shot, status: previous as ShotStatus }) },
+      ],
+    );
   }, [updateShot]);
 
   const resetAll = useCallback(() => {
@@ -118,7 +145,7 @@ export default function ShotChecklistScreen() {
         sections={sections}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <ShotRow shot={item} onCycleStatus={() => cycleStatus(item)} />
+          <ShotRow shot={item} onCycleStatus={() => cycleStatus(item)} onStepBack={() => stepBack(item)} />
         )}
         renderSectionHeader={({ section }) => {
           const s = section as typeof sections[0];

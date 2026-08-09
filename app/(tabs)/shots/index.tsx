@@ -7,8 +7,7 @@ import { useProjects, useProjectShots, useProjectScenes, findScene } from '@/con
 import { formatEighths, compareSceneNumbers } from '@/utils/eighths';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
-import ImportButton from '@/components/ImportButton';
-import AIImportButton from '@/components/AIImportButton';
+import ImportToolbar from '@/components/ImportToolbar';
 import { Shot, ShotStatus } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 
@@ -188,8 +187,7 @@ export default function ShotsScreen() {
   return (
     <PermissionGate resource="shots">
     <View style={styles.container}>
-      <View style={{ position: 'absolute', top: 14, right: 20, zIndex: 10 }}><ImportButton entityKey="shots" variant="compact" />
-        <AIImportButton entityKey="shots" variant="compact" /></View>
+      <ImportToolbar entityKey="shots" />
       <View style={styles.statsRow}>
         <View style={styles.statItem}><Text style={styles.statValue}>{stats.total}</Text><Text style={styles.statLabel}>Total</Text></View>
         <View style={styles.statDivider} />
