@@ -12,6 +12,7 @@ import {
   sceneRows, dayTotals, sceneListLabel, resolveDayScenes, castRows, detailSummaryLines,
 } from '@/utils/callSheet';
 import Colors from '@/constants/colors';
+import { dateWith, weekdayDate } from '@/utils/formatRecord';
 import { ScheduleDay, Scene, CastMember, CastCallTime } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -209,9 +210,10 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
   onSetCastTime: (dayId: string, castMemberId: string, field: CastTimeField, value: string) => void;
   onEditDetails: () => void;
 }) {
-  const dateObj = new Date(day.date + 'T00:00:00');
-  const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  const dateFull = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  // Guarded: a call sheet whose day has no readable date used this string as
+  // the row's title, so the row announced itself as "Invalid Date". See #90.
+  const dateStr = weekdayDate(day.date);
+  const dateFull = dateWith(day.date, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
   const handleDelete = () => {
     Alert.alert('Delete Call Sheet', `Remove Day ${day.dayNumber} call sheet?\n\nThis will also delete the schedule day.`, [

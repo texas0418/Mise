@@ -5,6 +5,7 @@ import { Plus, Clock, AlertCircle, AlertTriangle, ChevronDown, ChevronUp, Pencil
 import { useProjects, useProjectTimeEntries } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import ImportButton from '@/components/ImportButton';
 import { TimeEntry } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -30,7 +31,7 @@ function TimeCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }) {
   const deptColor = item.department ? DEPT_COLORS[item.department] ?? Colors.text.tertiary : Colors.text.tertiary;
   const hasOT = item.overtimeHours > 0;
-  const dateStr = new Date(item.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const dateStr = dateWith(item.date, { month: 'short', day: 'numeric' });
 
   const handleDelete = () => {
     Alert.alert('Delete Entry', `Remove time entry for ${dateStr}?`, [

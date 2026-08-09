@@ -5,6 +5,7 @@ import { Plus, Move, AlertCircle, Camera, Users, ChevronDown, ChevronUp, Pencil,
 import { useProjects, useProjectBlockingNotes } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import { BlockingNote } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -37,7 +38,7 @@ function BlockingCard({ item, isExpanded, onPress, onEdit, onDelete }: {
         <View style={styles.headerCenter}>
           <Text style={styles.title} numberOfLines={isExpanded ? undefined : 1}>{item.title}</Text>
           <Text style={styles.dateText}>
-            {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            {dateWith(item.createdAt, { month: 'short', day: 'numeric' })}
           </Text>
         </View>
         {isExpanded ? <ChevronUp color={Colors.text.tertiary} size={16} /> : <ChevronDown color={Colors.text.tertiary} size={16} />}

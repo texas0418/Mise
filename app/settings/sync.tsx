@@ -35,6 +35,7 @@ import { useSync } from '@/contexts/SyncContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -49,7 +50,7 @@ function formatRelativeTime(isoString: string | null): string {
   if (diffMin < 60) return `${diffMin}m ago`;
   const diffHr = Math.floor(diffMin / 60);
   if (diffHr < 24) return `${diffHr}h ago`;
-  return new Date(isoString).toLocaleDateString();
+  return dateWith(isoString, {});
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────

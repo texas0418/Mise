@@ -8,6 +8,7 @@ import { formatEighths, totalEighths } from '@/utils/eighths';
 import { runSceneMigration } from '@/lib/sceneMigration';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith, dayOfMonth } from '@/utils/formatRecord';
 import ImportToolbar from '@/components/ImportToolbar';
 import NotificationSettings from '@/components/NotificationSettings';
 import { rescheduleAll } from '@/utils/notifications';
@@ -20,10 +21,11 @@ function ScheduleCard({ day, scenes, onDelete }: { day: ScheduleDay; scenes: Sce
   const swipeableRef = useRef<Swipeable>(null);
 
   const pages = formatEighths(totalEighths(scenes.map(sc => sc.pageEighths)));
-  const dateObj = new Date(day.date + 'T00:00:00');
-  const monthShort = dateObj.toLocaleDateString('en-US', { month: 'short' });
-  const dayNum = dateObj.getDate();
-  const weekday = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+  // Guarded: a shoot day with an unreadable date rendered "INVALID DATE" and
+  // "NaN" on the tile rather than degrading. See #90.
+  const monthShort = dateWith(day.date, { month: 'short' });
+  const dayNum = dayOfMonth(day.date);
+  const weekday = dateWith(day.date, { weekday: 'short' });
 
   const renderRightActions = () => (
     <TouchableOpacity
