@@ -14,9 +14,18 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # test-calldoc.ts reaches app modules through the `@/` alias, which needs
+      # tsconfig paths and so needs bun. The rest run under plain node.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - run: npm ci
       - name: Typecheck
         run: npx tsc --noEmit
+      # The suites belong on the gate that ships, for the same reason bundling
+      # does: main had the weaker pipeline once already (#55).
+      - name: Logic suites
+        run: bash scripts/ci/run-tests.sh
       - name: Lint (incl. complexity limits)
         run: npx eslint .
       - name: LLM slop check
