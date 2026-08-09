@@ -8,6 +8,7 @@
     "start-web-dev": "DEBUG=expo* bunx expo start --web --tunnel",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test": "bash scripts/ci/run-tests.sh",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "render:docs": "bun run scripts/render-documents.ts"

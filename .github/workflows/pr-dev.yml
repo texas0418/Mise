@@ -14,9 +14,20 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # test-calldoc.ts reaches app modules through the `@/` alias, which needs
+      # tsconfig paths and so needs bun. The rest run under plain node.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
       - run: npm ci
       - name: Typecheck
         run: npx tsc --noEmit
+      # Seven suites, 335 assertions, none of which had ever run in CI — they
+      # ran when somebody remembered, and they still found real bugs in three
+      # consecutive sessions. run-tests.sh discovers scripts/test-*.ts rather
+      # than listing them, so the eighth suite runs without anyone wiring it in.
+      - name: Logic suites
+        run: bash scripts/ci/run-tests.sh
       - name: Lint (incl. complexity limits)
         run: npx eslint .
       - name: LLM slop check
