@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { ClipboardList, MapPin, Clock, Users, Drama, ShieldAlert, AlertCircle, Plus, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import {
   useProjects, useProjectSchedule, useProjectCrew, useProjectScenes,
@@ -14,6 +14,7 @@ import {
 import Colors from '@/constants/colors';
 import { ScheduleDay, Scene, CastMember, CastCallTime } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 /** Which of an actor's three times is being edited. */
 type CastTimeField = 'makeupTime' | 'wardrobeTime' | 'onSetTime';
@@ -384,7 +385,7 @@ export default function CallSheetsScreen() {
     updateCrewAssignment({ ...assignment, callTime });
   }, [crewAssignments, updateCrewAssignment]);
   const schedule = useProjectSchedule(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

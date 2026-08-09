@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useProjects, useProjectColorReferences } from '@/contexts/ProjectContext';
 import { LUT_STYLES } from '@/constants/filmData';
 import Colors from '@/constants/colors';
 import { LUTStyle } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewColorReferenceScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { activeProjectId, addColorReference, updateColorReference } = useProjects();
   const colorRefs = useProjectColorReferences(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

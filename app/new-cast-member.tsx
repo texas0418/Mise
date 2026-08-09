@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Image } from 'expo-image';
-import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack } from 'expo-router';
 import { Camera, User } from 'lucide-react-native';
 import { useProjects, useProjectCast } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
@@ -10,6 +10,7 @@ import { pickImage } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { CastMember, CastStatus } from '@/types';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const STATUS_OPTIONS: { value: CastStatus; label: string }[] = [
   { value: 'wishlist', label: 'Wishlist' },
@@ -22,7 +23,7 @@ const STATUS_OPTIONS: { value: CastStatus; label: string }[] = [
 export default function NewCastMemberScreen() {
   const { activeProjectId, addCastMember, updateCastMember } = useProjects();
   const cast = useProjectCast(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id;

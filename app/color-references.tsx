@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, Paintbrush, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectColorReferences } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
@@ -8,6 +8,7 @@ import Colors from '@/constants/colors';
 import { ColorReference, LUTStyle } from '@/types';
 import { LUT_STYLES } from '@/constants/filmData';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 function ColorSwatch({ color, size = 24 }: { color: string; size?: number }) {
   return <View style={[styles.swatch, { backgroundColor: color, width: size, height: size, borderRadius: size / 4 }]} />;
@@ -135,7 +136,7 @@ function ColorRefCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function ColorReferencesScreen() {
   const { activeProject, activeProjectId, deleteColorReference } = useProjects();
   const refs = useProjectColorReferences(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);

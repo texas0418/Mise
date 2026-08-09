@@ -1,16 +1,17 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { Department } from '@/types';
 import { DEPARTMENTS } from '@/constants/filmData';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewCrewScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addCrewMember, updateCrewMember, crew, addCrewAssignment, activeProjectId } = useProjects();
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id;

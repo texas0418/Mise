@@ -17,10 +17,10 @@
 
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Sparkles, Lock } from 'lucide-react-native';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 interface AIImportButtonProps {
   /** The entity key matching importRegistry (e.g. 'crew', 'budget', 'shots') */
@@ -32,7 +32,7 @@ interface AIImportButtonProps {
 }
 
 export default function AIImportButton({ entityKey, variant = 'full', label = 'AI Import' }: AIImportButtonProps) {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isPro } = useDeviceLicense();
   const needsPro = !isPro;
 

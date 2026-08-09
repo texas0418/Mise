@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, Palette, AlertCircle, Pencil, Trash2 } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { useProjects, useProjectMoodBoard } from '@/contexts/ProjectContext';
@@ -9,6 +9,7 @@ import Colors from '@/constants/colors';
 import { MoodBoardItem } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
   item: MoodBoardItem;
@@ -93,7 +94,7 @@ function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
 export default function MoodBoardsScreen() {
   const { activeProject, activeProjectId, deleteMoodBoardItem } = useProjects();
   const items = useProjectMoodBoard(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 

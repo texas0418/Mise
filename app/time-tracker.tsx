@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, Clock, AlertCircle, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectTimeEntries } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
@@ -9,6 +9,7 @@ import ImportButton from '@/components/ImportButton';
 import AIImportButton from '@/components/AIImportButton';
 import { TimeEntry } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const DEPT_COLORS: Record<string, string> = {
   direction: Colors.department.direction,
@@ -122,7 +123,7 @@ function TimeCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function TimeTrackerScreen() {
   const { activeProject, activeProjectId, deleteTimeEntry } = useProjects();
   const entries = useProjectTimeEntries(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

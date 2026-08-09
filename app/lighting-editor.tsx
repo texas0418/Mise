@@ -4,7 +4,7 @@ import {
   PanResponder, GestureResponderEvent, PanResponderGestureState,
   ScrollView, TextInput, Modal, SafeAreaView, StatusBar,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft, Plus, RotateCw, Trash2, Save, Lightbulb, Camera, User,
   Sun, Zap, Square, Circle, Minus, Cloud, Palette, Box, Tag,
@@ -16,6 +16,7 @@ import { useProjects, useProjectLightingDiagrams } from '@/contexts/ProjectConte
 import Colors from '@/constants/colors';
 import { LightingDiagram, LightingElement, LightingElementType, LightIntensity } from '@/types';
 import { ELEMENT_CATALOG, ElementCatalogItem, getElementDefaults, saveCustomTemplate } from '@/utils/lightingTemplates';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const CANVAS_SIZE = Math.min(SCREEN_W, SCREEN_H - 160);
@@ -250,7 +251,7 @@ function ToolbarSection({
 
 // eslint-disable-next-line max-lines-per-function, complexity -- tracked in #6
 export default function LightingEditorScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const { updateLightingDiagram } = useProjects();
   const diagrams = useProjectLightingDiagrams(null); // get all, we filter by id

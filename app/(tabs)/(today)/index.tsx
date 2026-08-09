@@ -15,14 +15,12 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Linking } from 'react-native';
-import { useRouter } from 'expo-router';
 import { CalendarDays, AlertCircle, Plus } from 'lucide-react-native';
 import {
   useProjects, useProjectSchedule, useProjectScenes, useProjectShots,
   useProjectCast, useProjectCrew, useProjectLocations,
 } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
-import { useNavigateOnce } from '@/utils/useNavigateOnce';
 import Colors from '@/constants/colors';
 import {
   resolveCurrentDay, scenesForDay, shotsForScenes, summarizeWork, isShotComplete,
@@ -36,6 +34,7 @@ import {
   LocationCard, WeatherCard, QuickActions, type SceneLine, type CalledPerson,
 } from '@/components/TodayCards';
 import type { LocationScout, Project, ScheduleDay } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 /** Minutes tick over, so anything finer is a re-render for nothing. */
 const CLOCK_INTERVAL_MS = 15_000;
@@ -178,8 +177,7 @@ function ShootDayView({ project, projectId, day, relation, daysAway, totalDays, 
   const cast = useProjectCast(projectId);
   const crew = useProjectCrew(projectId);
   const locations = useProjectLocations(projectId);
-  const router = useRouter();
-  const navigateOnce = useNavigateOnce();
+  const router = useGuardedRouter();
   const { contentPadding, isTablet } = useLayout();
 
   const isToday = relation === 'today';
@@ -241,13 +239,11 @@ function ShootDayView({ project, projectId, day, relation, daysAway, totalDays, 
   // The first scene of the day is the one being shot, so it is the sensible
   // default for a take logged from here.
   const firstSceneNumber = dayScenes.length > 0 ? dayScenes[0].number : '';
-  const go = useCallback(
-    (path: string) => navigateOnce(() => router.push(path as never)),
-    [navigateOnce, router],
-  );
+  // No local debounce needed: useGuardedRouter throttles repeats per
+  // destination, so a double tap on any of these opens one screen (#78).
   const handleLogTake = useCallback(
-    () => go(`/log-take?scene=${encodeURIComponent(firstSceneNumber)}`),
-    [go, firstSceneNumber],
+    () => router.push(`/log-take?scene=${encodeURIComponent(firstSceneNumber)}` as never),
+    [router, firstSceneNumber],
   );
 
   return (
@@ -276,8 +272,8 @@ function ShootDayView({ project, projectId, day, relation, daysAway, totalDays, 
       {isToday ? (
         <QuickActions
           onLogTake={handleLogTake}
-          onContinuity={() => go('/new-continuity')}
-          onNote={() => go('/new-note')}
+          onContinuity={() => router.push('/new-continuity' as never)}
+          onNote={() => router.push('/new-note' as never)}
         />
       ) : null}
 
@@ -285,7 +281,7 @@ function ShootDayView({ project, projectId, day, relation, daysAway, totalDays, 
         scenes={sceneLines}
         work={work}
         title={isToday ? "TODAY'S WORK" : "THE DAY'S WORK"}
-        onScenePress={() => go('/script-breakdown')}
+        onScenePress={() => router.push('/script-breakdown' as never)}
       />
 
       {isToday ? (
@@ -317,7 +313,7 @@ function ShootDayView({ project, projectId, day, relation, daysAway, totalDays, 
 
       <TouchableOpacity
         style={styles.scheduleLink}
-        onPress={() => go('/(tabs)/schedule')}
+        onPress={() => router.push('/(tabs)/schedule' as never)}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel="Open the full schedule"
@@ -337,7 +333,7 @@ function ShootDayView({ project, projectId, day, relation, daysAway, totalDays, 
 export default function TodayScreen() {
   const { activeProject, activeProjectId } = useProjects();
   const schedule = useProjectSchedule(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
 
   // A live clock, and with it a live answer to "which day is it" — a day that
   // rolls over or a call that arrives while the screen is open both land here.

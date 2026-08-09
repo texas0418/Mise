@@ -1,16 +1,17 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectBudget } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { BudgetCategory } from '@/types';
 import { BUDGET_CATEGORIES } from '@/constants/filmData';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewBudgetItemScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addBudgetItem, updateBudgetItem, activeProjectId, activeProject } = useProjects();
   const budgetItems = useProjectBudget(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Share } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Plus, Send, Clock, AlertTriangle, MessageCircle, Trash2, Share2, ChevronDown, ChevronUp, Megaphone } from 'lucide-react-native';
 import { useProjects, useProjectMessages } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { DirectorMessage, MessageCategory, MessagePriority } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const CATEGORY_CONFIG: Record<MessageCategory, { label: string; color: string; icon: string }> = {
   'moving-on': { label: 'Moving On', color: '#34D399', icon: '→' },
@@ -88,7 +88,7 @@ function MessageCard({ msg, onDelete, onShare }: { msg: DirectorMessage; onDelet
 export default function CommsHubScreen() {
   const { activeProjectId, deleteMessage } = useProjects();
   const messages = useProjectMessages(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
 
   const [filter, setFilter] = useState<'all' | MessageCategory>('all');

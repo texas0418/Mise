@@ -1,13 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectShots, useProjectTakes, useProjectSchedule, useProjectWrapReports } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewWrapReportScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { activeProject, activeProjectId, addWrapReport, updateWrapReport } = useProjects();
   const shots = useProjectShots(activeProjectId);
   const takes = useProjectTakes(activeProjectId);

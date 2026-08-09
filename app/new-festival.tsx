@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectFestivals } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { FestivalStatus } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const STATUS_OPTIONS: { label: string; value: FestivalStatus }[] = [
   { label: 'Researching', value: 'researching' },
@@ -18,7 +19,7 @@ const STATUS_OPTIONS: { label: string; value: FestivalStatus }[] = [
 ];
 
 export default function NewFestivalScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addFestival, updateFestival, activeProjectId, activeProject } = useProjects();
   const festivals = useProjectFestivals(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

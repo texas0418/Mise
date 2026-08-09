@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SectionList, Alert, Animated as RNAnimated } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Plus, Camera, Check, Clock, Eye, AlertCircle, Trash2, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useProjects, useProjectShots, useProjectScenes, findScene } from '@/contexts/ProjectContext';
@@ -10,6 +9,7 @@ import Colors from '@/constants/colors';
 import ImportToolbar from '@/components/ImportToolbar';
 import { Shot, ShotStatus } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const STATUS_CONFIG: Record<ShotStatus, { icon: React.ElementType; color: string; label: string }> = {
   planned: { icon: Clock, color: Colors.text.tertiary, label: 'Planned' },
@@ -138,7 +138,7 @@ export default function ShotsScreen() {
   const { activeProject, activeProjectId, deleteShot } = useProjects();
   const shots = useProjectShots(activeProjectId);
   const scenes = useProjectScenes(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
 
   const sections = useMemo(() => {

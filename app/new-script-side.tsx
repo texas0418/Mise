@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router';
 import { Plus, X, MessageSquare, Camera, Users, Eye } from 'lucide-react-native';
 import { useProjects, useProjectScriptSides } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { ScriptSide, SidesStatus, SideAnnotation } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const STATUS_OPTIONS: { value: SidesStatus; label: string }[] = [
   { value: 'upcoming', label: 'Upcoming' },
@@ -32,7 +33,7 @@ const ANNOTATION_TYPES: { value: string; label: string; icon: React.ElementType 
 export default function NewScriptSideScreen() {
   const { activeProjectId, addScriptSide, updateScriptSide } = useProjects();
   const sides = useProjectScriptSides(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id;

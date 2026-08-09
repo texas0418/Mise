@@ -1,12 +1,12 @@
 import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, TextInput, Keyboard, TouchableWithoutFeedback, Platform, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Plus, CircleDot, CircleCheck, CircleX, AlertCircle, ChevronDown, ChevronUp, Trash2 } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectTakes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { Take } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // ─── Compact Slate ───────────────────────────────────────────────
 function CompactSlate({ 
@@ -185,7 +185,7 @@ function TakeCard({ take, onToggleCircle, onToggleNG, onEdit, onDelete }: {
 export default function OnSetScreen() {
   const { activeProject, activeProjectId, addTake, updateTake, deleteTake } = useProjects();
   const takes = useProjectTakes(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
 
   // Slate state
   const [scene, setScene] = useState('1');

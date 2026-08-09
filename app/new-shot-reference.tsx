@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { ImagePlus } from 'lucide-react-native';
 import { useProjects, useProjectShotReferences } from '@/contexts/ProjectContext';
 import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewShotReferenceScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { activeProjectId, addShotReference, updateShotReference } = useProjects();
   const references = useProjectShotReferences(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

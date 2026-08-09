@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Camera, ImagePlus, X } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -9,9 +9,10 @@ import { useProjects, useProjectLocations } from '@/contexts/ProjectContext';
 import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewLocationScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addLocation, updateLocation, activeProjectId, activeProject } = useProjects();
   const locations = useProjectLocations(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

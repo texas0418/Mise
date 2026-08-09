@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Plus, MapPin, Clock, FileText, CalendarDays, AlertCircle, Trash2, ChevronDown, ChevronUp, Film } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useProjects, useProjectSchedule, useProjectScenes } from '@/contexts/ProjectContext';
@@ -14,6 +13,7 @@ import NotificationSettings from '@/components/NotificationSettings';
 import { rescheduleAll } from '@/utils/notifications';
 import { ScheduleDay, Scene } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 function ScheduleCard({ day, scenes, onDelete }: { day: ScheduleDay; scenes: Scene[]; onDelete: () => void }) {
   const [expanded, setExpanded] = useState(false);
@@ -173,7 +173,7 @@ export default function ScheduleScreen() {
     const byId = new Map(scenes.map(sc => [sc.id, sc]));
     return day.sceneIds.map(id => byId.get(id)).filter((sc): sc is Scene => !!sc);
   }, [scenes]);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
 
   const handleDelete = useCallback((day: ScheduleDay) => {

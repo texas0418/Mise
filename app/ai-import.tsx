@@ -18,7 +18,7 @@ import {
   TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import {
   Sparkles, Camera, X, Check, ArrowLeft, ArrowRight,
   AlertCircle, Trash2, Key, Image as ImageIcon, Type,
@@ -32,11 +32,12 @@ import { getEntityConfig, EntityConfig } from '@/utils/importRegistry';
 import { buildAIPrompt, parseAIResponse } from '@/utils/aiImport';
 import { sendCompletion, getApiKey, saveApiKey, hasApiKey } from '@/utils/anthropicClient';
 import { recordImport } from '@/utils/importHistory';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 type Step = 'input' | 'review';
 
 export default function AIImportScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const params = useLocalSearchParams<{ entity?: string }>();
   const { isTablet, contentPadding } = useLayout();
   const projects = useProjects();

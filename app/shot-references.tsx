@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Plus, Image as ImageIcon, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { useProjects, useProjectShotReferences } from '@/contexts/ProjectContext';
@@ -9,6 +9,7 @@ import Colors from '@/constants/colors';
 import { ShotReference } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { resolvePhotoUri } from '@/utils/photoStorage';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 function ReferenceCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: ShotReference;
@@ -116,7 +117,7 @@ function ReferenceCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 export default function ShotReferencesScreen() {
   const { activeProject, activeProjectId, deleteShotReference } = useProjects();
   const references = useProjectShotReferences(activeProjectId);
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 

@@ -1,16 +1,17 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectSchedule, useProjectScenes } from '@/contexts/ProjectContext';
 import { formatEighths, totalEighths } from '@/utils/eighths';
 import { Scene } from '@/types';
 import Colors from '@/constants/colors';
 import { scheduleNotificationsForDay } from '@/utils/notifications';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewScheduleDayScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addScheduleDay, updateScheduleDay, activeProjectId, activeProject, schedule } = useProjects();
   const projectSchedule = useProjectSchedule(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

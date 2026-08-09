@@ -14,13 +14,14 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView,
 } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { ShieldAlert, Truck, UtensilsCrossed, Send } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectSchedule, useCallSheetDetails } from '@/contexts/ProjectContext';
 import { useNavigateOnce } from '@/utils/useNavigateOnce';
 import Colors from '@/constants/colors';
 import { CallSheetDetails } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 /** Every editable field, in the order a call sheet reads. */
 type DetailField = Exclude<keyof CallSheetDetails, 'id' | 'projectId' | 'scheduleDayId' | 'version' | 'issuedAt' | 'createdAt'>;
@@ -87,7 +88,7 @@ function Section({ title, icon: Icon, fields, values, onChange }: {
 }
 
 export default function CallSheetDetailsScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   // Two taps on Save wrote once but called back() twice, which the navigator
   // complains about because the second has nowhere to go (#78's shape).
   const once = useNavigateOnce();

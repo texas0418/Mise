@@ -1,7 +1,6 @@
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, ActivityIndicator, Alert } from 'react-native';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
 import { Plus, Film, ChevronRight, Trash2, Check } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useProjects } from '@/contexts/ProjectContext';
@@ -9,6 +8,7 @@ import { maybeAskForReview } from '@/utils/reviewPrompt';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { Project, ProjectStatus } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -115,7 +115,7 @@ function ProjectCard({ project, index, isActive, onPress, onDelete }: { project:
 
 export default function ProjectsScreen() {
   const { projects, activeProjectId, selectProject, deleteProject, isLoading, takes, wrapReports } = useProjects();
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { isTablet, gridColumns, contentPadding } = useLayout();
   const columns = isTablet ? Math.min(gridColumns, 2) : 1;
 

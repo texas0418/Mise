@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectVFX } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { VFXComplexity, VFXShotStatus } from '@/types';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 const COMPLEXITY_OPTIONS: { label: string; value: VFXComplexity }[] = [
   { label: 'Simple', value: 'simple' },
@@ -24,7 +25,7 @@ const STATUS_OPTIONS: { label: string; value: VFXShotStatus }[] = [
 ];
 
 export default function NewVFXScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { addVFXShot, updateVFXShot, activeProjectId, activeProject } = useProjects();
   const vfxShots = useProjectVFX(activeProjectId);
   const params = useLocalSearchParams<{ id?: string }>();

@@ -4,7 +4,6 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Alert, ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { UserPlus, Crown, Shield, ChevronDown, Trash2, User } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProjects } from '@/contexts/ProjectContext';
@@ -12,6 +11,7 @@ import { usePermission } from '@/contexts/PermissionContext';
 import { supabase } from '@/lib/supabase';
 import { ALL_ROLES, ROLE_LABELS, ROLE_DESCRIPTIONS, type Role } from '@/lib/permissions';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 interface Member {
   id: string;
@@ -24,7 +24,7 @@ interface Member {
 }
 
 export default function TeamScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
   const { user } = useAuth();
   const { activeProjectId, activeProject } = useProjects();
   const { canManageMembers, canInvite, role: myRole } = usePermission();

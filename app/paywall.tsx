@@ -10,7 +10,6 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import {
   Crown,
   Upload,
@@ -28,6 +27,7 @@ import {
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // ─── Feature list ───────────────────────────────────────────────────────────
 
@@ -324,7 +324,7 @@ function LegalFooter({
 // ─── Screen ─────────────────────────────────────────────────────────────────
 
 export default function PaywallScreen() {
-  const router = useRouter();
+  const router = useGuardedRouter();
 
   const { isLoading: rcLoading } = useSubscription();
 
