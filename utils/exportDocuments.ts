@@ -8,12 +8,13 @@
 
 import {
   Project, Shot, ScheduleDay, Scene, BudgetItem, WrapReport, SceneSelect, Take,
-  CastMember, CastCallTime,
+  CastMember, CastCallTime, CallSheetDetails,
 } from '@/types';
 import type { AssignedCrew } from '@/contexts/ProjectContext';
 import { renderDocument, renderTable, escapeHtml, DocumentMeta } from '@/utils/documentStyle';
 import { formatEighths, totalEighths, compareSceneNumbers } from '@/utils/eighths';
-import { castRows } from '@/utils/callSheet';
+import { castRows, keyContacts, type AdvanceDay } from '@/utils/callSheet';
+import type { DayWeather } from '@/utils/forecast';
 
 function meta(project: Project, documentTitle: string, subtitle?: string): DocumentMeta {
   return {
@@ -103,9 +104,86 @@ export function buildScheduleHtml(project: Project, schedule: ScheduleDay[], sce
 
 // ─── Call sheet ─────────────────────────────────────────────────────────────
 
+/** Label / value pairs, skipping anything blank so empty sections do not print. */
+function definitionRows(pairs: [string, string | undefined][]): string[][] {
+  return pairs
+    .filter(([, value]) => String(value ?? '').trim().length > 0)
+    .map(([label, value]) => [escapeHtml(label), escapeHtml(String(value).trim())]);
+}
+
+function labelledBlock(title: string, pairs: [string, string | undefined][]): string {
+  const rows = definitionRows(pairs);
+  if (rows.length === 0) return '';
+  return `<h2>${escapeHtml(title)}</h2>` + renderTable(['', ''], rows);
+}
+
+/** Safety first, literally: the hospital is the reason this block exists. */
+function safetyHtml(details: CallSheetDetails | null): string {
+  if (!details) return '';
+  return labelledBlock('Safety', [
+    ['Nearest hospital', details.hospitalName],
+    ['Address', details.hospitalAddress],
+    ['Phone', details.hospitalPhone],
+    ['Notes', details.safetyNotes],
+  ]);
+}
+
+function logisticsHtml(details: CallSheetDetails | null): string {
+  if (!details) return '';
+  return labelledBlock('Logistics', [
+    ['Parking', details.parkingNotes],
+    ['Basecamp', details.basecampNotes],
+    ['Crew park', details.crewParkNotes],
+    ['Nearest bathroom', details.nearestBathroom],
+    ['Walkie channels', details.walkieChannels],
+    ['Company moves', details.companyMoves],
+    ['Breakfast', details.breakfastTime],
+    ['Lunch', details.lunchTime],
+    ['Catering', details.cateringLocation],
+  ]);
+}
+
+function contactsHtml(crew: AssignedCrew[]): string {
+  const contacts = keyContacts(crew);
+  if (contacts.length === 0) return '';
+  return '<h2>Key contacts</h2>' + renderTable(
+    ['Role', 'Name', 'Phone'],
+    contacts.map(c => [
+      escapeHtml(c.title),
+      escapeHtml(c.name),
+      `<span class="num">${escapeHtml(c.phone)}</span>`,
+    ]));
+}
+
+function weatherHtml(weather: DayWeather | null): string {
+  if (!weather) return '';
+  return labelledBlock('Weather', [
+    ['Conditions', `${weather.conditionLabel}, ${weather.tempHigh}° / ${weather.tempLow}°`],
+    ['Precipitation', `${weather.precipChance}%`],
+    ['Sunrise', weather.sunrise],
+    ['Sunset', weather.sunset],
+    ['Golden hour', [weather.goldenHourAM, weather.goldenHourPM].filter(Boolean).join(' and ')],
+  ]);
+}
+
+/** Tomorrow, read off the schedule so it cannot contradict it. */
+function advanceHtml(advance: AdvanceDay | null): string {
+  if (!advance) return '';
+  return labelledBlock(`Advance — Day ${advance.dayNumber}`, [
+    ['Date', advance.date],
+    ['Call', advance.callTime],
+    ['Location', advance.location],
+    ['Scenes', advance.sceneNumbers.join(', ')],
+    ['Pages', advance.eighths > 0 ? formatEighths(advance.eighths) : ''],
+  ]);
+}
+
 export function buildCallSheetHtml(
   project: Project, day: ScheduleDay, scenes: Scene[], crew: AssignedCrew[],
   cast: CastMember[] = [], castTimes: Map<string, CastCallTime> | null = null,
+  details: CallSheetDetails | null = null,
+  advance: AdvanceDay | null = null,
+  weather: DayWeather | null = null,
 ): string {
   const linked = scenesFor(day, scenes);
   const pages = linked.length > 0 ? formatEighths(totalEighths(linked.map(s => s.pageEighths))) : '—';
@@ -162,9 +240,17 @@ export function buildCallSheetHtml(
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
   });
 
+  // Which sheet this is. Crew compare the number against the one in their
+  // hand, so an unissued draft says so rather than implying it is current.
+  const version = details?.issuedAt
+    ? `${dateLabel} · Version ${details.version}`
+    : `${dateLabel} · Draft, not yet issued`;
+
   return renderDocument(
-    meta(project, `Call Sheet — Day ${day.dayNumber}`, dateLabel),
-    times + sceneTable + castHtml + crewTable + notes,
+    meta(project, `Call Sheet — Day ${day.dayNumber}`, version),
+    times + safetyHtml(details) + sceneTable + castHtml + crewTable
+      + contactsHtml(crew) + logisticsHtml(details) + weatherHtml(weather)
+      + advanceHtml(advance) + notes,
   );
 }
 

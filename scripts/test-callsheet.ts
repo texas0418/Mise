@@ -11,7 +11,8 @@
  */
 import {
   resolveDayScenes, dayNightCode, sceneRows, dayTotals, sceneListLabel,
-  normalizeCharacterName, castRows, castTimesForDay,
+  normalizeCharacterName, castRows, castTimesForDay, keyContacts, advanceDay,
+  detailSummaryLines, matchLocation,
 } from '../utils/callSheet.ts';
 
 let pass = 0;
@@ -133,6 +134,95 @@ eq('other day is separate', castTimesForDay(entries, 'd3').get('c1')?.makeupTime
 eq('unknown day is empty', castTimesForDay(entries, 'nope').size, 0);
 eq('null day is empty', castTimesForDay(entries, null).size, 0);
 eq('no entries', castTimesForDay([], 'd2').size, 0);
+
+// --- keyContacts -----------------------------------------------------------
+const crew = [
+  { name: 'Priya Shah', projectRole: '1st AD', phone: '555-0101' },
+  { name: 'Sam Ordway', projectRole: 'Director', phone: '555-0102' },
+  { name: 'Nia Okafor', projectRole: 'Director of Photography', phone: '555-0103' },
+  { name: 'Lee Park', projectRole: 'Location Manager', phone: '' },
+  { name: 'Tom Reyes', projectRole: 'Gaffer', phone: '555-0104' },
+];
+const contacts = keyContacts(crew);
+// Printed in call sheet order, not the order the crew were entered.
+eq('key contact order', contacts.map(c => c.title), ['Director', '1st AD', 'Cinematographer']);
+eq('key contact names', contacts.map(c => c.name), ['Sam Ordway', 'Priya Shah', 'Nia Okafor']);
+// No number means no row: a contact you cannot contact is worse than none.
+eq('no phone means no row', contacts.some(c => c.name === 'Lee Park'), false);
+eq('non-key roles are skipped', contacts.some(c => c.name === 'Tom Reyes'), false);
+eq('role spelled out', keyContacts([{ name: 'A', projectRole: 'First Assistant Director', phone: '1' }])[0].title, '1st AD');
+eq('bare AD', keyContacts([{ name: 'A', projectRole: 'AD', phone: '1' }])[0].title, '1st AD');
+eq('DP abbreviation', keyContacts([{ name: 'A', projectRole: 'DP', phone: '1' }])[0].title, 'Cinematographer');
+eq('UPM', keyContacts([{ name: 'A', projectRole: 'UPM', phone: '1' }])[0].title, 'UPM');
+eq('line producer counts as producer', keyContacts([{ name: 'A', projectRole: 'Line Producer', phone: '1' }])[0].title, 'Producer');
+// "Assistant Director" alone must not be mistaken for the director.
+eq('assistant director is not the director',
+  keyContacts([{ name: 'A', projectRole: 'Assistant Director', phone: '1' }]).map(c => c.title), []);
+eq('one person is listed once',
+  keyContacts([{ name: 'Solo', projectRole: 'Director', phone: '1' }]).length, 1);
+eq('empty crew', keyContacts([]), []);
+
+// --- advanceDay ------------------------------------------------------------
+const schedule = [
+  { id: 'd1', date: '2026-08-07', dayNumber: 1, location: 'Cliff', callTime: '7:00 AM', sceneIds: ['s30'] },
+  { id: 'd2', date: '2026-08-09', dayNumber: 2, location: 'Stage B', callTime: '7:00 AM', sceneIds: ['s12', 's12a'] },
+  { id: 'd3', date: '2026-08-12', dayNumber: 3, location: 'Point Reyes', callTime: '6:00 AM', sceneIds: ['s30'] },
+];
+const next = advanceDay(schedule, 'd2', scenes);
+eq('advance day number', next?.dayNumber, 3);
+eq('advance location', next?.location, 'Point Reyes');
+eq('advance call', next?.callTime, '6:00 AM');
+eq('advance scenes', next?.sceneNumbers, ['30']);
+eq('advance pages', next?.eighths, 8);
+eq('last day has no advance', advanceDay(schedule, 'd3', scenes), null);
+eq('unknown day', advanceDay(schedule, 'nope', scenes), null);
+// Next by date, not by day number — days get renumbered.
+const renumbered = [
+  { id: 'a', date: '2026-08-09', dayNumber: 9, sceneIds: [] },
+  { id: 'b', date: '2026-08-10', dayNumber: 2, sceneIds: [] },
+];
+eq('advance follows the date, not the number', advanceDay(renumbered, 'a', scenes)?.dayNumber, 2);
+// A day with only a typed scene string still says something useful.
+eq('advance falls back to typed scenes',
+  advanceDay([
+    { id: 'x', date: '2026-08-09', dayNumber: 1, sceneIds: [] },
+    { id: 'y', date: '2026-08-10', dayNumber: 2, scenes: 'Sc. 40-42', sceneIds: [] },
+  ], 'x', scenes)?.sceneNumbers, ['Sc. 40-42']);
+
+// --- detailSummaryLines ----------------------------------------------------
+eq('no details', detailSummaryLines(null), []);
+eq('empty details', detailSummaryLines({}), []);
+// Hospital name and address read as one line.
+eq('hospital joins name and address',
+  detailSummaryLines({ hospitalName: 'Grady', hospitalAddress: '80 Jesse Hill' }),
+  [['Hospital', 'Grady — 80 Jesse Hill']]);
+eq('hospital name alone', detailSummaryLines({ hospitalName: 'Grady' }), [['Hospital', 'Grady']]);
+eq('hospital address alone', detailSummaryLines({ hospitalAddress: '80 Jesse Hill' }), [['Hospital', '80 Jesse Hill']]);
+// Blank fields are dropped, not printed with nothing after them.
+eq('blank fields dropped',
+  detailSummaryLines({ parkingNotes: 'Lot C', basecampNotes: '   ', walkieChannels: '' }),
+  [['Parking', 'Lot C']]);
+eq('order follows the sheet',
+  detailSummaryLines({ lunchTime: '1:00 PM', parkingNotes: 'Lot C', hospitalPhone: '404' }).map(l => l[0]),
+  ['Hospital phone', 'Parking', 'Lunch']);
+eq('values are trimmed', detailSummaryLines({ parkingNotes: '  Lot C  ' })[0][1], 'Lot C');
+
+// --- matchLocation ---------------------------------------------------------
+const places = [
+  { name: 'Stage B - Lighthouse Interior', address: '1280 Marietta St' },
+  { name: 'Point Reyes', address: '' },
+  { name: 'A', address: 'somewhere' },
+];
+eq('exact name', matchLocation('Point Reyes', places)?.name, 'Point Reyes');
+eq('case insensitive', matchLocation('point reyes', places)?.name, 'Point Reyes');
+eq('day text is contained in the scouted name', matchLocation('Stage B', places)?.address, '1280 Marietta St');
+eq('scouted name contained in the day text',
+  matchLocation('Point Reyes north car park', places)?.name, 'Point Reyes');
+// A one-character location must not match everything.
+eq('very short names do not match loosely', matchLocation('Anywhere at all', places), null);
+eq('no match', matchLocation('Elsewhere', places), null);
+eq('blank day location', matchLocation('', places), null);
+eq('no locations', matchLocation('Stage B', []), null);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

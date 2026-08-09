@@ -36,6 +36,7 @@ export const SYNCABLE_TABLES: TableConfig[] = [
   { table: 'script_sides',        storageKey: 'mise_script_sides',      queryKey: 'scriptSides',      projectScoped: true },
   { table: 'cast_members',        storageKey: 'mise_cast',              queryKey: 'cast',             projectScoped: true },
   { table: 'cast_call_times',     storageKey: 'mise_cast_call_times',   queryKey: 'castCallTimes',    projectScoped: true },
+  { table: 'call_sheet_details',  storageKey: 'mise_call_sheet_details', queryKey: 'callSheetDetails', projectScoped: true },
   { table: 'lookbook_items',      storageKey: 'mise_lookbook',          queryKey: 'lookbook',         projectScoped: true },
   { table: 'director_statements', storageKey: 'mise_director_statement',queryKey: 'directorStatement',projectScoped: true },
   { table: 'scene_selects',       storageKey: 'mise_selects',           queryKey: 'selects',          projectScoped: true },

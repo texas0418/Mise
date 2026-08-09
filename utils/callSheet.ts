@@ -126,6 +126,205 @@ export function sceneListLabel(day: DayLike | null, scenes: SceneLike[]): string
 }
 
 // ---------------------------------------------------------------------------
+// Location
+// ---------------------------------------------------------------------------
+
+export interface LocationLike {
+  name: string;
+  address?: string;
+  parkingNotes?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+/**
+ * The scouted location behind a shoot day's free-text location field.
+ *
+ * A day stores a typed string, not a link, so this matches on the name and
+ * accepts containment either way — "Stage B" against "Stage B - Lighthouse
+ * Interior" is the same place, and it is what people type. The two-character
+ * floor stops a location called "A" from matching every address on the slate.
+ */
+export function matchLocation<T extends LocationLike>(dayLocation: string, locations: T[]): T | null {
+  const wanted = String(dayLocation ?? '').trim().toLowerCase();
+  if (!wanted) return null;
+
+  const exact = (locations ?? []).find(l => String(l.name ?? '').trim().toLowerCase() === wanted);
+  if (exact) return exact;
+
+  return (locations ?? []).find(l => {
+    const name = String(l.name ?? '').trim().toLowerCase();
+    return name.length > 2 && (wanted.includes(name) || name.includes(wanted));
+  }) ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// Safety and logistics
+// ---------------------------------------------------------------------------
+
+export interface DetailsLike {
+  hospitalName?: string;
+  hospitalAddress?: string;
+  hospitalPhone?: string;
+  safetyNotes?: string;
+  parkingNotes?: string;
+  basecampNotes?: string;
+  crewParkNotes?: string;
+  nearestBathroom?: string;
+  walkieChannels?: string;
+  companyMoves?: string;
+  breakfastTime?: string;
+  lunchTime?: string;
+  cateringLocation?: string;
+}
+
+/** Label / field pairs in the order a call sheet reads them. */
+const SUMMARY_FIELDS: { label: string; key: keyof DetailsLike }[] = [
+  { label: 'Hospital phone', key: 'hospitalPhone' },
+  { label: 'Safety', key: 'safetyNotes' },
+  { label: 'Parking', key: 'parkingNotes' },
+  { label: 'Basecamp', key: 'basecampNotes' },
+  { label: 'Crew park', key: 'crewParkNotes' },
+  { label: 'Bathroom', key: 'nearestBathroom' },
+  { label: 'Walkies', key: 'walkieChannels' },
+  { label: 'Company moves', key: 'companyMoves' },
+  { label: 'Breakfast', key: 'breakfastTime' },
+  { label: 'Lunch', key: 'lunchTime' },
+  { label: 'Catering', key: 'cateringLocation' },
+];
+
+/**
+ * The filled-in parts of the safety and logistics block, as label/value pairs.
+ *
+ * Blank fields are dropped rather than printed empty — a call sheet listing
+ * "Parking:" with nothing after it reads as an oversight, not as "no parking
+ * notes". Hospital name and address join into one line because that is how it
+ * is read out.
+ */
+export function detailSummaryLines(details: DetailsLike | null | undefined): [string, string][] {
+  if (!details) return [];
+  const lines: [string, string][] = [];
+
+  const hospital = [details.hospitalName, details.hospitalAddress]
+    .map(part => String(part ?? '').trim())
+    .filter(part => part.length > 0)
+    .join(' — ');
+  if (hospital) lines.push(['Hospital', hospital]);
+
+  for (const field of SUMMARY_FIELDS) {
+    const value = String(details[field.key] ?? '').trim();
+    if (value) lines.push([field.label, value]);
+  }
+
+  return lines;
+}
+
+// ---------------------------------------------------------------------------
+// Key contacts
+// ---------------------------------------------------------------------------
+
+export interface CrewLike {
+  assignmentId?: string;
+  name: string;
+  projectRole: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface KeyContact {
+  /** The call sheet's word for the job, not whatever was typed. */
+  title: string;
+  name: string;
+  phone: string;
+}
+
+/**
+ * The handful of people a call sheet prints numbers for, in the order it
+ * prints them. Matched on words that appear in the typed role, because roles
+ * are free text: "1st AD", "First Assistant Director" and "AD" are one job.
+ */
+const KEY_ROLES: { title: string; patterns: RegExp }[] = [
+  { title: 'Director', patterns: /^(the )?director$/i },
+  { title: '1st AD', patterns: /\b(1st|first)\s*(ad|assistant director)\b|^ad$/i },
+  { title: 'UPM', patterns: /\bupm\b|unit production manager/i },
+  { title: 'Producer', patterns: /^(line |executive |co-)?producer$/i },
+  { title: 'Location Manager', patterns: /location manager/i },
+  { title: 'Cinematographer', patterns: /\b(dp|dop)\b|director of photography|cinematographer/i },
+];
+
+/**
+ * Key contacts, read out of the crew already assigned to the production
+ * rather than typed a second time.
+ *
+ * Retyping them would mean two sources for one phone number, and the one on
+ * the call sheet would be the stale one. Anyone without a number is skipped —
+ * a contact line with no way to contact them is worse than an absent row.
+ */
+export function keyContacts(crew: CrewLike[]): KeyContact[] {
+  const contacts: KeyContact[] = [];
+  const used = new Set<string>();
+
+  for (const { title, patterns } of KEY_ROLES) {
+    const match = (crew ?? []).find(person =>
+      !used.has(person.name) &&
+      patterns.test(String(person.projectRole ?? '').trim()) &&
+      String(person.phone ?? '').trim().length > 0);
+    if (!match) continue;
+    used.add(match.name);
+    contacts.push({ title, name: match.name, phone: String(match.phone).trim() });
+  }
+
+  return contacts;
+}
+
+// ---------------------------------------------------------------------------
+// Tomorrow
+// ---------------------------------------------------------------------------
+
+export interface AdvanceDay {
+  dayNumber: number;
+  date: string;
+  location: string;
+  callTime: string;
+  sceneNumbers: string[];
+  eighths: number;
+}
+
+/**
+ * The advance block — what is coming after this day.
+ *
+ * Read from the schedule rather than typed, so it cannot contradict it. The
+ * next day by date, not by day number: days get renumbered and reordered, and
+ * the crew care about which morning arrives next.
+ */
+export function advanceDay<T extends DayLike & { id: string; date: string; dayNumber: number; location?: string; callTime?: string }>(
+  schedule: T[],
+  currentDayId: string,
+  scenes: SceneLike[],
+): AdvanceDay | null {
+  const current = (schedule ?? []).find(d => d.id === currentDayId);
+  if (!current) return null;
+
+  const later = (schedule ?? [])
+    .filter(d => d.id !== currentDayId && String(d.date ?? '') > String(current.date ?? ''))
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const next = later[0];
+  if (!next) return null;
+
+  const nextScenes = resolveDayScenes(next, scenes);
+  return {
+    dayNumber: next.dayNumber,
+    date: next.date,
+    location: String(next.location ?? ''),
+    callTime: String(next.callTime ?? ''),
+    sceneNumbers: nextScenes.length > 0
+      ? nextScenes.map(s => s.number)
+      : (sceneListLabel(next, scenes) === '—' ? [] : [sceneListLabel(next, scenes)]),
+    eighths: dayTotals(nextScenes).eighths,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Cast
 // ---------------------------------------------------------------------------
 

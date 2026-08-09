@@ -30,6 +30,7 @@ import {
   localMinutes, formatClock, totalDayCount, type DayRelation,
 } from '@/utils/today';
 import { fetchDayWeather, needsCoverSet, type DayWeather } from '@/utils/forecast';
+import { matchLocation } from '@/utils/callSheet';
 import {
   DayHeader, TimesCard, WorkCard, PaceCard, CalledCard,
   LocationCard, WeatherCard, QuickActions, type SceneLine, type CalledPerson,
@@ -42,26 +43,6 @@ const CLOCK_INTERVAL_MS = 15_000;
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/**
- * The scouted location behind a shoot day's free-text location field.
- *
- * A day stores a typed string, not a link, so this matches on the name and
- * accepts a containment either way — "Stage B" against "Stage B - Lighthouse
- * Interior" is the same place, and it is what people type.
- */
-function matchLocation(dayLocation: string, locations: LocationScout[]): LocationScout | null {
-  const wanted = String(dayLocation ?? '').trim().toLowerCase();
-  if (!wanted) return null;
-
-  const exact = locations.find(l => l.name.trim().toLowerCase() === wanted);
-  if (exact) return exact;
-
-  return locations.find(l => {
-    const name = l.name.trim().toLowerCase();
-    return name.length > 2 && (wanted.includes(name) || name.includes(wanted));
-  }) ?? null;
-}
 
 /** What to print for a call or wrap: the tidied time, or the raw text if it did not parse. */
 function displayTime(minutes: number | null, raw: string): string | null {

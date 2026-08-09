@@ -8,7 +8,7 @@ import {
   ProductionNote, MoodBoardItem, DirectorCredit, ShotReference, WrapReport,
   LocationWeather, BlockingNote, ColorReference, TimeEntry, ScriptSide,
   CastMember, LookbookItem, DirectorStatement, SceneSelect, DirectorMessage,
-  ScriptPDF, ScriptAnnotation, LightingDiagram, Scene, CrewAssignment, CastCallTime
+  ScriptPDF, ScriptAnnotation, LightingDiagram, Scene, CrewAssignment, CastCallTime, CallSheetDetails
 } from '@/types';
 import { useSync } from '@/contexts/SyncContext';
 import { compareSceneNumbers } from '@/utils/eighths';
@@ -41,6 +41,7 @@ const STORAGE_KEYS = {
   scriptSides: 'mise_script_sides',
   cast: 'mise_cast',
   castCallTimes: 'mise_cast_call_times',
+  callSheetDetails: 'mise_call_sheet_details',
   lookbook: 'mise_lookbook',
   directorStatement: 'mise_director_statement',
   selects: 'mise_selects',
@@ -262,6 +263,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const scriptSideStore = useEntityStore<ScriptSide>('scriptSides', STORAGE_KEYS.scriptSides, [], 'script_sides', enqueueMutation);
   const castStore = useEntityStore<CastMember>('cast', STORAGE_KEYS.cast, [], 'cast_members', enqueueMutation);
   const castCallTimeStore = useEntityStore<CastCallTime>('castCallTimes', STORAGE_KEYS.castCallTimes, [], 'cast_call_times', enqueueMutation);
+  const callSheetDetailStore = useEntityStore<CallSheetDetails>('callSheetDetails', STORAGE_KEYS.callSheetDetails, [], 'call_sheet_details', enqueueMutation);
   const lookbookStore = useEntityStore<LookbookItem>('lookbook', STORAGE_KEYS.lookbook, [], 'lookbook_items', enqueueMutation);
   const directorStatementStore = useEntityStore<DirectorStatement>('directorStatement', STORAGE_KEYS.directorStatement, [], 'director_statements', enqueueMutation);
   const selectStore = useEntityStore<SceneSelect>('selects', STORAGE_KEYS.selects, [], 'scene_selects', enqueueMutation);
@@ -306,6 +308,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const scriptSides = scriptSideStore.items;
   const castMembers = castStore.items;
   const castCallTimes = castCallTimeStore.items;
+  const callSheetDetails = callSheetDetailStore.items;
   const lookbookItems = lookbookStore.items;
   const directorStatements = directorStatementStore.items;
   const sceneSelects = selectStore.items;
@@ -322,7 +325,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     budgetItems, continuityNotes, vfxShots, festivals, productionNotes,
     moodBoardItems, directorCredits, shotReferences, wrapReports,
     locationWeather, blockingNotes, colorReferences, timeEntries,
-    scriptSides, castMembers, castCallTimes, lookbookItems, directorStatements,
+    scriptSides, castMembers, castCallTimes, callSheetDetails, lookbookItems, directorStatements,
     sceneSelects, directorMessages, scriptPDFs, scriptAnnotations,
     lightingDiagrams,
     activeProject, activeProjectId,
@@ -356,6 +359,7 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
     addCastMember: castStore.add, updateCastMember: castStore.update, deleteCastMember: castStore.remove,
     addCastCallTime: castCallTimeStore.add, updateCastCallTime: castCallTimeStore.update, deleteCastCallTime: castCallTimeStore.remove,
     upsertCastCallTime: castCallTimeStore.upsert,
+    upsertCallSheetDetails: callSheetDetailStore.upsert,
     addLookbookItem: lookbookStore.add, updateLookbookItem: lookbookStore.update, deleteLookbookItem: lookbookStore.remove,
     addDirectorStatement: directorStatementStore.add, updateDirectorStatement: directorStatementStore.update, deleteDirectorStatement: directorStatementStore.remove,
     addSceneSelect: selectStore.add, updateSceneSelect: selectStore.update, deleteSceneSelect: selectStore.remove,
@@ -553,6 +557,13 @@ export function useProjectCast(projectId: string | null) {
 export function useDayCastCallTimes(scheduleDayId: string | null): Map<string, CastCallTime> {
   const { castCallTimes } = useProjects();
   return castTimesForDay(castCallTimes ?? [], scheduleDayId);
+}
+
+/** The call sheet block for one shoot day, or null before anything is filled in. */
+export function useCallSheetDetails(scheduleDayId: string | null): CallSheetDetails | null {
+  const { callSheetDetails } = useProjects();
+  if (!scheduleDayId) return null;
+  return (callSheetDetails ?? []).find(d => d.scheduleDayId === scheduleDayId) ?? null;
 }
 
 export function useProjectLookbook(projectId: string | null) {
