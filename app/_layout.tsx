@@ -17,6 +17,7 @@ import {
 } from "@/utils/onboarding";
 import { hasRunPhotoMigration, runPhotoMigration } from "@/lib/photoMigration";
 import { hasRunSceneMigration, runSceneMigration } from "@/lib/sceneMigration";
+import { hasRunCrewMigration, runCrewMigration } from "@/lib/crewMigration";
 import { noteFirstLaunch } from "@/utils/reviewPrompt";
 import OnboardingFlow from "@/components/OnboardingFlow";
 
@@ -89,6 +90,17 @@ export default function RootLayout() {
         }
       } catch (e) {
         console.warn("[sceneMigration] skipped:", e);
+      }
+
+      // Assign existing contacts to existing projects, so call sheets keep
+      // listing the people they listed before crew became project-scoped.
+      try {
+        if (!(await hasRunCrewMigration())) {
+          const { created } = await runCrewMigration();
+          if (created) console.log(`[crewMigration] ${created} assignments created`);
+        }
+      } catch (e) {
+        console.warn("[crewMigration] skipped:", e);
       }
 
       // Stamped once, so the review prompt can tell a new install from a

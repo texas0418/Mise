@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, Platform, Alert, TextInput } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Phone, Mail, Users, Plus, ChevronDown, ChevronUp, Pencil, Trash2, Search, ArrowUpDown } from 'lucide-react-native';
-import { useProjects } from '@/contexts/ProjectContext';
+import { useProjects, useProjectCrew } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
@@ -126,7 +126,37 @@ function CrewCard({ member, isExpanded, onPress, onEdit, onDelete }: {
 
 // eslint-disable-next-line complexity -- tracked in #5
 export default function CrewDirectoryScreen() {
-  const { crew, deleteCrewMember } = useProjects();
+  const {
+    crew: allContacts, crewAssignments, activeProjectId, activeProject,
+    deleteCrewMember, addCrewAssignment, deleteCrewAssignment,
+  } = useProjects();
+  const projectCrew = useProjectCrew(activeProjectId);
+
+  // The directory defaults to who is on THIS production. The full address book
+  // is still reachable, because a director reuses the same people across films
+  // and needs to pull them in without retyping their details (#40).
+  const [showAllContacts, setShowAllContacts] = useState(false);
+  const crew = showAllContacts ? allContacts : projectCrew;
+
+  const assignedIds = new Set(
+    (crewAssignments ?? []).filter(a => a.projectId === activeProjectId).map(a => a.crewMemberId));
+
+  const toggleAssignment = useCallback((crewMemberId: string) => {
+    if (!activeProjectId) return;
+    const existing = (crewAssignments ?? [])
+      .find(a => a.projectId === activeProjectId && a.crewMemberId === crewMemberId);
+    if (existing) {
+      deleteCrewAssignment(existing.id);
+    } else {
+      addCrewAssignment({
+        id: `assign-${Date.now()}-${crewMemberId}`,
+        projectId: activeProjectId,
+        crewMemberId,
+        createdAt: new Date().toISOString(),
+      });
+    }
+  }, [activeProjectId, crewAssignments, addCrewAssignment, deleteCrewAssignment]);
+
   const router = useRouter();
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -200,17 +230,59 @@ export default function CrewDirectoryScreen() {
         <AIImportButton entityKey="crew" variant="compact" />
       </View>
 
+      <View style={styles.scopeRow}>
+        <TouchableOpacity
+          style={[styles.scopeTab, !showAllContacts && styles.scopeTabActive]}
+          onPress={() => setShowAllContacts(false)}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityState={{ selected: !showAllContacts }}
+        >
+          <Text style={[styles.scopeText, !showAllContacts && styles.scopeTextActive]}>
+            {activeProject ? `On ${activeProject.title}` : 'This project'} ({projectCrew.length})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.scopeTab, showAllContacts && styles.scopeTabActive]}
+          onPress={() => setShowAllContacts(true)}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityState={{ selected: showAllContacts }}
+        >
+          <Text style={[styles.scopeText, showAllContacts && styles.scopeTextActive]}>
+            All contacts ({allContacts.length})
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
         data={filteredAndSorted}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <CrewCard
-            member={item}
-            isExpanded={expandedId === item.id}
-            onPress={() => setExpandedId(expandedId === item.id ? null : item.id)}
-            onEdit={() => router.push(`/new-crew?id=${item.id}` as never)}
-            onDelete={() => { deleteCrewMember(item.id); setExpandedId(null); }}
-          />
+          <View>
+            <CrewCard
+              member={item}
+              isExpanded={expandedId === item.id}
+              onPress={() => setExpandedId(expandedId === item.id ? null : item.id)}
+              onEdit={() => router.push(`/new-crew?id=${item.id}` as never)}
+              onDelete={() => { deleteCrewMember(item.id); setExpandedId(null); }}
+            />
+            {showAllContacts && activeProjectId && (
+              <TouchableOpacity
+                style={[styles.assignBtn, assignedIds.has(item.id) && styles.assignBtnOn]}
+                onPress={() => toggleAssignment(item.id)}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={assignedIds.has(item.id)
+                  ? `Remove ${item.name} from this project`
+                  : `Add ${item.name} to this project`}
+              >
+                <Text style={[styles.assignText, assignedIds.has(item.id) && styles.assignTextOn]}>
+                  {assignedIds.has(item.id) ? '✓ On this project' : '+ Add to this project'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
@@ -301,6 +373,15 @@ export default function CrewDirectoryScreen() {
 }
 
 const styles = StyleSheet.create({
+  scopeRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 10 },
+  scopeTab: { flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center', backgroundColor: Colors.bg.card, borderWidth: 0.5, borderColor: Colors.border.subtle },
+  scopeTabActive: { backgroundColor: Colors.accent.goldBg, borderColor: Colors.accent.gold + '55' },
+  scopeText: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.secondary },
+  scopeTextActive: { color: Colors.accent.gold },
+  assignBtn: { marginTop: -4, marginBottom: 10, paddingVertical: 8, borderRadius: 8, alignItems: 'center', backgroundColor: Colors.bg.elevated, borderWidth: 0.5, borderColor: Colors.border.subtle },
+  assignBtnOn: { backgroundColor: Colors.accent.goldBg, borderColor: Colors.accent.gold + '44' },
+  assignText: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.secondary },
+  assignTextOn: { color: Colors.accent.gold },
   container: { flex: 1, backgroundColor: Colors.bg.primary },
   statsBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12, backgroundColor: Colors.bg.secondary, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle, gap: 8 },
   statsText: { flex: 1, fontSize: 14, fontWeight: '600' as const, color: Colors.text.primary },
