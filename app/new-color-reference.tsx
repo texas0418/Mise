@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   lutCardActive: { borderColor: Colors.accent.gold },
   lutColors: { flexDirection: 'row', height: 24, borderRadius: 4, overflow: 'hidden', marginBottom: 4 },
   lutColorBar: { flex: 1 },
-  lutName: { fontSize: 10, fontWeight: '600' as const, color: Colors.text.tertiary, textAlign: 'center' },
+  lutName: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.tertiary, textAlign: 'center' },
   lutNameActive: { color: Colors.accent.gold },
   colorRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   colorInput: { flex: 1 },

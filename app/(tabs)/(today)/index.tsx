@@ -400,5 +400,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, paddingVertical: 12,
   },
-  scheduleLinkText: { fontSize: 11, color: Colors.text.tertiary, fontWeight: '600' as const },
+  scheduleLinkText: { fontSize: 14, color: Colors.text.tertiary, fontWeight: '600' as const },
 });

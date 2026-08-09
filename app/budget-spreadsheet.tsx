@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
   },
   summaryChip: { alignItems: 'center' },
   summaryChipLabel: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: '700' as const,
     color: Colors.text.tertiary,
     textTransform: 'uppercase' as const,
@@ -611,7 +611,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   headerText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700' as const,
     color: Colors.text.tertiary,
     textTransform: 'uppercase' as const,
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
     borderRightColor: Colors.border.subtle,
   },
   rowNumText: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '600' as const,
   },
@@ -702,7 +702,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   groupCount: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '600' as const,
     backgroundColor: Colors.bg.tertiary,
@@ -722,7 +722,7 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
   groupVariance: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600' as const,
   },
 
@@ -738,7 +738,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border.subtle,
   },
   subtotalLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700' as const,
     color: Colors.accent.gold,
     textTransform: 'uppercase' as const,

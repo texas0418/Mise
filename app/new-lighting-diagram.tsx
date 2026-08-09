@@ -310,8 +310,8 @@ const styles = StyleSheet.create({
   },
   templateLabel: { fontSize: 13, fontWeight: '700' as const, color: Colors.text.primary, marginBottom: 2 },
   templateLabelSelected: { color: Colors.accent.gold },
-  templateDesc: { fontSize: 11, color: Colors.text.tertiary, lineHeight: 15, marginBottom: 4 },
-  templateCount: { fontSize: 10, color: Colors.text.tertiary, fontWeight: '600' as const },
+  templateDesc: { fontSize: 12, color: Colors.text.tertiary, lineHeight: 15, marginBottom: 4 },
+  templateCount: { fontSize: 12, color: Colors.text.tertiary, fontWeight: '600' as const },
 
   // Save
   saveButton: {

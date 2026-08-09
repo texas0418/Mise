@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   imagePreview: { width: '100%', height: 180, borderRadius: 12 },
   changePhotoBtn: { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   changePhotoText: { fontSize: 12, color: '#fff', fontWeight: '600' as const },
-  orText: { fontSize: 11, color: Colors.text.tertiary, marginTop: 10, marginBottom: 6 },
+  orText: { fontSize: 12, color: Colors.text.tertiary, marginTop: 10, marginBottom: 6 },
   emptyContainer: { flex: 1, backgroundColor: Colors.bg.primary, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyTitle: { fontSize: 18, fontWeight: '600' as const, color: Colors.text.primary },
 });

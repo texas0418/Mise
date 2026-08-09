@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   formatText: { fontSize: 12, fontWeight: '700' as const, color: Colors.accent.gold, letterSpacing: 0.5 },
   unavailable: { fontSize: 12, color: Colors.text.tertiary, fontStyle: 'italic' as const, marginTop: 12 },
   dayPicker: { marginTop: 12 },
-  dayPickerLabel: { fontSize: 10, fontWeight: '700' as const, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 6 },
+  dayPickerLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 6 },
   dayPickerButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Colors.bg.input, borderRadius: 10, padding: 12, borderWidth: 0.5, borderColor: Colors.border.subtle },
   dayPickerValue: { fontSize: 14, color: Colors.text.primary },
   dayList: { backgroundColor: Colors.bg.elevated, borderRadius: 10, marginTop: 6, borderWidth: 0.5, borderColor: Colors.border.subtle, overflow: 'hidden' },

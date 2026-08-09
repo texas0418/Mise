@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg.elevated,
   },
   dateMonth: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700' as const,
     color: Colors.accent.gold,
     letterSpacing: 1,
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     lineHeight: 30,
   },
   dateWeekday: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '500' as const,
   },
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   timeSeparator: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     marginBottom: 4,
   },
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border.subtle,
   },
   notesText: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
     flex: 1,
     lineHeight: 16,
@@ -391,8 +391,8 @@ const styles = StyleSheet.create({
 
   sceneLine: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
   sceneLineNumber: { fontSize: 12, fontWeight: '700' as const, color: Colors.accent.gold, minWidth: 32 },
-  sceneLineHeading: { flex: 1, fontSize: 11, color: Colors.text.secondary },
-  sceneLinePages: { fontSize: 11, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
+  sceneLineHeading: { flex: 1, fontSize: 12, color: Colors.text.secondary },
+  sceneLinePages: { fontSize: 12, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
 
   // Expanded content
   expandedContent: {
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   },
   deleteActionText: {
     color: '#fff',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600' as const,
     marginTop: 3,
   },

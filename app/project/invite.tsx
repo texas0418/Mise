@@ -170,7 +170,7 @@ const s = StyleSheet.create({
   optionActive: { backgroundColor: Colors.accent.goldBg },
   optionTitle: { fontSize: 14, fontWeight: '600', color: Colors.text.secondary },
   optionTitleActive: { color: Colors.accent.gold },
-  optionDesc: { fontSize: 11, color: Colors.text.tertiary, marginTop: 2 },
+  optionDesc: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2 },
   sendButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.accent.gold, borderRadius: 12, padding: 16, marginTop: 12 },
   buttonDisabled: { opacity: 0.6 },
   sendButtonText: { fontSize: 16, fontWeight: '700', color: Colors.text.inverse },

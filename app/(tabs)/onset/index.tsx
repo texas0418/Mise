@@ -447,11 +447,11 @@ const styles = StyleSheet.create({
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.status.error },
   headerTitle: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.primary },
-  headerProject: { fontSize: 12, color: Colors.accent.gold, fontWeight: '600' as const },
+  headerProject: { fontSize: 14, color: Colors.accent.gold, fontWeight: '600' as const },
 
   // Collapse toggle
   collapseToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 8, backgroundColor: Colors.bg.secondary, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
-  collapseText: { fontSize: 11, color: Colors.text.tertiary, fontWeight: '600' as const },
+  collapseText: { fontSize: 14, color: Colors.text.tertiary, fontWeight: '600' as const },
 
   // Slate
   slateContainer: { marginHorizontal: 16, marginTop: 12, marginBottom: 4, borderRadius: 14, backgroundColor: '#111', overflow: 'hidden', borderWidth: 1.5, borderColor: '#333' },
@@ -464,22 +464,22 @@ const styles = StyleSheet.create({
   slateBody: { padding: 14 },
   slateTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   prodTitle: { fontSize: 16, fontWeight: '900' as const, color: '#fff', textTransform: 'uppercase' as const, letterSpacing: 1.5 },
-  directorText: { fontSize: 11, color: '#666', marginTop: 2 },
+  directorText: { fontSize: 14, color: '#666', marginTop: 2 },
   timeBlock: { alignItems: 'flex-end' },
   timeText: { fontSize: 16, fontWeight: '700' as const, color: Colors.status.error, fontVariant: ['tabular-nums'] },
-  dateText: { fontSize: 10, color: '#555', marginTop: 1 },
+  dateText: { fontSize: 14, color: '#555', marginTop: 1 },
 
   // Slate grid
   slateGrid: { flexDirection: 'row', backgroundColor: '#0a0a0a', borderRadius: 10, borderWidth: 1, borderColor: '#2a2a2a', overflow: 'hidden' },
   slateCell: { flex: 1, paddingVertical: 10, alignItems: 'center' },
   slateDivider: { width: 1, backgroundColor: '#2a2a2a' },
-  slateCellLabel: { fontSize: 9, fontWeight: '700' as const, color: '#555', letterSpacing: 1.5, marginBottom: 4 },
+  slateCellLabel: { fontSize: 14, fontWeight: '700' as const, color: '#555', letterSpacing: 1.5, marginBottom: 4 },
   slateCellValue: { fontSize: 26, fontWeight: '900' as const, color: '#fff', fontVariant: ['tabular-nums'], minWidth: 50, padding: 0 },
 
   // Slate controls
   slateControls: { flexDirection: 'row', marginTop: 12, gap: 10 },
   nextTakeBtn: { flex: 1, backgroundColor: '#1a1a1a', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#333' },
-  nextTakeText: { fontSize: 13, fontWeight: '600' as const, color: '#fff' },
+  nextTakeText: { fontSize: 14, fontWeight: '600' as const, color: '#fff' },
   clapBtn: { flex: 2, backgroundColor: Colors.status.error, borderRadius: 10, padding: 12, alignItems: 'center' },
   clapBtnText: { fontSize: 15, fontWeight: '900' as const, color: '#fff', letterSpacing: 2 },
 
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
   statBox: { flex: 1, backgroundColor: Colors.bg.card, borderRadius: 10, padding: 10, alignItems: 'center', borderWidth: 0.5, borderColor: Colors.border.subtle },
   statBoxHighlight: { borderColor: Colors.status.active + '33', backgroundColor: Colors.status.active + '08' },
   statValue: { fontSize: 20, fontWeight: '700' as const, color: Colors.text.primary },
-  statLabel: { fontSize: 9, color: Colors.text.tertiary, marginTop: 2, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  statLabel: { fontSize: 14, color: Colors.text.tertiary, marginTop: 2, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
 
   // Take list
   list: { paddingHorizontal: 16, paddingBottom: 100, paddingTop: 4 },
@@ -498,20 +498,20 @@ const styles = StyleSheet.create({
   circleBtn: { marginRight: 10, padding: 2 },
   takeInfo: { flex: 1 },
   takeHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  takeLabel: { fontSize: 13, fontWeight: '600' as const, color: Colors.text.primary, fontVariant: ['tabular-nums'] },
+  takeLabel: { fontSize: 14, fontWeight: '600' as const, color: Colors.text.primary, fontVariant: ['tabular-nums'] },
   takeBadge: { backgroundColor: Colors.accent.goldBg, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 4 },
-  takeBadgeText: { fontSize: 10, fontWeight: '700' as const, color: Colors.accent.gold },
-  takeNotes: { fontSize: 11, color: Colors.text.secondary, marginTop: 3, lineHeight: 16 },
-  takeTime: { fontSize: 10, color: Colors.text.tertiary, fontVariant: ['tabular-nums'], marginLeft: 8 },
+  takeBadgeText: { fontSize: 14, fontWeight: '700' as const, color: Colors.accent.gold },
+  takeNotes: { fontSize: 14, color: Colors.text.secondary, marginTop: 3, lineHeight: 16 },
+  takeTime: { fontSize: 14, color: Colors.text.tertiary, fontVariant: ['tabular-nums'], marginLeft: 8 },
 
   deleteAction: { backgroundColor: Colors.status.error, justifyContent: 'center', alignItems: 'center', width: 72, borderRadius: 12, marginBottom: 6, marginLeft: 8 },
-  deleteActionText: { color: '#fff', fontSize: 10, fontWeight: '600' as const, marginTop: 3 },
+  deleteActionText: { color: '#fff', fontSize: 14, fontWeight: '600' as const, marginTop: 3 },
 
   // Empty states
   emptyContainer: { flex: 1, backgroundColor: Colors.bg.primary, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyInner: { alignItems: 'center', paddingVertical: 40 },
   emptyTitle: { fontSize: 16, fontWeight: '600' as const, color: Colors.text.primary, marginTop: 12 },
-  emptySubtitle: { fontSize: 13, color: Colors.text.secondary, marginTop: 4, textAlign: 'center' },
+  emptySubtitle: { fontSize: 14, color: Colors.text.secondary, marginTop: 4, textAlign: 'center' },
 
   // FAB
   fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.accent.gold, justifyContent: 'center', alignItems: 'center', shadowColor: Colors.accent.gold, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },

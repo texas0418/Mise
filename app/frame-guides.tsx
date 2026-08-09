@@ -96,6 +96,6 @@ const styles = StyleSheet.create({
   thirdH2: { position: 'absolute', top: '66.6%', left: 0, right: 0, height: 0.5, backgroundColor: Colors.text.tertiary + '44' },
   thirdV1: { position: 'absolute', left: '33.3%', top: 0, bottom: 0, width: 0.5, backgroundColor: Colors.text.tertiary + '44' },
   thirdV2: { position: 'absolute', left: '66.6%', top: 0, bottom: 0, width: 0.5, backgroundColor: Colors.text.tertiary + '44' },
-  frameLabel: { position: 'absolute', bottom: 4, right: 6, fontSize: 9, color: Colors.accent.gold + '88', fontWeight: '700' as const },
+  frameLabel: { position: 'absolute', bottom: 4, right: 6, fontSize: 12, color: Colors.accent.gold + '88', fontWeight: '700' as const },
   ratioDesc: { fontSize: 13, color: Colors.text.secondary, lineHeight: 19 },
 });

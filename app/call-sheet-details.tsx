@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   projectLabelText: { fontSize: 13, color: Colors.accent.gold, fontWeight: '600' as const },
   section: { marginBottom: 8 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 12 },
-  sectionTitle: { fontSize: 11, fontWeight: '800' as const, color: Colors.text.primary, letterSpacing: 1 },
+  sectionTitle: { fontSize: 12, fontWeight: '800' as const, color: Colors.text.primary, letterSpacing: 1 },
   field: { marginBottom: 16 },
   label: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.secondary, textTransform: 'uppercase' as const, letterSpacing: 0.8, marginBottom: 8 },
   input: { backgroundColor: Colors.bg.input, borderRadius: 10, padding: 14, fontSize: 16, color: Colors.text.primary, borderWidth: 0.5, borderColor: Colors.border.subtle },
