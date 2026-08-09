@@ -5,6 +5,7 @@ import { Plus, FileText, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } f
 import { useProjects, useProjectWrapReports } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import ImportButton from '@/components/ImportButton';
 import { WrapReport } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -23,7 +24,7 @@ function WrapCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: WrapReport; isExpanded: boolean; onPress: () => void; onEdit: () => void; onDelete: () => void;
 }) {
   const otHours = item.overtimeMinutes > 0 ? `${(item.overtimeMinutes / 60).toFixed(1)}h OT` : 'No OT';
-  const dateStr = new Date(item.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const dateStr = dateWith(item.date, { weekday: 'short', month: 'short', day: 'numeric' });
 
   const handleDelete = () => {
     Alert.alert('Delete Wrap Report', `Remove Day ${item.dayNumber} report?`, [

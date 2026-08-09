@@ -31,6 +31,7 @@ import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectBudget } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { money } from '@/utils/formatRecord';
 import { BudgetItem, BudgetCategory } from '@/types';
 import ImportButton from '@/components/ImportButton';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -76,9 +77,9 @@ const ROW_HEIGHT = 44;
 const HEADER_HEIGHT = 38;
 const GROUP_HEADER_HEIGHT = 36;
 
-function formatCurrency(n: number) {
-  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
+// Delegates to utils/formatRecord.ts: these values come out of records, and a
+// record missing its numbers used to take the whole screen down (#90).
+const formatCurrency = (n: unknown) => money(n);
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

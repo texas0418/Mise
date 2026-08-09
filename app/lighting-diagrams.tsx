@@ -5,6 +5,7 @@ import { Plus, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2, C
 import { useProjects, useProjectLightingDiagrams } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import { LightingDiagram } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -103,7 +104,7 @@ function DiagramCard({ item, isExpanded, onPress, onEdit, onOpen, onDelete }: {
           ) : null}
 
           <Text style={styles.dateText}>
-            Updated {new Date(item.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+            Updated {dateWith(item.updatedAt, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
           </Text>
 
           <View style={styles.cardActions}>

@@ -4,6 +4,7 @@ import { Plus, FileText, Clock, MessageSquare, Camera, Users, ChevronDown, Chevr
 import { useProjects, useProjectScriptSides, useProjectShots } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import ImportButton from '@/components/ImportButton';
 import { ScriptSide, SidesStatus, SideAnnotation } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -64,7 +65,7 @@ function SideCard({ side, index, isExpanded, onPress, onEdit, onDelete, linkedSh
 
   const status = STATUS_CONFIG[side.status];
   const revisionColor = side.revisionColor ? REVISION_COLORS[side.revisionColor] || '#FFFFFF' : null;
-  const shootDate = new Date(side.shootDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const shootDate = dateWith(side.shootDate, { weekday: 'short', month: 'short', day: 'numeric' });
 
   const handleDelete = () => {
     Alert.alert('Delete Scene', `Remove Sc. ${side.sceneNumber} from sides?`, [

@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIn
 import { Smartphone, Tablet, Monitor, Trash2, ShieldCheck, ShieldOff } from 'lucide-react-native';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 
 function DeviceIcon({ platform, size = 20 }: { platform: string; size?: number }) {
   if (platform === 'ios') return <Smartphone color={Colors.text.secondary} size={size} />;
@@ -36,7 +37,7 @@ export default function DevicesScreen() {
     if (diff < 60000) return 'Active now';
     if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-    return new Date(iso).toLocaleDateString();
+    return dateWith(iso, {});
   };
 
   if (isLoading) {

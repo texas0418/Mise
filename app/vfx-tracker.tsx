@@ -5,6 +5,7 @@ import { Plus, Sparkles, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } f
 import { useProjects, useProjectVFX } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { money } from '@/utils/formatRecord';
 import ImportButton from '@/components/ImportButton';
 import { VFXShot, VFXShotStatus, VFXComplexity } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -77,7 +78,7 @@ function VFXCard({ item, isExpanded, onPress, onEdit, onDelete }: {
           <View style={[styles.complexBadge, { backgroundColor: complexity.color + '15' }]}>
             <Text style={[styles.complexText, { color: complexity.color }]}>{complexity.label}</Text>
           </View>
-          <Text style={styles.costText}>${item.estimatedCost.toLocaleString()}</Text>
+          <Text style={styles.costText}>{money(item.estimatedCost)}</Text>
         </View>
       )}
 
@@ -93,7 +94,7 @@ function VFXCard({ item, isExpanded, onPress, onEdit, onDelete }: {
             </View>
             <View style={styles.detailItem}>
               <Text style={styles.detailLabel}>EST. COST</Text>
-              <Text style={styles.costValueLarge}>${item.estimatedCost.toLocaleString()}</Text>
+              <Text style={styles.costValueLarge}>{money(item.estimatedCost)}</Text>
             </View>
             {item.vendor ? (
               <View style={styles.detailItem}>
@@ -176,7 +177,7 @@ export default function VFXTrackerScreen() {
           <Text style={styles.statLabel}>Done</Text>
         </View>
         <View style={styles.statBox}>
-          <Text style={[styles.statValue, { color: Colors.status.warning }]}>${stats.totalCost.toLocaleString()}</Text>
+          <Text style={[styles.statValue, { color: Colors.status.warning }]}>{money(stats.totalCost)}</Text>
           <Text style={styles.statLabel}>Est. Cost</Text>
         </View>
       </View>

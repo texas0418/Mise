@@ -13,6 +13,7 @@ import * as ExpoLocation from 'expo-location';
 import { useProjects } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { timeWith } from '@/utils/formatRecord';
 import PermissionGate from '@/contexts/PermissionGate';
 
 // ─── Types ───
@@ -109,10 +110,10 @@ async function fetchForecast(lat: number, lon: number): Promise<DayForecast[]> {
     const hourlyHumidity = data.hourly?.relative_humidity_2m?.slice(i * 24, (i + 1) * 24) ?? [];
     const avgHumidity = hourlyHumidity.length > 0
       ? Math.round(hourlyHumidity.reduce((s: number, v: number) => s + v, 0) / hourlyHumidity.length) : 0;
-    const fmtSun = (iso: string) => {
-      try { return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); }
-      catch { return iso; }
-    };
+    // The try/catch this replaces could never fire: an invalid Date does not
+    // throw from toLocaleTimeString, it returns the string "Invalid Date".
+    const fmtSun = (iso: string) =>
+      timeWith(iso, { hour: 'numeric', minute: '2-digit', hour12: true });
     days.push({
       date: data.daily.time[i],
       tempHigh: Math.round(data.daily.temperature_2m_max[i]),
