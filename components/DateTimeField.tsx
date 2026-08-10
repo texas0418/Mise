@@ -193,8 +193,18 @@ export function CompactTimeField({
   const [open, setOpen] = useState(false);
   const minutes = parseClockTime(value);
 
+  /*
+   * A blank cell opens on the general call, not on the current time.
+   *
+   * Seeding from `new Date()` put the wheel on whatever o'clock it happened to
+   * be — 3am, on the night this was tested — when the thing the user is doing
+   * is nudging one person off a 7:00 AM general call by half an hour. The
+   * placeholder is already that general call, so the picker should start where
+   * the cell is visibly sitting.
+   */
+  const seed = minutes ?? parseClockTime(placeholder);
   const asDate = new Date();
-  if (minutes !== null) asDate.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+  if (seed !== null) asDate.setHours(Math.floor(seed / 60), seed % 60, 0, 0);
 
   const commit = (event: DateTimePickerEvent, picked?: Date) => {
     if (Platform.OS === 'android') setOpen(false);
