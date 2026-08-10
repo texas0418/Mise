@@ -37,6 +37,7 @@ const queryClient = new QueryClient();
  */
 function ModalCancelButton() {
   const router = useGuardedRouter();
+  const { denseTextCap } = useTypography();
   return (
     <TouchableOpacity
       onPress={() => router.back()}
@@ -45,7 +46,15 @@ function ModalCancelButton() {
       accessibilityLabel="Cancel and close this form"
       testID="modal-cancel-button"
     >
-      <Text style={styles.modalCancel}>Cancel</Text>
+      {/*
+        Capped, and this is the one place in the app where capping is right.
+        A navigation bar's height belongs to UIKit, not to us, so text that
+        outgrows it is not pushed down — it is sheared. At the largest setting
+        "Cancel" rendered as the top half of its own letters, which is worse
+        for the reader who turned text up than merely-large text would be.
+        Everywhere the layout can actually grow, text is left uncapped.
+      */}
+      <Text style={styles.modalCancel} maxFontSizeMultiplier={denseTextCap}>Cancel</Text>
     </TouchableOpacity>
   );
 }
