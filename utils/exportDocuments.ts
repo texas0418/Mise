@@ -13,7 +13,7 @@ import {
 import type { AssignedCrew } from '@/contexts/ProjectContext';
 import { renderDocument, renderTable, escapeHtml, DocumentMeta } from '@/utils/documentStyle';
 import { formatEighths, totalEighths, compareSceneNumbers } from '@/utils/eighths';
-import { castRows, keyContacts, type AdvanceDay } from '@/utils/callSheet';
+import { castRows, keyContacts, orderCrew, type AdvanceDay } from '@/utils/callSheet';
 import type { DayWeather } from '@/utils/forecast';
 
 function meta(project: Project, documentTitle: string, subtitle?: string): DocumentMeta {
@@ -214,8 +214,9 @@ export function buildCallSheetHtml(
   // blank cell means the general call, which is what an untouched sheet says.
   const called = castRows(cast, linked, castTimes);
   const castHtml = `<h2>Cast (${called.length})</h2>` + renderTable(
-    ['Character', 'Actor', 'Scenes', 'Makeup', 'Wardrobe', 'On set'],
+    ['#', 'Character', 'Actor', 'Scenes', 'Makeup', 'Wardrobe', 'On set'],
     called.map(row => [
+      `<span class="num">${row.castNumber ?? ''}</span>`,
       escapeHtml(row.character),
       escapeHtml(row.actor),
       `<span class="num">${escapeHtml(row.sceneNumbers.join(', '))}</span>`,
@@ -226,7 +227,7 @@ export function buildCallSheetHtml(
     'No cast matched the scenes scheduled for this day.');
 
   // Each person's own call where they have one, the general call otherwise.
-  const crewRows = crew.map(c => [
+  const crewRows = orderCrew(crew).map(c => [
     escapeHtml(c.name), escapeHtml(c.projectRole), escapeHtml(c.department),
     `<span class="num">${escapeHtml(c.callTime ?? day.callTime)}</span>`,
   ]);

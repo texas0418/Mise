@@ -174,7 +174,7 @@ export default function ScriptBreakdownScreen() {
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // CSV/AI import still writes legacy breakdown records (scene-native import
+  // CSV import still writes legacy breakdown records (scene-native import
   // needs eighths parsing the import registry cannot express yet). Reconciling
   // on mount is idempotent and means an import shows up here immediately
   // instead of after the next launch.

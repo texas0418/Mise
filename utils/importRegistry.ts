@@ -6,7 +6,7 @@
  * 
  * Central registry defining, for each importable entity type, the required fields,
  * optional fields, valid enum values, default values, and common aliases.
- * Both spreadsheet import and AI import reference this registry.
+ * Spreadsheet import references this registry.
  */
 
 import { FieldDefinition } from './fieldMapper';
@@ -317,7 +317,7 @@ export const WRAP_REPORT_CONFIG: EntityConfig = {
 
 /**
  * All importable entity configurations, keyed by entity type.
- * Used by the import UI to look up field schemas and by AI import to build prompts.
+ * Used by the import UI to look up field schemas.
  */
 export const IMPORT_REGISTRY: Record<string, EntityConfig> = {
   crew: CREW_MEMBER_CONFIG,
