@@ -19,6 +19,7 @@ import { ShieldAlert, Truck, UtensilsCrossed, Send } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectSchedule, useCallSheetDetails } from '@/contexts/ProjectContext';
 import { useNavigateOnce } from '@/utils/useNavigateOnce';
+import { TimeField } from '@/components/DateTimeField';
 import Colors from '@/constants/colors';
 import { CallSheetDetails } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -31,6 +32,8 @@ interface FieldSpec {
   label: string;
   placeholder: string;
   multiline?: boolean;
+  /** A clock time, so it gets a picker rather than a QWERTY keyboard (#47/6). */
+  time?: boolean;
 }
 
 const SAFETY_FIELDS: FieldSpec[] = [
@@ -50,8 +53,8 @@ const LOGISTICS_FIELDS: FieldSpec[] = [
 ];
 
 const MEAL_FIELDS: FieldSpec[] = [
-  { key: 'breakfastTime', label: 'Breakfast', placeholder: '6:30 AM' },
-  { key: 'lunchTime', label: 'Lunch', placeholder: '1:00 PM' },
+  { key: 'breakfastTime', label: 'Breakfast', placeholder: '6:30 AM', time: true },
+  { key: 'lunchTime', label: 'Lunch', placeholder: '1:00 PM', time: true },
   { key: 'cateringLocation', label: 'Catering location', placeholder: 'Basecamp tent' },
 ];
 
@@ -71,16 +74,26 @@ function Section({ title, icon: Icon, fields, values, onChange }: {
       {fields.map(field => (
         <View key={field.key} style={styles.field}>
           <Text style={styles.label}>{field.label}</Text>
-          <TextInput
-            style={[styles.input, field.multiline && styles.textArea]}
-            value={values[field.key] ?? ''}
-            onChangeText={value => onChange(field.key, value)}
-            placeholder={field.placeholder}
-            placeholderTextColor={Colors.text.tertiary}
-            multiline={field.multiline}
-            accessibilityLabel={field.label}
-            testID={`detail-${field.key}`}
-          />
+          {field.time ? (
+            <TimeField
+              value={values[field.key] ?? ''}
+              onChange={value => onChange(field.key, value)}
+              placeholder={field.placeholder}
+              accessibilityLabel={`${field.label} time`}
+              testID={`detail-${field.key}`}
+            />
+          ) : (
+            <TextInput
+              style={[styles.input, field.multiline && styles.textArea]}
+              value={values[field.key] ?? ''}
+              onChangeText={value => onChange(field.key, value)}
+              placeholder={field.placeholder}
+              placeholderTextColor={Colors.text.tertiary}
+              multiline={field.multiline}
+              accessibilityLabel={field.label}
+              testID={`detail-${field.key}`}
+            />
+          )}
         </View>
       ))}
     </View>

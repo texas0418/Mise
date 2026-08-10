@@ -8,6 +8,7 @@ import { useProjects, useProjectVFX } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { VFXComplexity, VFXShotStatus } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { DateField } from '@/components/DateTimeField';
 
 const COMPLEXITY_OPTIONS: { label: string; value: VFXComplexity }[] = [
   { label: 'Simple', value: 'simple' },
@@ -180,8 +181,8 @@ export default function NewVFXScreen() {
       <View style={styles.row}>
         <View style={[styles.field, { flex: 1 }]}>
           <Text style={styles.label}>Deadline</Text>
-          <TextInput style={styles.input} value={deadline} onChangeText={setDeadline}
-            placeholder="YYYY-MM-DD" placeholderTextColor={Colors.text.tertiary} />
+          <DateField value={deadline} onChange={setDeadline}
+            accessibilityLabel="Delivery deadline" testID="vfx-deadline" />
         </View>
         <View style={{ width: 12 }} />
         <View style={[styles.field, { flex: 1 }]}>
