@@ -443,9 +443,9 @@ const styles = StyleSheet.create({
     marginLeft: 'auto', backgroundColor: Colors.accent.goldBg, borderWidth: 1,
     borderColor: Colors.accent.goldDim + '55', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
   },
-  relationText: { fontSize: 10, fontWeight: '800' as const, color: Colors.accent.gold, letterSpacing: 0.8 },
+  relationText: { fontSize: 14, fontWeight: '800' as const, color: Colors.accent.gold, letterSpacing: 0.8 },
   headerDate: { fontSize: 14, color: Colors.text.secondary, marginTop: 2 },
-  headerProject: { fontSize: 13, color: Colors.accent.goldLight, fontWeight: '600' as const, marginTop: 6 },
+  headerProject: { fontSize: 14, color: Colors.accent.goldLight, fontWeight: '600' as const, marginTop: 6 },
 
   // Card shell
   card: {
@@ -453,14 +453,14 @@ const styles = StyleSheet.create({
     borderWidth: 0.5, borderColor: Colors.border.subtle,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
-  cardTitle: { fontSize: 11, fontWeight: '800' as const, color: Colors.text.primary, letterSpacing: 1 },
-  cardMeta: { marginLeft: 'auto', fontSize: 11, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
-  emptyLine: { fontSize: 12, color: Colors.text.tertiary, lineHeight: 18 },
+  cardTitle: { fontSize: 14, fontWeight: '800' as const, color: Colors.text.primary, letterSpacing: 1 },
+  cardMeta: { marginLeft: 'auto', fontSize: 14, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
+  emptyLine: { fontSize: 14, color: Colors.text.tertiary, lineHeight: 18 },
 
   // Times
   timeRow: { flexDirection: 'row' },
   timeCell: { flex: 1, alignItems: 'center' },
-  timeLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1.2 },
+  timeLabel: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1.2 },
   timeValue: {
     fontSize: 19, fontWeight: '700' as const, color: Colors.text.primary,
     marginTop: 3, fontVariant: ['tabular-nums'],
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
   },
   progressFill: { height: '100%', backgroundColor: Colors.accent.gold, borderRadius: 3 },
   progressCaptionRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 },
-  progressCaption: { fontSize: 11, color: Colors.text.secondary, fontVariant: ['tabular-nums'] },
+  progressCaption: { fontSize: 14, color: Colors.text.secondary, fontVariant: ['tabular-nums'] },
 
   // Scenes
   sceneRow: {
@@ -481,53 +481,53 @@ const styles = StyleSheet.create({
   sceneDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: Colors.border.medium },
   sceneDotDone: { backgroundColor: Colors.status.active },
   sceneNumber: {
-    fontSize: 13, fontWeight: '700' as const, color: Colors.accent.gold,
+    fontSize: 14, fontWeight: '700' as const, color: Colors.accent.gold,
     minWidth: 34, fontVariant: ['tabular-nums'],
   },
-  sceneHeading: { flex: 1, fontSize: 12, color: Colors.text.secondary },
-  sceneShots: { fontSize: 11, color: Colors.text.primary, fontVariant: ['tabular-nums'], minWidth: 32, textAlign: 'right' },
-  scenePages: { fontSize: 11, color: Colors.text.tertiary, fontVariant: ['tabular-nums'], minWidth: 34, textAlign: 'right' },
+  sceneHeading: { flex: 1, fontSize: 14, color: Colors.text.secondary },
+  sceneShots: { fontSize: 14, color: Colors.text.primary, fontVariant: ['tabular-nums'], minWidth: 32, textAlign: 'right' },
+  scenePages: { fontSize: 14, color: Colors.text.tertiary, fontVariant: ['tabular-nums'], minWidth: 34, textAlign: 'right' },
 
   // Pace
   pacePill: { marginLeft: 'auto', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 20, borderWidth: 1 },
-  pacePillText: { fontSize: 9, fontWeight: '800' as const, letterSpacing: 0.8 },
+  pacePillText: { fontSize: 14, fontWeight: '800' as const, letterSpacing: 0.8 },
   paceBars: { gap: 6, marginBottom: 10 },
   paceBarRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  paceBarLabel: { fontSize: 10, color: Colors.text.tertiary, width: 30, fontWeight: '600' as const },
-  paceBarPct: { fontSize: 10, color: Colors.text.tertiary, width: 34, textAlign: 'right', fontVariant: ['tabular-nums'] },
-  paceProjection: { fontSize: 12, color: Colors.text.secondary, fontVariant: ['tabular-nums'] },
+  paceBarLabel: { fontSize: 14, color: Colors.text.tertiary, width: 30, fontWeight: '600' as const },
+  paceBarPct: { fontSize: 14, color: Colors.text.tertiary, width: 34, textAlign: 'right', fontVariant: ['tabular-nums'] },
+  paceProjection: { fontSize: 14, color: Colors.text.secondary, fontVariant: ['tabular-nums'] },
 
   // People
   personRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6,
     borderTopWidth: 0.5, borderTopColor: Colors.border.subtle,
   },
-  personPrimary: { fontSize: 13, color: Colors.text.primary, fontWeight: '600' as const, maxWidth: '45%' },
-  personSecondary: { flex: 1, fontSize: 11, color: Colors.text.tertiary },
-  personTime: { fontSize: 12, color: Colors.status.active, fontWeight: '700' as const, fontVariant: ['tabular-nums'] },
+  personPrimary: { fontSize: 14, color: Colors.text.primary, fontWeight: '600' as const, maxWidth: '45%' },
+  personSecondary: { flex: 1, fontSize: 14, color: Colors.text.tertiary },
+  personTime: { fontSize: 14, color: Colors.status.active, fontWeight: '700' as const, fontVariant: ['tabular-nums'] },
   subSection: { marginTop: 12, paddingTop: 4 },
-  subSectionTitle: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1, marginBottom: 2 },
+  subSectionTitle: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1, marginBottom: 2 },
 
   // Location
   locationName: { fontSize: 15, fontWeight: '600' as const, color: Colors.text.primary },
-  locationAddress: { fontSize: 12, color: Colors.text.secondary, marginTop: 3, lineHeight: 17 },
-  locationParking: { fontSize: 12, color: Colors.text.tertiary, marginTop: 6, lineHeight: 17 },
+  locationAddress: { fontSize: 14, color: Colors.text.secondary, marginTop: 3, lineHeight: 17 },
+  locationParking: { fontSize: 14, color: Colors.text.tertiary, marginTop: 6, lineHeight: 17 },
   directionsButton: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     marginTop: 12, paddingVertical: 10, borderRadius: 10, backgroundColor: Colors.accent.gold,
   },
-  directionsText: { fontSize: 13, fontWeight: '700' as const, color: Colors.text.inverse },
+  directionsText: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.inverse },
 
   // Weather
-  coverSet: { fontSize: 12, color: Colors.status.warning, marginBottom: 10, lineHeight: 17 },
+  coverSet: { fontSize: 14, color: Colors.status.warning, marginBottom: 10, lineHeight: 17 },
   sunRow: { flexDirection: 'row', gap: 10 },
   sunCell: {
     flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: Colors.bg.elevated, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 10,
   },
-  sunLabel: { fontSize: 10, color: Colors.text.tertiary, fontWeight: '600' as const },
-  sunValue: { marginLeft: 'auto', fontSize: 12, color: Colors.text.primary, fontVariant: ['tabular-nums'] },
-  goldenHour: { fontSize: 11, color: Colors.accent.goldLight, marginTop: 8, fontVariant: ['tabular-nums'] },
+  sunLabel: { fontSize: 14, color: Colors.text.tertiary, fontWeight: '600' as const },
+  sunValue: { marginLeft: 'auto', fontSize: 14, color: Colors.text.primary, fontVariant: ['tabular-nums'] },
+  goldenHour: { fontSize: 14, color: Colors.accent.goldLight, marginTop: 8, fontVariant: ['tabular-nums'] },
 
   // Actions
   actionRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
@@ -536,6 +536,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg.card, borderWidth: 0.5, borderColor: Colors.border.subtle,
   },
   actionButtonPrimary: { backgroundColor: Colors.accent.gold, borderColor: Colors.accent.gold },
-  actionText: { fontSize: 11, fontWeight: '700' as const, color: Colors.accent.gold },
+  actionText: { fontSize: 14, fontWeight: '700' as const, color: Colors.accent.gold },
   actionTextPrimary: { color: Colors.text.inverse },
 });

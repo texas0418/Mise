@@ -31,6 +31,7 @@ import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectBudget } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { money } from '@/utils/formatRecord';
 import { BudgetItem, BudgetCategory } from '@/types';
 import ImportButton from '@/components/ImportButton';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -76,9 +77,9 @@ const ROW_HEIGHT = 44;
 const HEADER_HEIGHT = 38;
 const GROUP_HEADER_HEIGHT = 36;
 
-function formatCurrency(n: number) {
-  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
+// Delegates to utils/formatRecord.ts: these values come out of records, and a
+// record missing its numbers used to take the whole screen down (#90).
+const formatCurrency = (n: unknown) => money(n);
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -150,7 +151,7 @@ function SpreadsheetRow({
       );
     }
     return (
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.cell, { width }]}
         onPress={() => onStartEdit({ itemId: item.id, field })}
         activeOpacity={0.6}
@@ -206,6 +207,10 @@ function SpreadsheetRow({
         style={[styles.cell, { width: COL.paid, alignItems: 'center' }]}
         onPress={() => onTogglePaid(item)}
         activeOpacity={0.6}
+        accessibilityRole="button"
+        accessibilityLabel={item.paid ? `${item.description}: paid` : `${item.description}: not paid`}
+        accessibilityState={{ selected: !!item.paid }}
+        accessibilityHint="Marks this item paid or unpaid"
       >
         <View style={[styles.paidCheckbox, item.paid && styles.paidCheckboxChecked]}>
           {item.paid && <Check color={Colors.text.inverse} size={12} />}
@@ -214,7 +219,8 @@ function SpreadsheetRow({
 
       {/* Actions */}
       <View style={[styles.cell, { width: COL.actions, flexDirection: 'row', gap: 8, justifyContent: 'center' }]}>
-        <TouchableOpacity onPress={() => onDelete(item)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity onPress={() => onDelete(item)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button" accessibilityLabel={`Delete ${item.description}`}>
           <Trash2 color={Colors.status.error + '88'} size={14} />
         </TouchableOpacity>
       </View>
@@ -235,7 +241,7 @@ function CategoryGroupHeader({
   const variance = group.subtotalEstimated - group.subtotalActual;
 
   return (
-    <TouchableOpacity style={styles.groupHeader} onPress={onToggle} activeOpacity={0.7}>
+    <TouchableOpacity accessibilityRole="button" style={styles.groupHeader} onPress={onToggle} activeOpacity={0.7}>
       <View style={styles.groupHeaderLeft}>
         {collapsed
           ? <ChevronRight color={catColor} size={14} />
@@ -420,6 +426,9 @@ export default function BudgetSpreadsheetScreen() {
                     exportBudgetToXlsx(budget, activeProject!.title);
                   }}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Export the budget"
+                  accessibilityHint="Saves the budget as a spreadsheet"
                 >
                   <Download color={Colors.text.secondary} size={20} />
                 </TouchableOpacity>
@@ -427,6 +436,8 @@ export default function BudgetSpreadsheetScreen() {
                   style={styles.viewToggle}
                   onPress={() => router.replace('/budget' as never)}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Switch to list view"
                 >
                   <LayoutList color={Colors.text.secondary} size={20} />
                 </TouchableOpacity>
@@ -547,7 +558,7 @@ export default function BudgetSpreadsheetScreen() {
         </KeyboardAvoidingView>
 
         {/* FAB */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a budget item"
           style={styles.fab}
           onPress={() => router.push('/new-budget-item' as never)}
           activeOpacity={0.8}
@@ -583,7 +594,7 @@ const styles = StyleSheet.create({
   },
   summaryChip: { alignItems: 'center' },
   summaryChipLabel: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: '700' as const,
     color: Colors.text.tertiary,
     textTransform: 'uppercase' as const,
@@ -611,7 +622,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   headerText: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700' as const,
     color: Colors.text.tertiary,
     textTransform: 'uppercase' as const,
@@ -654,7 +665,7 @@ const styles = StyleSheet.create({
     borderRightColor: Colors.border.subtle,
   },
   rowNumText: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '600' as const,
   },
@@ -702,7 +713,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   groupCount: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '600' as const,
     backgroundColor: Colors.bg.tertiary,
@@ -722,7 +733,7 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
   groupVariance: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600' as const,
   },
 
@@ -738,7 +749,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border.subtle,
   },
   subtotalLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700' as const,
     color: Colors.accent.gold,
     textTransform: 'uppercase' as const,

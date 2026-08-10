@@ -5,6 +5,7 @@ import { Plus, FileText, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } f
 import { useProjects, useProjectWrapReports } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import ImportButton from '@/components/ImportButton';
 import { WrapReport } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -23,7 +24,7 @@ function WrapCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: WrapReport; isExpanded: boolean; onPress: () => void; onEdit: () => void; onDelete: () => void;
 }) {
   const otHours = item.overtimeMinutes > 0 ? `${(item.overtimeMinutes / 60).toFixed(1)}h OT` : 'No OT';
-  const dateStr = new Date(item.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const dateStr = dateWith(item.date, { weekday: 'short', month: 'short', day: 'numeric' });
 
   const handleDelete = () => {
     Alert.alert('Delete Wrap Report', `Remove Day ${item.dayNumber} report?`, [
@@ -79,11 +80,11 @@ function WrapCard({ item, isExpanded, onPress, onEdit, onDelete }: {
           {item.notes ? <Text style={styles.notesText}>{item.notes}</Text> : null}
 
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -138,7 +139,7 @@ export default function WrapReportsScreen() {
       />
             <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="wrapReports" variant="compact" /></View>
 
-<TouchableOpacity style={styles.fab} onPress={() => router.push('/new-wrap-report' as never)} activeOpacity={0.8}><Plus color={Colors.text.inverse} size={24} /></TouchableOpacity>
+<TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a wrap report" style={styles.fab} onPress={() => router.push('/new-wrap-report' as never)} activeOpacity={0.8}><Plus color={Colors.text.inverse} size={24} /></TouchableOpacity>
     </View>
   </PermissionGate>
   );
@@ -152,9 +153,9 @@ const styles = StyleSheet.create({
   cardExpanded: { borderColor: Colors.accent.gold + '44', borderWidth: 1 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   dayBadge: { backgroundColor: Colors.accent.goldBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  dayText: { fontSize: 11, fontWeight: '800' as const, color: Colors.accent.gold, letterSpacing: 1 },
+  dayText: { fontSize: 12, fontWeight: '800' as const, color: Colors.accent.gold, letterSpacing: 1 },
   dateText: { fontSize: 13, color: Colors.text.secondary, fontWeight: '500' as const },
-  compactTimes: { flex: 1, fontSize: 11, color: Colors.text.tertiary, textAlign: 'right' },
+  compactTimes: { flex: 1, fontSize: 12, color: Colors.text.tertiary, textAlign: 'right' },
   compactRow: { flexDirection: 'row', gap: 16, marginTop: 6, paddingLeft: 4 },
   compactText: { fontSize: 12, color: Colors.text.secondary },
   expandedBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
@@ -164,11 +165,11 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', marginBottom: 12 },
   statBadge: { flex: 1, alignItems: 'center' },
   statBadgeValue: { fontSize: 18, fontWeight: '700' as const, color: Colors.text.primary },
-  statBadgeLabel: { fontSize: 9, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 0.5, marginTop: 2 },
+  statBadgeLabel: { fontSize: 12, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 0.5, marginTop: 2 },
   scenesRow: { flexDirection: 'row', gap: 8, marginBottom: 4 },
   scenesLabel: { fontSize: 12, color: Colors.text.tertiary, width: 80 },
   scenesText: { fontSize: 12, color: Colors.text.primary, fontWeight: '500' as const, flex: 1 },
-  weatherText: { fontSize: 11, color: Colors.text.secondary, marginTop: 8 },
+  weatherText: { fontSize: 12, color: Colors.text.secondary, marginTop: 8 },
   notesText: { fontSize: 12, color: Colors.text.secondary, marginTop: 8, lineHeight: 18 },
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 10, marginTop: 8, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },

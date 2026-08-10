@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectBudget } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { money } from '@/utils/formatRecord';
 import ImportButton from '@/components/ImportButton';
 import { BudgetItem, BudgetCategory } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -36,9 +37,9 @@ const SORT_OPTIONS: { key: SortMode; label: string }[] = [
   { key: 'unpaid', label: 'Unpaid First' },
 ];
 
-function formatCurrency(n: number) {
-  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
+// Delegates to utils/formatRecord.ts: these values come out of records, and a
+// record missing its numbers used to take the whole screen down (#90).
+const formatCurrency = (n: unknown) => money(n);
 
 function BudgetCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: BudgetItem;
@@ -130,11 +131,11 @@ function BudgetCard({ item, isExpanded, onPress, onEdit, onDelete }: {
           ) : null}
 
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -252,6 +253,8 @@ export default function BudgetScreen() {
             style={{ padding: 6, marginRight: 4 }}
             onPress={() => router.replace('/budget-spreadsheet' as never)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel="Switch to spreadsheet view"
           >
             <LayoutGrid color={Colors.text.secondary} size={20} />
           </TouchableOpacity>
@@ -301,7 +304,7 @@ export default function BudgetScreen() {
                 <View style={[styles.progressFill, { width: `${spentPercent}%` as unknown as number, backgroundColor: spentPercent > 90 ? Colors.status.error : spentPercent > 70 ? Colors.status.warning : Colors.accent.gold }]} />
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}><ImportButton entityKey="budget" />
-        <TouchableOpacity style={styles.templateBtnSmall} onPress={handleLoadTemplate} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.templateBtnSmall} onPress={handleLoadTemplate} activeOpacity={0.7}>
                 <FileText color={Colors.accent.gold} size={13} />
                 <Text style={styles.templateBtnSmallText}>Template</Text>
               </TouchableOpacity></View>
@@ -320,7 +323,7 @@ export default function BudgetScreen() {
                   placeholderTextColor={Colors.text.tertiary}
                 />
                 {searchQuery.length > 0 && (
-                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <TouchableOpacity accessibilityRole="button" onPress={() => setSearchQuery('')}>
                     <Text style={styles.clearSearch}>✕</Text>
                   </TouchableOpacity>
                 )}
@@ -328,6 +331,9 @@ export default function BudgetScreen() {
               <TouchableOpacity
                 style={[styles.sortBtn, showSortOptions && styles.sortBtnActive]}
                 onPress={() => setShowSortOptions(!showSortOptions)}
+                accessibilityRole="button"
+                accessibilityLabel="Sort budget items"
+                accessibilityState={{ expanded: showSortOptions }}
               >
                 <ArrowUpDown color={showSortOptions ? Colors.accent.gold : Colors.text.tertiary} size={16} />
               </TouchableOpacity>
@@ -337,7 +343,7 @@ export default function BudgetScreen() {
             {showSortOptions && (
               <View style={styles.sortRow}>
                 {SORT_OPTIONS.map(opt => (
-                  <TouchableOpacity key={opt.key}
+                  <TouchableOpacity accessibilityRole="button" key={opt.key}
                     style={[styles.sortChip, sortMode === opt.key && styles.sortChipActive]}
                     onPress={() => { setSortMode(opt.key); setShowSortOptions(false); }}>
                     <Text style={[styles.sortChipText, sortMode === opt.key && styles.sortChipTextActive]}>{opt.label}</Text>
@@ -348,13 +354,13 @@ export default function BudgetScreen() {
 
             {/* Category filter chips */}
             <View style={styles.filterRow}>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 style={[styles.filterChip, categoryFilter === 'all' && styles.filterChipActive]}
                 onPress={() => setCategoryFilter('all')}>
                 <Text style={[styles.filterChipText, categoryFilter === 'all' && styles.filterChipTextActive]}>All</Text>
               </TouchableOpacity>
               {activeCategories.map(cat => (
-                <TouchableOpacity key={cat}
+                <TouchableOpacity accessibilityRole="button" key={cat}
                   style={[styles.filterChip, categoryFilter === cat && styles.filterChipActive]}
                   onPress={() => setCategoryFilter(categoryFilter === cat ? 'all' : cat)}>
                   <View style={[styles.filterDot, { backgroundColor: CATEGORY_COLORS[cat] }]} />
@@ -376,7 +382,7 @@ export default function BudgetScreen() {
             <Text style={styles.emptyTitle}>{searchQuery ? 'No matching items' : 'No budget items'}</Text>
             <Text style={styles.emptySubtitle}>{searchQuery ? 'Try a different search' : 'Track your production spending'}</Text>
             {!searchQuery && (
-              <TouchableOpacity style={styles.templateBtn} onPress={handleLoadTemplate} activeOpacity={0.7}>
+              <TouchableOpacity accessibilityRole="button" style={styles.templateBtn} onPress={handleLoadTemplate} activeOpacity={0.7}>
                 <FileText color={Colors.accent.gold} size={16} />
                 <Text style={styles.templateBtnText}>Use Film Budget Template</Text>
               </TouchableOpacity>
@@ -385,7 +391,7 @@ export default function BudgetScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-budget-item' as never)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a budget item" style={styles.fab} onPress={() => router.push('/new-budget-item' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>
@@ -398,12 +404,12 @@ const styles = StyleSheet.create({
   summaryCard: { backgroundColor: Colors.bg.card, borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 0.5, borderColor: Colors.border.subtle },
   summaryRow: { flexDirection: 'row', alignItems: 'center' },
   summaryItem: { flex: 1, alignItems: 'center' },
-  summaryLabel: { fontSize: 10, color: Colors.text.tertiary, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  summaryLabel: { fontSize: 12, color: Colors.text.tertiary, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   summaryValue: { fontSize: 18, fontWeight: '700' as const, color: Colors.text.primary, marginTop: 4 },
   summaryDivider: { width: 1, height: 32, backgroundColor: Colors.border.subtle },
   progressBg: { height: 4, backgroundColor: Colors.bg.elevated, borderRadius: 2, marginTop: 14, overflow: 'hidden' },
   progressFill: { height: 4, borderRadius: 2 },
-  progressText: { fontSize: 11, color: Colors.text.tertiary, textAlign: 'center', marginTop: 6 },
+  progressText: { fontSize: 12, color: Colors.text.tertiary, textAlign: 'center', marginTop: 6 },
   // Search
   searchRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   searchBar: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bg.card, borderRadius: 10, paddingHorizontal: 12, gap: 8, borderWidth: 0.5, borderColor: Colors.border.subtle },
@@ -414,16 +420,16 @@ const styles = StyleSheet.create({
   sortRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 10 },
   sortChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: Colors.bg.card, borderWidth: 0.5, borderColor: Colors.border.subtle },
   sortChipActive: { backgroundColor: Colors.accent.goldBg, borderColor: Colors.accent.gold + '44' },
-  sortChipText: { fontSize: 11, color: Colors.text.secondary, fontWeight: '500' as const },
+  sortChipText: { fontSize: 12, color: Colors.text.secondary, fontWeight: '500' as const },
   sortChipTextActive: { color: Colors.accent.gold, fontWeight: '600' as const },
   // Filter
   filterRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 12 },
   filterChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: Colors.bg.card, borderWidth: 0.5, borderColor: Colors.border.subtle },
   filterChipActive: { backgroundColor: Colors.accent.goldBg, borderColor: Colors.accent.gold + '44' },
   filterDot: { width: 7, height: 7, borderRadius: 3.5 },
-  filterChipText: { fontSize: 11, color: Colors.text.secondary, fontWeight: '500' as const },
+  filterChipText: { fontSize: 12, color: Colors.text.secondary, fontWeight: '500' as const },
   filterChipTextActive: { color: Colors.accent.gold, fontWeight: '600' as const },
-  resultCount: { fontSize: 11, color: Colors.text.tertiary, marginBottom: 8 },
+  resultCount: { fontSize: 12, color: Colors.text.tertiary, marginBottom: 8 },
   list: { padding: 16, paddingBottom: 100 },
   // Card
   card: { backgroundColor: Colors.bg.card, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 0.5, borderColor: Colors.border.subtle },
@@ -434,19 +440,19 @@ const styles = StyleSheet.create({
   cardCenter: { flex: 1 },
   desc: { fontSize: 14, fontWeight: '500' as const, color: Colors.text.primary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 3 },
-  catLabel: { fontSize: 11, fontWeight: '600' as const },
+  catLabel: { fontSize: 12, fontWeight: '600' as const },
   paidBadge: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  paidText: { fontSize: 10, color: Colors.status.active, fontWeight: '600' as const },
+  paidText: { fontSize: 12, color: Colors.status.active, fontWeight: '600' as const },
   pendingBadge: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  pendingText: { fontSize: 10, color: Colors.text.tertiary, fontWeight: '500' as const },
+  pendingText: { fontSize: 12, color: Colors.text.tertiary, fontWeight: '500' as const },
   cardRight: { alignItems: 'flex-end', marginLeft: 8, gap: 2 },
   estimated: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.primary },
-  actual: { fontSize: 11, fontWeight: '600' as const },
+  actual: { fontSize: 12, fontWeight: '600' as const },
   // Expanded
   expandedBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   expandedRow: { flexDirection: 'row', marginBottom: 12 },
   expandedCol: { flex: 1, alignItems: 'center' },
-  detailLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 3 },
+  detailLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 3 },
   detailValue: { fontSize: 15, fontWeight: '700' as const, color: Colors.text.primary },
   detailBlock: { marginBottom: 10 },
   detailText: { fontSize: 12, color: Colors.text.secondary, lineHeight: 18 },

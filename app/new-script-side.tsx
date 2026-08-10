@@ -175,7 +175,7 @@ export default function NewScriptSideScreen() {
         <Text style={styles.label}>Status</Text>
         <View style={styles.optionsRow}>
           {STATUS_OPTIONS.map(opt => (
-            <TouchableOpacity key={opt.value}
+            <TouchableOpacity accessibilityRole="button" key={opt.value}
               style={[styles.optionChip, status === opt.value && styles.optionChipActive]}
               onPress={() => setStatus(opt.value)}>
               <Text style={[styles.optionChipText, status === opt.value && styles.optionChipTextActive]}>{opt.label}</Text>
@@ -195,12 +195,12 @@ export default function NewScriptSideScreen() {
 
         <Text style={styles.label}>Revision Color</Text>
         <View style={styles.colorRow}>
-          <TouchableOpacity style={[styles.colorChip, !revisionColor && styles.colorChipActive]}
+          <TouchableOpacity accessibilityRole="button" style={[styles.colorChip, !revisionColor && styles.colorChipActive]}
             onPress={() => setRevisionColor(undefined)}>
             <Text style={styles.colorChipText}>None</Text>
           </TouchableOpacity>
           {REVISION_COLORS.map(c => (
-            <TouchableOpacity key={c} style={[styles.colorChip, revisionColor === c && styles.colorChipActive]}
+            <TouchableOpacity accessibilityRole="button" key={c} style={[styles.colorChip, revisionColor === c && styles.colorChipActive]}
               onPress={() => setRevisionColor(c)}>
               <View style={[styles.colorDot, { backgroundColor: REVISION_HEX[c] }]} />
               <Text style={styles.colorChipText}>{c}</Text>
@@ -215,7 +215,8 @@ export default function NewScriptSideScreen() {
               <Text style={styles.annotationTypeLabel}>{ann.type.toUpperCase()}</Text>
               <Text style={styles.annotationTextPreview}>{ann.text}</Text>
             </View>
-            <TouchableOpacity onPress={() => removeAnnotation(ann.id)}>
+            <TouchableOpacity onPress={() => removeAnnotation(ann.id)}
+              accessibilityRole="button" accessibilityLabel={`Remove the ${ann.type} note: ${ann.text}`}>
               <X color={Colors.status.error} size={16} />
             </TouchableOpacity>
           </View>
@@ -226,7 +227,7 @@ export default function NewScriptSideScreen() {
           {ANNOTATION_TYPES.map(at => {
             const Icon = at.icon;
             return (
-              <TouchableOpacity key={at.value}
+              <TouchableOpacity accessibilityRole="button" key={at.value}
                 style={[styles.annotationTypeChip, newAnnotationType === at.value && styles.annotationTypeChipActive]}
                 onPress={() => setNewAnnotationType(at.value)}>
                 <Icon color={newAnnotationType === at.value ? Colors.accent.gold : Colors.text.tertiary} size={14} />
@@ -238,7 +239,8 @@ export default function NewScriptSideScreen() {
         <View style={styles.annotationInputRow}>
           <TextInput style={[styles.input, { flex: 1 }]} value={newAnnotationText} onChangeText={setNewAnnotationText}
             placeholder="Note about this scene..." placeholderTextColor={Colors.text.tertiary} />
-          <TouchableOpacity style={styles.addAnnotationBtn} onPress={addAnnotation}>
+          <TouchableOpacity style={styles.addAnnotationBtn} onPress={addAnnotation}
+            accessibilityRole="button" accessibilityLabel="Add this annotation">
             <Plus color={Colors.text.inverse} size={18} />
           </TouchableOpacity>
         </View>
@@ -247,7 +249,7 @@ export default function NewScriptSideScreen() {
         <TextInput style={[styles.input, styles.textArea]} value={notes} onChangeText={setNotes}
           placeholder="Any additional notes for this scene..." placeholderTextColor={Colors.text.tertiary} multiline numberOfLines={3} />
 
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+        <TouchableOpacity accessibilityRole="button" style={styles.saveBtn} onPress={handleSave}>
           <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Add Scene to Sides'}</Text>
         </TouchableOpacity>
 
@@ -276,15 +278,17 @@ const styles = StyleSheet.create({
   colorChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: Colors.bg.card, borderWidth: 0.5, borderColor: Colors.border.subtle },
   colorChipActive: { borderColor: Colors.accent.gold + '66', backgroundColor: Colors.accent.goldBg },
   colorDot: { width: 10, height: 10, borderRadius: 5 },
-  colorChipText: { fontSize: 11, color: Colors.text.secondary, textTransform: 'capitalize' as const },
+  colorChipText: { fontSize: 12, color: Colors.text.secondary, textTransform: 'capitalize' as const },
   annotationRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bg.card, borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 0.5, borderColor: Colors.border.subtle },
   annotationContent: { flex: 1 },
-  annotationTypeLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.accent.goldDim, letterSpacing: 0.8, marginBottom: 2 },
+  // goldDim is an icon/border accent and sits below the 4.5:1 text threshold
+  // by design; words go in the full gold.
+  annotationTypeLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.accent.gold, letterSpacing: 0.8, marginBottom: 2 },
   annotationTextPreview: { fontSize: 13, color: Colors.text.secondary },
   annotationTypeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   annotationTypeChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: Colors.bg.card, borderWidth: 0.5, borderColor: Colors.border.subtle },
   annotationTypeChipActive: { borderColor: Colors.accent.gold + '44', backgroundColor: Colors.accent.goldBg },
-  annotationTypeChipText: { fontSize: 11, color: Colors.text.secondary },
+  annotationTypeChipText: { fontSize: 12, color: Colors.text.secondary },
   annotationInputRow: { flexDirection: 'row', gap: 8, marginTop: 8, alignItems: 'center' },
   addAnnotationBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: Colors.accent.gold, justifyContent: 'center', alignItems: 'center' },
   saveBtn: { backgroundColor: Colors.accent.gold, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },

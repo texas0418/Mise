@@ -91,7 +91,7 @@ export default function NotificationSettings({ onPrefsChanged }: Props) {
   return (
     <View style={styles.card}>
       {/* Header */}
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={styles.headerRow}
         onPress={() => setExpanded(!expanded)}
         activeOpacity={0.7}
@@ -160,7 +160,7 @@ export default function NotificationSettings({ onPrefsChanged }: Props) {
               </View>
             </View>
             <View style={styles.settingRight}>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 style={styles.minuteBtn}
                 onPress={() => { setShowCallPicker(!showCallPicker); setShowWrapPicker(false); }}
                 activeOpacity={0.7}
@@ -181,7 +181,7 @@ export default function NotificationSettings({ onPrefsChanged }: Props) {
           {showCallPicker && (
             <View style={styles.pickerRow}>
               {MINUTE_OPTIONS.map(m => (
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   key={m}
                   style={[styles.pickerChip, prefs.callTimeMinutesBefore === m && styles.pickerChipActive]}
                   onPress={() => { updatePref({ callTimeMinutesBefore: m }); setShowCallPicker(false); }}
@@ -207,7 +207,7 @@ export default function NotificationSettings({ onPrefsChanged }: Props) {
               </View>
             </View>
             <View style={styles.settingRight}>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 style={styles.minuteBtn}
                 onPress={() => { setShowWrapPicker(!showWrapPicker); setShowCallPicker(false); }}
                 activeOpacity={0.7}
@@ -228,7 +228,7 @@ export default function NotificationSettings({ onPrefsChanged }: Props) {
           {showWrapPicker && (
             <View style={styles.pickerRow}>
               {MINUTE_OPTIONS.map(m => (
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   key={m}
                   style={[styles.pickerChip, prefs.wrapTimeMinutesBefore === m && styles.pickerChipActive]}
                   onPress={() => { updatePref({ wrapTimeMinutesBefore: m }); setShowWrapPicker(false); }}
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   headerTitle: { fontSize: 14, fontWeight: '600', color: Colors.text.primary },
-  headerSubtitle: { fontSize: 10, color: Colors.text.tertiary, marginTop: 1 },
+  headerSubtitle: { fontSize: 12, color: Colors.text.tertiary, marginTop: 1 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   settingsBody: { paddingHorizontal: 14, paddingBottom: 14 },
   divider: { height: 0.5, backgroundColor: Colors.border.subtle, marginBottom: 12 },
@@ -273,13 +273,13 @@ const styles = StyleSheet.create({
   },
   settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   settingLabel: { fontSize: 13, fontWeight: '500', color: Colors.text.primary },
-  settingHint: { fontSize: 10, color: Colors.text.tertiary, marginTop: 1 },
+  settingHint: { fontSize: 12, color: Colors.text.tertiary, marginTop: 1 },
   settingRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   minuteBtn: {
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
     backgroundColor: Colors.bg.elevated, borderWidth: 0.5, borderColor: Colors.border.subtle,
   },
-  minuteBtnText: { fontSize: 11, fontWeight: '600', color: Colors.accent.gold },
+  minuteBtnText: { fontSize: 12, fontWeight: '600', color: Colors.accent.gold },
   pickerRow: {
     flexDirection: 'row', flexWrap: 'wrap', gap: 6,
     paddingVertical: 8, paddingLeft: 24,
@@ -291,6 +291,6 @@ const styles = StyleSheet.create({
   pickerChipActive: {
     backgroundColor: Colors.accent.goldBg, borderColor: Colors.accent.gold + '44',
   },
-  pickerChipText: { fontSize: 11, fontWeight: '500', color: Colors.text.secondary },
+  pickerChipText: { fontSize: 12, fontWeight: '500', color: Colors.text.secondary },
   pickerChipTextActive: { color: Colors.accent.gold, fontWeight: '700' },
 });

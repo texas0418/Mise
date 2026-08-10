@@ -5,6 +5,7 @@ import { Plus, Sparkles, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } f
 import { useProjects, useProjectVFX } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { money } from '@/utils/formatRecord';
 import ImportButton from '@/components/ImportButton';
 import { VFXShot, VFXShotStatus, VFXComplexity } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -77,7 +78,7 @@ function VFXCard({ item, isExpanded, onPress, onEdit, onDelete }: {
           <View style={[styles.complexBadge, { backgroundColor: complexity.color + '15' }]}>
             <Text style={[styles.complexText, { color: complexity.color }]}>{complexity.label}</Text>
           </View>
-          <Text style={styles.costText}>${item.estimatedCost.toLocaleString()}</Text>
+          <Text style={styles.costText}>{money(item.estimatedCost)}</Text>
         </View>
       )}
 
@@ -93,7 +94,7 @@ function VFXCard({ item, isExpanded, onPress, onEdit, onDelete }: {
             </View>
             <View style={styles.detailItem}>
               <Text style={styles.detailLabel}>EST. COST</Text>
-              <Text style={styles.costValueLarge}>${item.estimatedCost.toLocaleString()}</Text>
+              <Text style={styles.costValueLarge}>{money(item.estimatedCost)}</Text>
             </View>
             {item.vendor ? (
               <View style={styles.detailItem}>
@@ -118,11 +119,11 @@ function VFXCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 
           {/* Actions */}
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -176,7 +177,7 @@ export default function VFXTrackerScreen() {
           <Text style={styles.statLabel}>Done</Text>
         </View>
         <View style={styles.statBox}>
-          <Text style={[styles.statValue, { color: Colors.status.warning }]}>${stats.totalCost.toLocaleString()}</Text>
+          <Text style={[styles.statValue, { color: Colors.status.warning }]}>{money(stats.totalCost)}</Text>
           <Text style={styles.statLabel}>Est. Cost</Text>
         </View>
       </View>
@@ -187,7 +188,7 @@ export default function VFXTrackerScreen() {
           const isActive = filterStatus === f.value;
           const statusColor = f.value ? STATUS_CONFIG[f.value].color : Colors.accent.gold;
           return (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               key={f.label}
               style={[styles.filterChip, isActive && { backgroundColor: statusColor + '18', borderColor: statusColor + '44' }]}
               onPress={() => setFilterStatus(isActive ? null : f.value)}
@@ -229,7 +230,7 @@ export default function VFXTrackerScreen() {
 
             <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="vfx" variant="compact" /></View>
 
-<TouchableOpacity style={styles.fab} onPress={() => router.push('/new-vfx' as never)} activeOpacity={0.8}>
+<TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a VFX shot" style={styles.fab} onPress={() => router.push('/new-vfx' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>
@@ -242,12 +243,12 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
   statBox: { flex: 1, backgroundColor: Colors.bg.card, borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 0.5, borderColor: Colors.border.subtle },
   statValue: { fontSize: 20, fontWeight: '700' as const, color: Colors.text.primary },
-  statLabel: { fontSize: 10, color: Colors.text.tertiary, marginTop: 2, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  statLabel: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   // Filter
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 16, paddingBottom: 10 },
   filterChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: Colors.bg.elevated, borderWidth: 0.5, borderColor: Colors.border.subtle },
   filterDot: { width: 5, height: 5, borderRadius: 2.5 },
-  filterChipText: { fontSize: 11, fontWeight: '600' as const, color: Colors.text.tertiary },
+  filterChipText: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.tertiary },
   list: { padding: 16, paddingBottom: 100 },
   // Card
   card: { backgroundColor: Colors.bg.card, borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 0.5, borderColor: Colors.border.subtle },
@@ -257,17 +258,17 @@ const styles = StyleSheet.create({
   shotRefText: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.primary, fontVariant: ['tabular-nums'] },
   statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12, gap: 4, flex: 1 },
   statusDot: { width: 5, height: 5, borderRadius: 2.5 },
-  statusText: { fontSize: 10, fontWeight: '700' as const, letterSpacing: 0.5 },
+  statusText: { fontSize: 12, fontWeight: '700' as const, letterSpacing: 0.5 },
   descText: { fontSize: 14, color: Colors.text.primary, marginBottom: 6 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   complexBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-  complexText: { fontSize: 10, fontWeight: '700' as const },
+  complexText: { fontSize: 12, fontWeight: '700' as const },
   costText: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold },
   // Expanded
   expandedBody: { marginTop: 8, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   detailGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 10 },
   detailItem: { minWidth: 100 },
-  detailLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 3 },
+  detailLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 3 },
   detailValue: { fontSize: 13, color: Colors.text.secondary, fontWeight: '500' as const },
   costValueLarge: { fontSize: 16, fontWeight: '700' as const, color: Colors.accent.gold },
   notesBlock: { marginBottom: 8 },

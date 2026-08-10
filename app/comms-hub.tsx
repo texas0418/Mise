@@ -70,11 +70,11 @@ function MessageCard({ msg, onDelete, onShare }: { msg: DirectorMessage; onDelet
           <Text style={styles.bodyText}>{msg.body}</Text>
           {msg.sceneNumber && <Text style={styles.sceneTag}>Scene {msg.sceneNumber}</Text>}
           <View style={styles.expandedActions}>
-            <TouchableOpacity style={styles.actionBtn} onPress={onShare}>
+            <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onShare}>
               <Share2 color={Colors.accent.gold} size={14} />
               <Text style={styles.actionBtnText}>Share</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={onDelete}>
+            <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onDelete}>
               <Trash2 color="#EF4444" size={14} />
               <Text style={[styles.actionBtnText, { color: '#EF4444' }]}>Delete</Text>
             </TouchableOpacity>
@@ -172,7 +172,7 @@ export default function CommsHubScreen() {
               data={filters}
               keyExtractor={f => f.key}
               renderItem={({ item: f }) => (
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   style={[styles.filterChip, filter === f.key && styles.filterChipActive]}
                   onPress={() => setFilter(f.key)}
                 >
@@ -192,7 +192,7 @@ export default function CommsHubScreen() {
           </View>
         }
       />
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Write a message"
         style={styles.fab}
         onPress={() => router.push('/new-message' as never)}
         activeOpacity={0.8}
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   statItem: { alignItems: 'center' },
   statValue: { fontSize: 22, fontWeight: '700', color: Colors.text.primary },
-  statLabel: { fontSize: 10, color: Colors.text.tertiary, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
+  statLabel: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
   statDivider: { width: 1, backgroundColor: Colors.border.subtle },
   filterRow: { gap: 8, marginBottom: 16, paddingRight: 16 },
   filterChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: Colors.bg.card, borderWidth: 0.5, borderColor: Colors.border.subtle },
@@ -231,14 +231,14 @@ const styles = StyleSheet.create({
   cardInfo: { flex: 1 },
   subjectRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   subject: { fontSize: 14, fontWeight: '600', color: Colors.text.primary, flex: 1 },
-  priBadge: { fontSize: 9, fontWeight: '700', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, letterSpacing: 0.5 },
+  priBadge: { fontSize: 12, fontWeight: '700', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, letterSpacing: 0.5 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' },
-  catLabel: { fontSize: 11, fontWeight: '600' },
-  metaDot: { color: Colors.text.tertiary, fontSize: 10 },
-  metaText: { fontSize: 11, color: Colors.text.tertiary },
+  catLabel: { fontSize: 12, fontWeight: '600' },
+  metaDot: { color: Colors.text.tertiary, fontSize: 12 },
+  metaText: { fontSize: 12, color: Colors.text.tertiary },
   expandedBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   bodyText: { fontSize: 13, color: Colors.text.secondary, lineHeight: 20, marginBottom: 8 },
-  sceneTag: { fontSize: 11, color: Colors.accent.gold, fontWeight: '600', marginBottom: 8 },
+  sceneTag: { fontSize: 12, color: Colors.accent.gold, fontWeight: '600', marginBottom: 8 },
   expandedActions: { flexDirection: 'row', gap: 16, marginTop: 4 },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 4 },
   actionBtnText: { fontSize: 12, fontWeight: '600', color: Colors.accent.gold },

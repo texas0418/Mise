@@ -127,18 +127,18 @@ export default function NewContinuityScreen() {
           <View style={styles.photoContainer}>
             <Image source={{ uri: resolvePhotoUri(photoUrl) }} style={styles.photoPreview} resizeMode="cover" />
             <View style={styles.photoActions}>
-              <TouchableOpacity onPress={handleAddPhoto} style={styles.photoChangeBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={handleAddPhoto} style={styles.photoChangeBtn}>
                 <Camera color={Colors.accent.gold} size={14} />
                 <Text style={styles.photoChangeBtnText}>Change</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setPhotoUrl(null)} style={styles.photoRemoveBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={() => setPhotoUrl(null)} style={styles.photoRemoveBtn}>
                 <X color={Colors.status.error} size={14} />
                 <Text style={styles.photoRemoveBtnText}>Remove</Text>
               </TouchableOpacity>
             </View>
           </View>
         ) : (
-          <TouchableOpacity style={styles.photoPlaceholder} onPress={handleAddPhoto} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" style={styles.photoPlaceholder} onPress={handleAddPhoto} activeOpacity={0.7}>
             <Camera color={Colors.text.tertiary} size={28} />
             <Text style={styles.photoPlaceholderText}>Take Photo or Choose from Library</Text>
             <Text style={styles.photoPlaceholderHint}>Tap to add a reference photo</Text>
@@ -146,7 +146,7 @@ export default function NewContinuityScreen() {
         )}
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Continuity Note'}</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   // Photo
   photoPlaceholder: { backgroundColor: Colors.bg.card, borderRadius: 12, borderWidth: 1.5, borderColor: Colors.border.subtle, borderStyle: 'dashed', padding: 30, alignItems: 'center', justifyContent: 'center', gap: 8 },
   photoPlaceholderText: { fontSize: 14, fontWeight: '600' as const, color: Colors.text.secondary },
-  photoPlaceholderHint: { fontSize: 11, color: Colors.text.tertiary },
+  photoPlaceholderHint: { fontSize: 12, color: Colors.text.tertiary },
   photoContainer: { borderRadius: 12, overflow: 'hidden', borderWidth: 0.5, borderColor: Colors.border.subtle },
   photoPreview: { width: '100%', height: 220, backgroundColor: Colors.bg.elevated },
   photoActions: { flexDirection: 'row', justifyContent: 'center', gap: 16, padding: 10, backgroundColor: Colors.bg.card },

@@ -111,6 +111,8 @@ function PaywallSuccess({
         style={styles.closeButton}
         onPress={onClose}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel="Close"
       >
         <X color={Colors.text.secondary} size={24} />
       </TouchableOpacity>
@@ -128,7 +130,7 @@ function PaywallSuccess({
             : `${licensedCount} device${licensedCount !== 1 ? 's' : ''} licensed · $${monthlyPrice.toFixed(2)}/mo`}
         </Text>
 
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.primaryButton}
           onPress={onContinue}
           activeOpacity={0.8}
@@ -136,7 +138,7 @@ function PaywallSuccess({
           <Text style={styles.primaryButtonText}>Continue</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.manageButton}
           onPress={onManageDevices}
           activeOpacity={0.7}
@@ -198,7 +200,7 @@ function BillingToggle({
 }) {
   return (
     <View style={styles.toggleContainer}>
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[
           styles.toggleOption,
           billingPeriod === 'monthly' && styles.toggleOptionActive,
@@ -215,7 +217,7 @@ function BillingToggle({
           Monthly
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[
           styles.toggleOption,
           billingPeriod === 'annual' && styles.toggleOptionActive,
@@ -295,12 +297,12 @@ function LegalFooter({
         App Store account settings.
       </Text>
       <View style={styles.legalLinks}>
-        <TouchableOpacity onPress={onTerms} style={styles.legalLink}>
+        <TouchableOpacity accessibilityRole="button" onPress={onTerms} style={styles.legalLink}>
           <Text style={styles.legalLinkText}>Terms of Use</Text>
           <ExternalLink color={Colors.text.tertiary} size={10} />
         </TouchableOpacity>
         <Text style={styles.legalDot}>·</Text>
-        <TouchableOpacity onPress={onPrivacy} style={styles.legalLink}>
+        <TouchableOpacity accessibilityRole="button" onPress={onPrivacy} style={styles.legalLink}>
           <Text style={styles.legalLinkText}>Privacy Policy</Text>
           <ExternalLink color={Colors.text.tertiary} size={10} />
         </TouchableOpacity>
@@ -460,6 +462,8 @@ export default function PaywallScreen() {
         style={styles.closeButton}
         onPress={() => router.back()}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel="Close"
       >
         <X color={Colors.text.secondary} size={24} />
       </TouchableOpacity>
@@ -512,7 +516,7 @@ export default function PaywallScreen() {
         ) : null}
 
         {/* ── Purchase button ── */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
           onPress={handlePurchase}
           activeOpacity={0.8}
@@ -529,7 +533,7 @@ export default function PaywallScreen() {
         </TouchableOpacity>
 
         {/* ── Restore ── */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.restoreButton}
           onPress={handleRestore}
           activeOpacity={0.7}
@@ -699,7 +703,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   savingsBadgeText: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: '700',
     color: Colors.text.inverse,
     letterSpacing: 0.3,
@@ -769,7 +773,7 @@ const styles = StyleSheet.create({
   // Legal
   legalFooter: { paddingTop: 16, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   legalText: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     lineHeight: 15,
     textAlign: 'center',
@@ -783,11 +787,11 @@ const styles = StyleSheet.create({
   },
   legalLink: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   legalLinkText: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
     textDecorationLine: 'underline',
   },
-  legalDot: { color: Colors.text.tertiary, fontSize: 10 },
+  legalDot: { color: Colors.text.tertiary, fontSize: 12 },
 
   // Success state
   successContainer: {

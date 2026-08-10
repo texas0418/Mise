@@ -52,7 +52,7 @@ export default function ForgotPasswordScreen() {
           We sent a password reset link to{'\n'}
           <Text style={styles.emailHighlight}>{email}</Text>
         </Text>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.primaryButton}
           onPress={() => router.back()}
           activeOpacity={0.8}
@@ -95,7 +95,7 @@ export default function ForgotPasswordScreen() {
           </View>
         </View>
 
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.primaryButton, loading && styles.buttonDisabled]}
           onPress={handleReset}
           activeOpacity={0.8}
@@ -108,7 +108,7 @@ export default function ForgotPasswordScreen() {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.backButton}
           onPress={() => router.back()}
           activeOpacity={0.7}

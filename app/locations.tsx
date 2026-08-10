@@ -139,11 +139,11 @@ function LocationCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 
           {/* Action buttons */}
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -210,7 +210,7 @@ export default function LocationsScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-location' as never)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a location" style={styles.fab} onPress={() => router.push('/new-location' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>
@@ -234,19 +234,19 @@ const styles = StyleSheet.create({
   starsRow: { flexDirection: 'row', gap: 2 },
   badgeRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 4 },
   badge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, gap: 4 },
-  badgeText: { fontSize: 10, fontWeight: '600' as const },
+  badgeText: { fontSize: 12, fontWeight: '600' as const },
   expandedBody: { marginTop: 8, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   detailBlock: { marginBottom: 12 },
-  detailLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 4 },
+  detailLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 4 },
   detailText: { fontSize: 12, color: Colors.text.secondary, lineHeight: 18 },
   contactRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   sceneChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   sceneChip: { backgroundColor: Colors.accent.goldBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 0.5, borderColor: Colors.accent.gold + '33' },
-  sceneChipText: { fontSize: 11, fontWeight: '600' as const, color: Colors.accent.gold },
+  sceneChipText: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold },
   photoRow: { flexDirection: 'row', gap: 8 },
   photoThumb: { width: 60, height: 60, borderRadius: 8 },
   morePhotos: { width: 60, height: 60, borderRadius: 8, backgroundColor: Colors.bg.tertiary, justifyContent: 'center', alignItems: 'center' },
-  morePhotosText: { fontSize: 10, color: Colors.text.tertiary, marginTop: 2 },
+  morePhotosText: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2 },
   notesText: { fontSize: 12, color: Colors.text.tertiary, fontStyle: 'italic', lineHeight: 18 },
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },

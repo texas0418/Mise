@@ -5,6 +5,7 @@ import { Plus, Move, AlertCircle, Camera, Users, ChevronDown, ChevronUp, Pencil,
 import { useProjects, useProjectBlockingNotes } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import { BlockingNote } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -37,7 +38,7 @@ function BlockingCard({ item, isExpanded, onPress, onEdit, onDelete }: {
         <View style={styles.headerCenter}>
           <Text style={styles.title} numberOfLines={isExpanded ? undefined : 1}>{item.title}</Text>
           <Text style={styles.dateText}>
-            {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            {dateWith(item.createdAt, { month: 'short', day: 'numeric' })}
           </Text>
         </View>
         {isExpanded ? <ChevronUp color={Colors.text.tertiary} size={16} /> : <ChevronDown color={Colors.text.tertiary} size={16} />}
@@ -79,11 +80,11 @@ function BlockingCard({ item, isExpanded, onPress, onEdit, onDelete }: {
           ) : null}
 
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -149,7 +150,7 @@ export default function BlockingNotesScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-blocking-note' as never)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a blocking note" style={styles.fab} onPress={() => router.push('/new-blocking-note' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>
@@ -170,15 +171,15 @@ const styles = StyleSheet.create({
   sceneBadgeText: { fontSize: 12, fontWeight: '700' as const, color: Colors.status.info },
   headerCenter: { flex: 1 },
   title: { fontSize: 15, fontWeight: '700' as const, color: Colors.text.primary },
-  dateText: { fontSize: 11, color: Colors.text.tertiary, marginTop: 2 },
+  dateText: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2 },
   // Expanded
   expandedBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   detailBlock: { marginBottom: 10 },
-  detailLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 4 },
+  detailLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 4 },
   description: { fontSize: 13, color: Colors.text.secondary, lineHeight: 20 },
   detailSection: { gap: 8, marginBottom: 10 },
   detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
-  detailRowLabel: { fontSize: 11, fontWeight: '700' as const, color: Colors.text.tertiary, width: 70 },
+  detailRowLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, width: 70 },
   detailRowText: { fontSize: 12, color: Colors.text.primary, flex: 1, lineHeight: 18 },
   notesText: { fontSize: 12, color: Colors.accent.goldLight, fontStyle: 'italic' as const, lineHeight: 18 },
   // Actions

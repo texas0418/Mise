@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIn
 import { Smartphone, Tablet, Monitor, Trash2, ShieldCheck, ShieldOff } from 'lucide-react-native';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 
 function DeviceIcon({ platform, size = 20 }: { platform: string; size?: number }) {
   if (platform === 'ios') return <Smartphone color={Colors.text.secondary} size={size} />;
@@ -36,7 +37,7 @@ export default function DevicesScreen() {
     if (diff < 60000) return 'Active now';
     if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-    return new Date(iso).toLocaleDateString();
+    return dateWith(iso, {});
   };
 
   if (isLoading) {
@@ -82,13 +83,13 @@ export default function DevicesScreen() {
             {/* Actions */}
             <View style={s.deviceActions}>
               {device.isLicensed && (
-                <TouchableOpacity style={s.actionBtn} onPress={() => handleDeactivate(device.id, device.deviceName)} activeOpacity={0.7}>
+                <TouchableOpacity accessibilityRole="button" style={s.actionBtn} onPress={() => handleDeactivate(device.id, device.deviceName)} activeOpacity={0.7}>
                   <ShieldOff color={Colors.status.warning} size={14} />
                   <Text style={[s.actionText, { color: Colors.status.warning }]}>Deactivate</Text>
                 </TouchableOpacity>
               )}
               {!isCurrent && (
-                <TouchableOpacity style={s.actionBtn} onPress={() => handleRemove(device.id, device.deviceName)} activeOpacity={0.7}>
+                <TouchableOpacity accessibilityRole="button" style={s.actionBtn} onPress={() => handleRemove(device.id, device.deviceName)} activeOpacity={0.7}>
                   <Trash2 color={Colors.status.error} size={14} />
                   <Text style={[s.actionText, { color: Colors.status.error }]}>Remove</Text>
                 </TouchableOpacity>
@@ -115,7 +116,7 @@ const s = StyleSheet.create({
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   priceLabel: { fontSize: 13, color: Colors.text.secondary },
   priceValue: { fontSize: 15, fontWeight: '700', color: Colors.accent.gold },
-  priceNote: { fontSize: 11, color: Colors.text.tertiary, marginTop: 8 },
+  priceNote: { fontSize: 12, color: Colors.text.tertiary, marginTop: 8 },
   deviceCard: { backgroundColor: Colors.bg.card, borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 0.5, borderColor: Colors.border.subtle },
   deviceCardCurrent: { borderColor: Colors.accent.gold + '40' },
   deviceHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -123,9 +124,9 @@ const s = StyleSheet.create({
   deviceNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   deviceName: { fontSize: 15, fontWeight: '600', color: Colors.text.primary },
   currentBadge: { backgroundColor: Colors.accent.goldBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  currentBadgeText: { fontSize: 10, fontWeight: '600', color: Colors.accent.gold },
+  currentBadgeText: { fontSize: 12, fontWeight: '600', color: Colors.accent.gold },
   deviceModel: { fontSize: 12, color: Colors.text.secondary, marginTop: 2 },
-  deviceTime: { fontSize: 11, color: Colors.text.tertiary, marginTop: 1 },
+  deviceTime: { fontSize: 12, color: Colors.text.tertiary, marginTop: 1 },
   deviceActions: { flexDirection: 'row', gap: 16, marginTop: 10, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   actionText: { fontSize: 13, fontWeight: '500' },

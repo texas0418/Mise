@@ -7,6 +7,7 @@ import { useProjects, useProjectTakes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { Take } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { describeTake, formatTakeTime } from '@/utils/a11yLabels';
 
 // ─── Compact Slate ───────────────────────────────────────────────
 function CompactSlate({ 
@@ -41,8 +42,10 @@ function CompactSlate({
     outputRange: ['0deg', '-12deg'],
   });
 
+  // The wrapper is a tap-anywhere keyboard dismisser, not a control. Left
+  // focusable it becomes a full-screen unlabelled button over the slate.
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.slateContainer}>
         <Animated.View style={[styles.flash, { opacity: flashAnim }]} pointerEvents="none" />
         
@@ -91,10 +94,19 @@ function CompactSlate({
 
           {/* Controls */}
           <View style={styles.slateControls}>
-            <TouchableOpacity style={styles.nextTakeBtn} onPress={onNextTake} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.nextTakeBtn} onPress={onNextTake} activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Next take, take ${take || 1}`}
+              accessibilityHint="Advances the slate to the next take number">
               <Text style={styles.nextTakeText}>Next Take</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.clapBtn} onPress={handleClap} activeOpacity={0.8}>
+            {/* "CLAP" and "MARK!" are the same control in two states. Read out,
+                the word alone does not say which, so the label carries it. */}
+            <TouchableOpacity style={styles.clapBtn} onPress={handleClap} activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={isClapped ? 'Marked' : 'Clap the slate'}
+              accessibilityState={{ selected: isClapped }}
+              accessibilityHint={isClapped ? 'This take is marked' : 'Marks this take as clapped'}>
               <Text style={styles.clapBtnText}>{isClapped ? 'MARK!' : 'CLAP'}</Text>
             </TouchableOpacity>
           </View>
@@ -124,14 +136,21 @@ function TakeCard({ take, onToggleCircle, onToggleNG, onEdit, onDelete }: {
     onToggleCircle(take);
   }, [take, onToggleCircle]);
 
-  const time = new Date(take.timestamp);
-  const timeStr = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  // An unreadable timestamp printed the literal string "Invalid Date" into the
+  // row and read out as it too; the label is composed from whatever fields the
+  // record actually has. Both live in utils/a11yLabels.ts — pure, and asserted
+  // on under node.
+  const timeStr = formatTakeTime(take.timestamp);
+  const describes = describeTake(take, timeStr);
 
   const renderRightActions = () => (
     <TouchableOpacity
       style={styles.deleteAction}
       onPress={() => { swipeableRef.current?.close(); onDelete(take); }}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`Delete ${describes}`}
+      accessibilityHint="Removes this take from the log"
     >
       <Trash2 color="#fff" size={18} />
       <Text style={styles.deleteActionText}>Delete</Text>
@@ -141,41 +160,73 @@ function TakeCard({ take, onToggleCircle, onToggleNG, onEdit, onDelete }: {
   return (
     <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
       <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
-        <TouchableOpacity
+        {/* A plain View, not a Touchable.
+            
+            This row used to be one big TouchableOpacity wrapping the two
+            buttons, on the theory that the container would announce itself
+            while the controls inside stayed reachable. VoiceOver on an iPad
+            proved otherwise (2026-08-10): focus landed on the row and never
+            on the buttons, and touching a button directly read the row. A
+            VoiceOver user could not circle a take or mark it NG at all — the
+            two calls that matter most on set.
+
+            So the row groups nothing. It holds three separate controls:
+            circle, NG, and the rest of the row, which opens the take. Tapping
+            the card's padding no longer opens the form, which is a small loss
+            and arguably a gain — a near-miss on the circle button used to open
+            the editor instead. */}
+        <View
           style={[
             styles.takeCard,
             take.isCircled && styles.takeCardCircled,
             take.isNG && styles.takeCardNG,
           ]}
-          onPress={() => onEdit(take)}
-          activeOpacity={0.7}
-          testID={`take-card-${take.id}`}
         >
           {/* Circle and NG are the two calls made at the moment of the take,
-              so both are one tap from the log rather than behind the form. */}
-          <TouchableOpacity style={styles.circleBtn} onPress={handleCircle} activeOpacity={0.7}>
+              so both are one tap from the log rather than behind the form.
+              Icon-only, and identical in shape to anyone not looking closely —
+              the label is the only thing that says which is which. */}
+          <TouchableOpacity style={styles.circleBtn} onPress={handleCircle} activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={take.isCircled ? 'Circled' : 'Circle this take'}
+            accessibilityState={{ selected: take.isCircled }}
+            accessibilityHint={take.isCircled ? 'Removes the circle' : 'Marks this take as the one to print'}>
             {take.isCircled ? (
               <CircleCheck color={Colors.status.active} size={26} />
             ) : (
               <CircleDot color={Colors.text.tertiary} size={26} />
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.circleBtn} onPress={() => onToggleNG(take)} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.circleBtn} onPress={() => onToggleNG(take)} activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={take.isNG ? 'No good' : 'Mark no good'}
+            accessibilityState={{ selected: take.isNG }}
+            accessibilityHint={take.isNG ? 'Clears the no-good mark' : 'Marks this take as unusable'}>
             <CircleX color={take.isNG ? Colors.status.error : Colors.text.tertiary} size={22} />
           </TouchableOpacity>
-          <View style={styles.takeInfo}>
-            <View style={styles.takeHeader}>
-              <Text style={styles.takeLabel}>Sc.{take.sceneNumber} / {take.shotNumber}</Text>
-              <View style={styles.takeBadge}>
-                <Text style={styles.takeBadgeText}>T{take.takeNumber}</Text>
+          <TouchableOpacity
+            style={styles.takeOpen}
+            onPress={() => onEdit(take)}
+            activeOpacity={0.7}
+            testID={`take-card-${take.id}`}
+            accessibilityRole="button"
+            accessibilityLabel={describes}
+            accessibilityHint="Opens this take to edit it"
+          >
+            <View style={styles.takeInfo}>
+              <View style={styles.takeHeader}>
+                <Text style={styles.takeLabel}>Sc.{take.sceneNumber} / {take.shotNumber}</Text>
+                <View style={styles.takeBadge}>
+                  <Text style={styles.takeBadgeText}>T{take.takeNumber}</Text>
+                </View>
               </View>
+              {take.notes ? (
+                <Text style={styles.takeNotes} numberOfLines={2}>{take.notes}</Text>
+              ) : null}
             </View>
-            {take.notes ? (
-              <Text style={styles.takeNotes} numberOfLines={2}>{take.notes}</Text>
-            ) : null}
-          </View>
-          <Text style={styles.takeTime}>{timeStr}</Text>
-        </TouchableOpacity>
+            <Text style={styles.takeTime}>{timeStr}</Text>
+          </TouchableOpacity>
+        </View>
       </Swipeable>
     </Animated.View>
   );
@@ -315,10 +366,13 @@ export default function OnSetScreen() {
       </View>
 
       {/* Collapse toggle */}
-      <TouchableOpacity 
-        style={styles.collapseToggle} 
-        onPress={() => setSlateCollapsed(!slateCollapsed)} 
+      <TouchableOpacity
+        style={styles.collapseToggle}
+        onPress={() => setSlateCollapsed(!slateCollapsed)}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={slateCollapsed ? 'Show slate' : 'Hide slate'}
+        accessibilityState={{ expanded: !slateCollapsed }}
       >
         <Text style={styles.collapseText}>
           {slateCollapsed ? 'Show Slate' : 'Hide Slate'}
@@ -381,10 +435,15 @@ export default function OnSetScreen() {
         }
       />
 
-      <TouchableOpacity 
-        style={styles.fab} 
-        onPress={() => router.push(`/log-take?scene=${encodeURIComponent(scene)}&shot=${encodeURIComponent(shot)}&take=${encodeURIComponent(take)}` as never)} 
+      {/* Icon-only, and the primary action on the screen — a bare plus glyph
+          announces as nothing at all. */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push(`/log-take?scene=${encodeURIComponent(scene)}&shot=${encodeURIComponent(shot)}&take=${encodeURIComponent(take)}` as never)}
         activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel="Log a take"
+        accessibilityHint={`Opens the take form for scene ${scene}, shot ${shot}, take ${take}`}
       >
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
@@ -400,11 +459,11 @@ const styles = StyleSheet.create({
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.status.error },
   headerTitle: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.primary },
-  headerProject: { fontSize: 12, color: Colors.accent.gold, fontWeight: '600' as const },
+  headerProject: { fontSize: 14, color: Colors.accent.gold, fontWeight: '600' as const },
 
   // Collapse toggle
   collapseToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 8, backgroundColor: Colors.bg.secondary, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
-  collapseText: { fontSize: 11, color: Colors.text.tertiary, fontWeight: '600' as const },
+  collapseText: { fontSize: 14, color: Colors.text.tertiary, fontWeight: '600' as const },
 
   // Slate
   slateContainer: { marginHorizontal: 16, marginTop: 12, marginBottom: 4, borderRadius: 14, backgroundColor: '#111', overflow: 'hidden', borderWidth: 1.5, borderColor: '#333' },
@@ -417,22 +476,22 @@ const styles = StyleSheet.create({
   slateBody: { padding: 14 },
   slateTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   prodTitle: { fontSize: 16, fontWeight: '900' as const, color: '#fff', textTransform: 'uppercase' as const, letterSpacing: 1.5 },
-  directorText: { fontSize: 11, color: '#666', marginTop: 2 },
+  directorText: { fontSize: 14, color: '#666', marginTop: 2 },
   timeBlock: { alignItems: 'flex-end' },
   timeText: { fontSize: 16, fontWeight: '700' as const, color: Colors.status.error, fontVariant: ['tabular-nums'] },
-  dateText: { fontSize: 10, color: '#555', marginTop: 1 },
+  dateText: { fontSize: 14, color: '#555', marginTop: 1 },
 
   // Slate grid
   slateGrid: { flexDirection: 'row', backgroundColor: '#0a0a0a', borderRadius: 10, borderWidth: 1, borderColor: '#2a2a2a', overflow: 'hidden' },
   slateCell: { flex: 1, paddingVertical: 10, alignItems: 'center' },
   slateDivider: { width: 1, backgroundColor: '#2a2a2a' },
-  slateCellLabel: { fontSize: 9, fontWeight: '700' as const, color: '#555', letterSpacing: 1.5, marginBottom: 4 },
+  slateCellLabel: { fontSize: 14, fontWeight: '700' as const, color: '#555', letterSpacing: 1.5, marginBottom: 4 },
   slateCellValue: { fontSize: 26, fontWeight: '900' as const, color: '#fff', fontVariant: ['tabular-nums'], minWidth: 50, padding: 0 },
 
   // Slate controls
   slateControls: { flexDirection: 'row', marginTop: 12, gap: 10 },
   nextTakeBtn: { flex: 1, backgroundColor: '#1a1a1a', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#333' },
-  nextTakeText: { fontSize: 13, fontWeight: '600' as const, color: '#fff' },
+  nextTakeText: { fontSize: 14, fontWeight: '600' as const, color: '#fff' },
   clapBtn: { flex: 2, backgroundColor: Colors.status.error, borderRadius: 10, padding: 12, alignItems: 'center' },
   clapBtnText: { fontSize: 15, fontWeight: '900' as const, color: '#fff', letterSpacing: 2 },
 
@@ -441,30 +500,34 @@ const styles = StyleSheet.create({
   statBox: { flex: 1, backgroundColor: Colors.bg.card, borderRadius: 10, padding: 10, alignItems: 'center', borderWidth: 0.5, borderColor: Colors.border.subtle },
   statBoxHighlight: { borderColor: Colors.status.active + '33', backgroundColor: Colors.status.active + '08' },
   statValue: { fontSize: 20, fontWeight: '700' as const, color: Colors.text.primary },
-  statLabel: { fontSize: 9, color: Colors.text.tertiary, marginTop: 2, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  statLabel: { fontSize: 14, color: Colors.text.tertiary, marginTop: 2, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
 
   // Take list
   list: { paddingHorizontal: 16, paddingBottom: 100, paddingTop: 4 },
   takeCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bg.card, borderRadius: 12, padding: 12, marginBottom: 6, borderWidth: 0.5, borderColor: Colors.border.subtle },
   takeCardCircled: { borderColor: Colors.status.active + '44', backgroundColor: Colors.status.active + '08' },
   takeCardNG: { borderColor: Colors.status.error + '33', backgroundColor: Colors.status.error + '06' },
-  circleBtn: { marginRight: 10, padding: 2 },
+  // 44x44 is Apple's minimum. These were about 30 and 26 points — the two most
+  // used controls on the screen, tapped in the dark, sometimes with gloves.
+  // The glyphs stay their old size; only the target grows around them.
+  circleBtn: { minWidth: 44, minHeight: 44, alignItems: 'center' as const, justifyContent: 'center' as const, marginRight: 2 },
+  takeOpen: { flex: 1, flexDirection: 'row' as const, alignItems: 'center' as const, minHeight: 44, paddingLeft: 6 },
   takeInfo: { flex: 1 },
   takeHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  takeLabel: { fontSize: 13, fontWeight: '600' as const, color: Colors.text.primary, fontVariant: ['tabular-nums'] },
+  takeLabel: { fontSize: 14, fontWeight: '600' as const, color: Colors.text.primary, fontVariant: ['tabular-nums'] },
   takeBadge: { backgroundColor: Colors.accent.goldBg, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 4 },
-  takeBadgeText: { fontSize: 10, fontWeight: '700' as const, color: Colors.accent.gold },
-  takeNotes: { fontSize: 11, color: Colors.text.secondary, marginTop: 3, lineHeight: 16 },
-  takeTime: { fontSize: 10, color: Colors.text.tertiary, fontVariant: ['tabular-nums'], marginLeft: 8 },
+  takeBadgeText: { fontSize: 14, fontWeight: '700' as const, color: Colors.accent.gold },
+  takeNotes: { fontSize: 14, color: Colors.text.secondary, marginTop: 3, lineHeight: 16 },
+  takeTime: { fontSize: 14, color: Colors.text.tertiary, fontVariant: ['tabular-nums'], marginLeft: 8 },
 
   deleteAction: { backgroundColor: Colors.status.error, justifyContent: 'center', alignItems: 'center', width: 72, borderRadius: 12, marginBottom: 6, marginLeft: 8 },
-  deleteActionText: { color: '#fff', fontSize: 10, fontWeight: '600' as const, marginTop: 3 },
+  deleteActionText: { color: '#fff', fontSize: 14, fontWeight: '600' as const, marginTop: 3 },
 
   // Empty states
   emptyContainer: { flex: 1, backgroundColor: Colors.bg.primary, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyInner: { alignItems: 'center', paddingVertical: 40 },
   emptyTitle: { fontSize: 16, fontWeight: '600' as const, color: Colors.text.primary, marginTop: 12 },
-  emptySubtitle: { fontSize: 13, color: Colors.text.secondary, marginTop: 4, textAlign: 'center' },
+  emptySubtitle: { fontSize: 14, color: Colors.text.secondary, marginTop: 4, textAlign: 'center' },
 
   // FAB
   fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.accent.gold, justifyContent: 'center', alignItems: 'center', shadowColor: Colors.accent.gold, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },

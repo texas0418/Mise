@@ -4,6 +4,7 @@ import { Plus, FileText, Clock, MessageSquare, Camera, Users, ChevronDown, Chevr
 import { useProjects, useProjectScriptSides, useProjectShots } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import ImportButton from '@/components/ImportButton';
 import { ScriptSide, SidesStatus, SideAnnotation } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -64,7 +65,7 @@ function SideCard({ side, index, isExpanded, onPress, onEdit, onDelete, linkedSh
 
   const status = STATUS_CONFIG[side.status];
   const revisionColor = side.revisionColor ? REVISION_COLORS[side.revisionColor] || '#FFFFFF' : null;
-  const shootDate = new Date(side.shootDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const shootDate = dateWith(side.shootDate, { weekday: 'short', month: 'short', day: 'numeric' });
 
   const handleDelete = () => {
     Alert.alert('Delete Scene', `Remove Sc. ${side.sceneNumber} from sides?`, [
@@ -175,7 +176,7 @@ function SideCard({ side, index, isExpanded, onPress, onEdit, onDelete, linkedSh
                 </Text>
               </View>
               <View style={styles.actionButtons}>
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   onPress={onEdit}
                   style={styles.editBtn}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -183,7 +184,7 @@ function SideCard({ side, index, isExpanded, onPress, onEdit, onDelete, linkedSh
                   <Pencil color={Colors.accent.gold} size={15} />
                   <Text style={styles.editBtnText}>Edit</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   onPress={handleDelete}
                   style={styles.deleteBtnAction}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -282,7 +283,7 @@ export default function ScriptSidesScreen() {
 
             <View style={styles.filterRow}>
               {filters.map(f => (
-                <TouchableOpacity key={f.key}
+                <TouchableOpacity accessibilityRole="button" key={f.key}
                   style={[styles.filterChip, filter === f.key && styles.filterChipActive]}
                   onPress={() => setFilter(f.key)}>
                   <Text style={[styles.filterChipText, filter === f.key && styles.filterChipTextActive]}>{f.label}</Text>
@@ -300,7 +301,7 @@ export default function ScriptSidesScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a script side"
         style={styles.fab}
         onPress={() => router.push('/new-script-side' as never)}
         activeOpacity={0.8}
@@ -321,7 +322,7 @@ const styles = StyleSheet.create({
   },
   statItem: { alignItems: 'center' },
   statValue: { fontSize: 22, fontWeight: '700' as const, color: Colors.text.primary },
-  statLabel: { fontSize: 11, color: Colors.text.tertiary, marginTop: 2, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  statLabel: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   statDivider: { width: 1, backgroundColor: Colors.border.subtle },
   filterRow: { flexDirection: 'row', marginBottom: 16, gap: 8, flexWrap: 'wrap' },
   filterChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: Colors.bg.card, borderWidth: 0.5, borderColor: Colors.border.subtle },
@@ -336,10 +337,10 @@ const styles = StyleSheet.create({
   sceneNumberText: { fontSize: 13, fontWeight: '700' as const, color: Colors.accent.gold, letterSpacing: 0.3 },
   statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12, borderWidth: 0.5 },
   statusDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 5 },
-  statusLabel: { fontSize: 9, fontWeight: '700' as const, letterSpacing: 0.8 },
+  statusLabel: { fontSize: 12, fontWeight: '700' as const, letterSpacing: 0.8 },
   revisionBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12, borderWidth: 0.5 },
   revisionDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 5 },
-  revisionLabel: { fontSize: 9, fontWeight: '700' as const, letterSpacing: 0.5 },
+  revisionLabel: { fontSize: 12, fontWeight: '700' as const, letterSpacing: 0.5 },
   headerRight: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 12 },
   sceneHeader: { fontSize: 17, fontWeight: '700' as const, color: Colors.text.primary, letterSpacing: 0.2, marginBottom: 8 },
   metaRow: { flexDirection: 'row', gap: 16, marginBottom: 10, flexWrap: 'wrap' },
@@ -349,16 +350,16 @@ const styles = StyleSheet.create({
   castRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
   castText: { fontSize: 12, color: Colors.accent.goldLight, fontWeight: '500' as const },
   annotationsSection: { marginBottom: 10 },
-  annotationsLabel: { fontSize: 11, color: Colors.text.tertiary, fontWeight: '600' as const, marginBottom: 6, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  annotationsLabel: { fontSize: 12, color: Colors.text.tertiary, fontWeight: '600' as const, marginBottom: 6, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   annotationsList: { gap: 6 },
   annotationChip: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, borderWidth: 0.5, backgroundColor: Colors.bg.tertiary },
   annotationText: { fontSize: 12, flex: 1, lineHeight: 17 },
-  moreAnnotations: { fontSize: 11, color: Colors.text.tertiary, fontStyle: 'italic', marginTop: 2 },
+  moreAnnotations: { fontSize: 12, color: Colors.text.tertiary, fontStyle: 'italic', marginTop: 2 },
   notesSection: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 10, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8, backgroundColor: Colors.accent.goldBg },
   notesText: { fontSize: 12, color: Colors.accent.goldLight, flex: 1, lineHeight: 17 },
   cardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   linkedShots: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  linkedShotsText: { fontSize: 11, color: Colors.text.tertiary },
+  linkedShotsText: { fontSize: 12, color: Colors.text.tertiary },
   actionButtons: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },
   editBtnText: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold },

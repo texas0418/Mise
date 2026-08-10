@@ -8,6 +8,7 @@ import { formatEighths, totalEighths } from '@/utils/eighths';
 import { runSceneMigration } from '@/lib/sceneMigration';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith, dayOfMonth } from '@/utils/formatRecord';
 import ImportToolbar from '@/components/ImportToolbar';
 import NotificationSettings from '@/components/NotificationSettings';
 import { rescheduleAll } from '@/utils/notifications';
@@ -20,13 +21,14 @@ function ScheduleCard({ day, scenes, onDelete }: { day: ScheduleDay; scenes: Sce
   const swipeableRef = useRef<Swipeable>(null);
 
   const pages = formatEighths(totalEighths(scenes.map(sc => sc.pageEighths)));
-  const dateObj = new Date(day.date + 'T00:00:00');
-  const monthShort = dateObj.toLocaleDateString('en-US', { month: 'short' });
-  const dayNum = dateObj.getDate();
-  const weekday = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+  // Guarded: a shoot day with an unreadable date rendered "INVALID DATE" and
+  // "NaN" on the tile rather than degrading. See #90.
+  const monthShort = dateWith(day.date, { month: 'short' });
+  const dayNum = dayOfMonth(day.date);
+  const weekday = dateWith(day.date, { weekday: 'short' });
 
   const renderRightActions = () => (
-    <TouchableOpacity
+    <TouchableOpacity accessibilityRole="button"
       style={styles.deleteAction}
       onPress={() => {
         swipeableRef.current?.close();
@@ -41,7 +43,7 @@ function ScheduleCard({ day, scenes, onDelete }: { day: ScheduleDay; scenes: Sce
 
   return (
     <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.scheduleCard, expanded && styles.scheduleCardExpanded]}
         onPress={() => setExpanded(!expanded)}
         activeOpacity={0.7}
@@ -242,7 +244,7 @@ export default function ScheduleScreen() {
         }
       />
 
-<TouchableOpacity
+<TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a shoot day"
         style={styles.fab}
         onPress={() => router.push('/new-schedule-day' as never)}
         activeOpacity={0.8}
@@ -306,7 +308,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg.elevated,
   },
   dateMonth: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700' as const,
     color: Colors.accent.gold,
     letterSpacing: 1,
@@ -318,7 +320,7 @@ const styles = StyleSheet.create({
     lineHeight: 30,
   },
   dateWeekday: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     fontWeight: '500' as const,
   },
@@ -368,7 +370,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   timeSeparator: {
-    fontSize: 10,
+    fontSize: 12,
     color: Colors.text.tertiary,
     marginBottom: 4,
   },
@@ -382,7 +384,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border.subtle,
   },
   notesText: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
     flex: 1,
     lineHeight: 16,
@@ -391,8 +393,8 @@ const styles = StyleSheet.create({
 
   sceneLine: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
   sceneLineNumber: { fontSize: 12, fontWeight: '700' as const, color: Colors.accent.gold, minWidth: 32 },
-  sceneLineHeading: { flex: 1, fontSize: 11, color: Colors.text.secondary },
-  sceneLinePages: { fontSize: 11, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
+  sceneLineHeading: { flex: 1, fontSize: 12, color: Colors.text.secondary },
+  sceneLinePages: { fontSize: 12, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
 
   // Expanded content
   expandedContent: {
@@ -449,7 +451,7 @@ const styles = StyleSheet.create({
   },
   deleteActionText: {
     color: '#fff',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600' as const,
     marginTop: 3,
   },

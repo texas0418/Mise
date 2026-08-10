@@ -81,14 +81,14 @@ export default function NewShotReferenceScreen() {
       {imageUrl ? (
         <View style={styles.imagePreviewWrap}>
           <Image source={{ uri: resolvePhotoUri(imageUrl) }} style={styles.imagePreview} contentFit="cover" />
-          <TouchableOpacity style={styles.changePhotoBtn} onPress={() => {
+          <TouchableOpacity accessibilityRole="button" style={styles.changePhotoBtn} onPress={() => {
             showImagePickerOptions((uri) => setImageUrl(uri));
           }}>
             <Text style={styles.changePhotoText}>Change Photo</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <TouchableOpacity style={styles.pickImageBtn} onPress={() => {
+        <TouchableOpacity accessibilityRole="button" style={styles.pickImageBtn} onPress={() => {
           showImagePickerOptions((uri) => setImageUrl(uri));
         }}>
           <ImagePlus color={Colors.accent.gold} size={28} />
@@ -116,7 +116,7 @@ export default function NewShotReferenceScreen() {
         placeholder="Reference notes..." placeholderTextColor={Colors.text.tertiary}
         multiline numberOfLines={3} />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.saveBtn, !title.trim() && styles.saveBtnDisabled]}
         onPress={handleSave}
         disabled={!title.trim()}
@@ -145,5 +145,5 @@ const styles = StyleSheet.create({
   imagePreview: { width: '100%', height: 200, borderRadius: 12 },
   changePhotoBtn: { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   changePhotoText: { fontSize: 12, color: '#fff', fontWeight: '600' as const },
-  orText: { fontSize: 11, color: Colors.text.tertiary, marginTop: 10, marginBottom: 6 },
+  orText: { fontSize: 12, color: Colors.text.tertiary, marginTop: 10, marginBottom: 6 },
 });

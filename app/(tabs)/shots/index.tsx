@@ -36,7 +36,7 @@ function ShotCard({ shot, onEdit, onDelete }: { shot: Shot; onEdit: () => void; 
   };
 
   const renderRightActions = () => (
-    <TouchableOpacity
+    <TouchableOpacity accessibilityRole="button"
       style={styles.deleteAction}
       onPress={() => {
         swipeableRef.current?.close();
@@ -118,11 +118,11 @@ function ShotCard({ shot, onEdit, onDelete }: { shot: Shot; onEdit: () => void; 
 
             {/* Edit / Delete actions */}
             <View style={styles.actionRow}>
-              <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
                 <Pencil color={Colors.accent.gold} size={15} />
                 <Text style={styles.editBtnText}>Edit</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+              <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
                 <Trash2 color={Colors.status.error} size={15} />
                 <Text style={styles.deleteBtnText}>Delete</Text>
               </TouchableOpacity>
@@ -235,7 +235,7 @@ export default function ShotsScreen() {
           </View>
         }
       />
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-shot' as never)} activeOpacity={0.8} testID="add-shot-button">
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a shot" style={styles.fab} onPress={() => router.push('/new-shot' as never)} activeOpacity={0.8} testID="add-shot-button">
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>
@@ -248,13 +248,13 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 14, backgroundColor: Colors.bg.secondary, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle, alignItems: 'center' },
   statItem: { flex: 1, alignItems: 'center' },
   statValue: { fontSize: 20, fontWeight: '700' as const, color: Colors.text.primary },
-  statLabel: { fontSize: 10, color: Colors.text.tertiary, marginTop: 2, fontWeight: '500' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  statLabel: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2, fontWeight: '500' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   statDivider: { width: 1, height: 28, backgroundColor: Colors.border.subtle },
   list: { padding: 20, paddingBottom: 100 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, marginTop: 8 },
   sectionHeaderText: { flex: 1 },
   sectionTitle: { fontSize: 16, fontWeight: '700' as const, color: Colors.accent.gold, letterSpacing: 0.3 },
-  sectionSubtitle: { fontSize: 11, color: Colors.text.tertiary, marginTop: 2 },
+  sectionSubtitle: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2 },
   sectionCount: { fontSize: 12, color: Colors.text.tertiary },
   shotCard: { backgroundColor: Colors.bg.card, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 0.5, borderColor: Colors.border.subtle },
   shotCardExpanded: { borderColor: Colors.accent.gold + '44', borderWidth: 1 },
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   shotDescription: { fontSize: 14, color: Colors.text.primary, lineHeight: 20, marginBottom: 8 },
   shotMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   shotTag: { backgroundColor: Colors.bg.elevated, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
-  shotTagText: { fontSize: 10, color: Colors.text.secondary, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  shotTagText: { fontSize: 12, color: Colors.text.secondary, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   shotRight: { alignItems: 'center', marginLeft: 8 },
   statusIcon: { width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   expandedContent: { marginTop: 12 },
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   detailValue: { fontSize: 13, color: Colors.text.primary, fontWeight: '500' as const, textTransform: 'capitalize' as const },
   statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 5 },
   statusDotSmall: { width: 5, height: 5, borderRadius: 2.5 },
-  statusPillText: { fontSize: 11, fontWeight: '700' as const, letterSpacing: 0.3 },
+  statusPillText: { fontSize: 12, fontWeight: '700' as const, letterSpacing: 0.3 },
   notesSection: { marginTop: 8, paddingTop: 8, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   notesText: { fontSize: 13, color: Colors.text.secondary, lineHeight: 19, marginTop: 4, fontStyle: 'italic' as const },
   // Edit / Delete actions
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   deleteBtnText: { fontSize: 12, fontWeight: '600' as const, color: Colors.status.error },
   // Swipe delete
   deleteAction: { backgroundColor: Colors.status.error, justifyContent: 'center', alignItems: 'center', width: 72, borderRadius: 12, marginBottom: 8, marginLeft: 8 },
-  deleteActionText: { color: '#fff', fontSize: 10, fontWeight: '600' as const, marginTop: 3 },
+  deleteActionText: { color: '#fff', fontSize: 12, fontWeight: '600' as const, marginTop: 3 },
   // Empty states
   emptyContainer: { flex: 1, backgroundColor: Colors.bg.primary, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyInner: { alignItems: 'center', paddingVertical: 60 },

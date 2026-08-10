@@ -8,6 +8,7 @@ import {
 import { useProjects, useProjectScriptPDFs } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import { ScriptPDF, ScriptRevisionColor } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -47,7 +48,7 @@ function ScriptCard({
   const revColor = item.colorCode ? REVISION_COLORS[item.colorCode] : null;
   const fileSizeMB = item.fileSize ? (item.fileSize / 1024 / 1024).toFixed(1) : null;
   const uploadDate = item.uploadedAt
-    ? new Date(item.uploadedAt).toLocaleDateString('en-US', {
+    ? dateWith(item.uploadedAt, {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
@@ -141,11 +142,11 @@ function ScriptCard({
           </View>
 
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onView} style={styles.viewBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onView} style={styles.viewBtn}>
               <Eye color={Colors.accent.gold} size={15} />
               <Text style={styles.viewBtnText}>Open</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -227,7 +228,7 @@ export default function ScriptsScreen() {
               <Text style={styles.emptySub}>
                 Upload a PDF script to view, annotate, and mark up
               </Text>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 style={styles.emptyUploadBtn}
                 onPress={() => router.push('/new-script' as never)}
                 activeOpacity={0.8}
@@ -239,7 +240,7 @@ export default function ScriptsScreen() {
           }
         />
 
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a script"
           style={styles.fab}
           onPress={() => router.push('/new-script' as never)}
           activeOpacity={0.8}
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   revBadgeText: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: '700' as const,
     textTransform: 'uppercase' as const,
     letterSpacing: 0.5,
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
   expandedBody: { padding: 14, paddingTop: 0 },
   detailRow: { marginBottom: 10 },
   detailLabel: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: '700' as const,
     color: Colors.text.tertiary,
     letterSpacing: 0.8,

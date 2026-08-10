@@ -145,7 +145,7 @@ export default function SignInScreen() {
         </View>
 
         {/* Forgot password */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.forgotButton}
           onPress={() => router.push('/auth/forgot-password')}
           activeOpacity={0.7}
@@ -154,7 +154,7 @@ export default function SignInScreen() {
         </TouchableOpacity>
 
         {/* Sign in button */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.primaryButton, loading && styles.buttonDisabled]}
           onPress={handleSignIn}
           activeOpacity={0.8}
@@ -175,7 +175,7 @@ export default function SignInScreen() {
         </View>
 
         {/* Magic link */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.secondaryButton}
           onPress={handleMagicLink}
           activeOpacity={0.7}
@@ -187,7 +187,7 @@ export default function SignInScreen() {
 
         {/* Apple sign in */}
         {Platform.OS === 'ios' && (
-          <TouchableOpacity
+          <TouchableOpacity accessibilityRole="button"
             style={styles.appleButton}
             onPress={handleAppleSignIn}
             activeOpacity={0.7}
@@ -200,13 +200,13 @@ export default function SignInScreen() {
         {/* Sign up link */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don&apos;t have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('/auth/sign-up')} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" onPress={() => router.push('/auth/sign-up')} activeOpacity={0.7}>
             <Text style={styles.footerLink}>Create one</Text>
           </TouchableOpacity>
         </View>
 
         {/* Skip / Continue without account */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.skipButton}
           onPress={() => router.replace('/(tabs)' as never)}
           activeOpacity={0.7}

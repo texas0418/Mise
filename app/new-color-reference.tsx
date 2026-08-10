@@ -78,7 +78,7 @@ export default function NewColorReferenceScreen() {
       <Text style={styles.label}>{label}</Text>
       <View style={styles.chipRow}>
         {options.map(o => (
-          <TouchableOpacity key={o.v} style={[styles.chip, value === o.v && styles.chipActive]} onPress={() => onChange(o.v)}>
+          <TouchableOpacity accessibilityRole="button" key={o.v} style={[styles.chip, value === o.v && styles.chipActive]} onPress={() => onChange(o.v)}>
             <Text style={[styles.chipText, value === o.v && styles.chipTextActive]}>{o.l}</Text>
           </TouchableOpacity>
         ))}
@@ -108,7 +108,7 @@ export default function NewColorReferenceScreen() {
       <Text style={styles.label}>LUT Style</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.lutScroll}>
         {LUT_STYLES.map(lut => (
-          <TouchableOpacity key={lut.value}
+          <TouchableOpacity accessibilityRole="button" key={lut.value}
             style={[styles.lutCard, lutStyle === lut.value && styles.lutCardActive]}
             onPress={() => setLutStyle(lut.value as LUTStyle)}>
             <View style={styles.lutColors}>
@@ -155,7 +155,7 @@ export default function NewColorReferenceScreen() {
       <TextInput style={[styles.input, styles.multiline]} value={notes} onChangeText={setNotes}
         placeholder="Color notes..." placeholderTextColor={Colors.text.tertiary} multiline />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.saveBtn, !name.trim() && styles.saveBtnDisabled]}
         onPress={handleSave}
         disabled={!name.trim()}
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   lutCardActive: { borderColor: Colors.accent.gold },
   lutColors: { flexDirection: 'row', height: 24, borderRadius: 4, overflow: 'hidden', marginBottom: 4 },
   lutColorBar: { flex: 1 },
-  lutName: { fontSize: 10, fontWeight: '600' as const, color: Colors.text.tertiary, textAlign: 'center' },
+  lutName: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.tertiary, textAlign: 'center' },
   lutNameActive: { color: Colors.accent.gold },
   colorRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   colorInput: { flex: 1 },

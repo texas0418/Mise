@@ -62,7 +62,9 @@ export default function DigitalSlateScreen() {
 
       <Animated.View style={[styles.flash, { opacity: flashAnim }]} pointerEvents="none" />
 
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      {/* Tap-anywhere keyboard dismisser, not a control. Left focusable it is
+          a full-screen unlabelled button sitting over the slate. */}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.slateBody}>
           <Animated.View style={[styles.slapStick, { transform: [{ rotate: slapRotate }] }]}>
             <View style={styles.slapStickInner}>
@@ -111,10 +113,10 @@ export default function DigitalSlateScreen() {
       </TouchableWithoutFeedback>
 
       <View style={styles.controls}>
-        <TouchableOpacity style={styles.nextTakeBtn} onPress={incrementTake} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.nextTakeBtn} onPress={incrementTake} activeOpacity={0.7}>
           <Text style={styles.nextTakeText}>Next Take</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.clapBtn} onPress={handleClap} activeOpacity={0.8}>
+        <TouchableOpacity accessibilityRole="button" style={styles.clapBtn} onPress={handleClap} activeOpacity={0.8}>
           <Text style={styles.clapBtnText}>CLAP</Text>
         </TouchableOpacity>
       </View>
@@ -138,7 +140,7 @@ const styles = StyleSheet.create({
   slateGrid: { flexDirection: 'row', backgroundColor: '#0d0d0d', borderRadius: 12, borderWidth: 1, borderColor: '#333', overflow: 'hidden' },
   slateCell: { flex: 1, paddingVertical: 16, alignItems: 'center' },
   slateDivider: { width: 1, backgroundColor: '#333' },
-  slateCellLabel: { fontSize: 10, fontWeight: '700' as const, color: '#666', letterSpacing: 1.5, marginBottom: 6 },
+  slateCellLabel: { fontSize: 12, fontWeight: '700' as const, color: '#666', letterSpacing: 1.5, marginBottom: 6 },
   slateCellValue: { fontSize: 32, fontWeight: '900' as const, color: '#fff', fontVariant: ['tabular-nums'], minWidth: 60, padding: 0 },
   timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, paddingHorizontal: 8 },
   timeText: { fontSize: 20, fontWeight: '700' as const, color: Colors.status.error, fontVariant: ['tabular-nums'] },

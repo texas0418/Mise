@@ -537,6 +537,13 @@ export interface CastMember {
   projectId: string;
   actorName: string;
   characterName: string;
+  /**
+   * The production's cast number — #1 is the lead. Stable for the whole shoot,
+   * so "cast 3" means the same person on every day's sheet. Optional: a small
+   * production may never assign them, and unnumbered cast simply sort behind
+   * the numbered ones.
+   */
+  castNumber?: number;
   characterDescription: string;
   status: CastStatus;
   headshot?: string;

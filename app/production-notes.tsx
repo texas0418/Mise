@@ -89,11 +89,11 @@ function NoteCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 
           {/* Actions */}
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -158,7 +158,7 @@ export default function ProductionNotesScreen() {
 
       {/* Category filter chips */}
       <View style={styles.filterRow}>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.filterChip, !filterCat && styles.filterChipActive]}
           onPress={() => setFilterCat(null)}
         >
@@ -170,7 +170,7 @@ export default function ProductionNotesScreen() {
           const isActive = filterCat === c.value;
           const color = CAT_COLORS[c.value];
           return (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               key={c.value}
               style={[styles.filterChip, isActive && { backgroundColor: color + '18', borderColor: color + '44' }]}
               onPress={() => setFilterCat(isActive ? null : c.value)}
@@ -210,7 +210,7 @@ export default function ProductionNotesScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-note' as never)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a production note" style={styles.fab} onPress={() => router.push('/new-note' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
   filterChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: Colors.bg.elevated, borderWidth: 0.5, borderColor: Colors.border.subtle },
   filterChipActive: { backgroundColor: Colors.accent.goldBg, borderColor: Colors.accent.gold + '44' },
-  filterChipText: { fontSize: 11, fontWeight: '600' as const, color: Colors.text.tertiary },
+  filterChipText: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.tertiary },
   filterChipTextActive: { color: Colors.accent.gold },
   catDotSmall: { width: 6, height: 6, borderRadius: 3 },
   list: { padding: 16, paddingBottom: 100 },
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   catDot: { width: 6, height: 6, borderRadius: 3 },
   noteTitle: { flex: 1, fontSize: 15, fontWeight: '600' as const, color: Colors.text.primary },
-  dateText: { fontSize: 11, color: Colors.text.tertiary },
+  dateText: { fontSize: 12, color: Colors.text.tertiary },
   notePreview: { fontSize: 13, color: Colors.text.secondary, lineHeight: 19, marginTop: 6 },
   // Expanded
   expandedBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
@@ -246,9 +246,9 @@ const styles = StyleSheet.create({
   noContent: { fontSize: 13, color: Colors.text.tertiary, fontStyle: 'italic' as const, marginBottom: 12 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   catBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 0.5 },
-  catText: { fontSize: 10, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  catText: { fontSize: 12, fontWeight: '600' as const, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   pinnedBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  pinnedText: { fontSize: 10, fontWeight: '600' as const, color: Colors.accent.gold },
+  pinnedText: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold },
   // Actions
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 10, marginTop: 4, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },

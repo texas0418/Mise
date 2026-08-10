@@ -97,6 +97,9 @@ function ScriptTopBar({
         style={styles.backBtn}
         onPress={onBack}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+        accessibilityHint="Closes the script"
       >
         <ArrowLeft color={Colors.text.primary} size={22} />
       </TouchableOpacity>
@@ -115,6 +118,8 @@ function ScriptTopBar({
           style={styles.undoBtn}
           onPress={onUndo}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel="Undo the last annotation"
         >
           <Undo2 color={Colors.text.primary} size={18} />
         </TouchableOpacity>
@@ -165,7 +170,7 @@ function PdfLayer({
       {error && (
         <View style={styles.loadingOverlay}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={onRetry}>
+          <TouchableOpacity accessibilityRole="button" style={styles.retryBtn} onPress={onRetry}>
             <Text style={styles.retryBtnText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -274,6 +279,12 @@ function AnnotationOverlay({
           onPress={() => onNotePin(n)}
           activeOpacity={0.7}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          // The pin's position on the page is its only visual identity, and
+          // position is exactly what a screen reader cannot convey — so the
+          // note's own text has to be the label.
+          accessibilityLabel={`Note: ${n.textContent || 'empty'}`}
+          accessibilityHint="Opens this note"
         >
           <MessageCircle color="#fff" size={12} fill={Colors.accent.gold} />
         </TouchableOpacity>
@@ -322,7 +333,7 @@ function BottomToolbar({
   return (
     <View style={styles.bottomBar}>
       <View style={styles.toolButtons}>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.toolBtn, activeMode === 'highlight' && styles.toolBtnActive]}
           onPress={() => onToggleTool('highlight')}
           activeOpacity={0.7}
@@ -336,7 +347,7 @@ function BottomToolbar({
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={[styles.toolBtn, activeMode === 'note' && styles.toolBtnActive]}
           onPress={() => onToggleTool('note')}
           activeOpacity={0.7}
@@ -355,6 +366,9 @@ function BottomToolbar({
             style={[styles.toolBtn, styles.colorToggleBtn]}
             onPress={onToggleColorPicker}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`Highlight colour: ${highlightColor.label}`}
+            accessibilityHint="Opens the colour picker"
           >
             <View style={[styles.colorIndicator, { backgroundColor: highlightColor.hex }]} />
           </TouchableOpacity>
@@ -367,6 +381,9 @@ function BottomToolbar({
           disabled={currentPage <= 1}
           style={[styles.pageBtn, currentPage <= 1 && styles.pageBtnDisabled]}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel="Previous page"
+          accessibilityState={{ disabled: currentPage <= 1 }}
         >
           <ChevronLeft
             color={currentPage <= 1 ? Colors.text.tertiary : Colors.text.primary}
@@ -383,6 +400,9 @@ function BottomToolbar({
           disabled={currentPage >= totalPages}
           style={[styles.pageBtn, currentPage >= totalPages && styles.pageBtnDisabled]}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel="Next page"
+          accessibilityState={{ disabled: currentPage >= totalPages }}
         >
           <ChevronRight
             color={currentPage >= totalPages ? Colors.text.tertiary : Colors.text.primary}
@@ -425,6 +445,8 @@ function NoteModal({
             <TouchableOpacity
               onPress={onCloseButton}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
             >
               <X color={Colors.text.tertiary} size={20} />
             </TouchableOpacity>
@@ -443,12 +465,12 @@ function NoteModal({
 
           <View style={styles.modalActions}>
             {editingNoteId && (
-              <TouchableOpacity style={styles.deleteNoteBtn} onPress={onDelete}>
+              <TouchableOpacity accessibilityRole="button" style={styles.deleteNoteBtn} onPress={onDelete}>
                 <Text style={styles.deleteNoteBtnText}>Delete</Text>
               </TouchableOpacity>
             )}
             <View style={{ flex: 1 }} />
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               style={[styles.saveNoteBtn, !noteText.trim() && styles.saveNoteBtnDisabled]}
               onPress={onSave}
               disabled={!noteText.trim()}
@@ -814,7 +836,7 @@ export default function ScriptViewerScreen() {
       <SafeAreaView style={styles.errorContainer}>
         <StatusBar barStyle="light-content" />
         <Text style={styles.errorText}>Script not found</Text>
-        <TouchableOpacity style={styles.backBtnError} onPress={() => router.back()}>
+        <TouchableOpacity accessibilityRole="button" style={styles.backBtnError} onPress={() => router.back()}>
           <Text style={styles.backBtnErrorText}>Go Back</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -942,7 +964,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.bg.elevated, justifyContent: 'center', alignItems: 'center' },
   titleWrap: { flex: 1 },
   title: { fontSize: 15, fontWeight: '700', color: Colors.text.primary },
-  versionText: { fontSize: 11, color: Colors.text.secondary, marginTop: 1 },
+  versionText: { fontSize: 12, color: Colors.text.secondary, marginTop: 1 },
   undoBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.bg.elevated, justifyContent: 'center', alignItems: 'center' },
   revDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
 
@@ -969,7 +991,7 @@ const styles = StyleSheet.create({
   toolButtons: { flexDirection: 'row', gap: 4, alignItems: 'center' },
   toolBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
   toolBtnActive: { backgroundColor: Colors.accent.goldBg },
-  toolBtnLabel: { fontSize: 11, fontWeight: '600', color: Colors.accent.gold },
+  toolBtnLabel: { fontSize: 12, fontWeight: '600', color: Colors.accent.gold },
   colorToggleBtn: { marginLeft: 4 },
   colorIndicator: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)' },
 

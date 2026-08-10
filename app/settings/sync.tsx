@@ -35,6 +35,7 @@ import { useSync } from '@/contexts/SyncContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -49,7 +50,7 @@ function formatRelativeTime(isoString: string | null): string {
   if (diffMin < 60) return `${diffMin}m ago`;
   const diffHr = Math.floor(diffMin / 60);
   if (diffHr < 24) return `${diffHr}h ago`;
-  return new Date(isoString).toLocaleDateString();
+  return dateWith(isoString, {});
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
@@ -228,7 +229,7 @@ function ActionButton({
     : Colors.accent.gold;
 
   return (
-    <TouchableOpacity
+    <TouchableOpacity accessibilityRole="button"
       style={[styles.actionBtn, (disabled || loading) && styles.actionBtnDisabled]}
       onPress={onPress}
       disabled={disabled || loading}
@@ -353,7 +354,7 @@ export default function SyncSettingsScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* ── Back header ──────────────────────────────────────────────── */}
-      <TouchableOpacity style={styles.backRow} onPress={() => router.back()} activeOpacity={0.7}>
+      <TouchableOpacity accessibilityRole="button" style={styles.backRow} onPress={() => router.back()} activeOpacity={0.7}>
         <ChevronLeft color={Colors.text.secondary} size={20} />
         <Text style={styles.backText}>Sync Settings</Text>
       </TouchableOpacity>
@@ -580,7 +581,7 @@ const styles = StyleSheet.create({
 
   // Section header
   sectionHeader: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: Colors.text.tertiary,
     textTransform: 'uppercase',
@@ -619,7 +620,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   actionSublabel: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
     marginTop: 2,
     lineHeight: 15,

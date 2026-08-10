@@ -118,11 +118,11 @@ function ColorRefCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 
           {/* Actions */}
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -156,7 +156,7 @@ export default function ColorReferencesScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Color & LUT Reference' }} />
 
-      <TouchableOpacity style={styles.guideToggle} onPress={() => setShowGuide(!showGuide)}>
+      <TouchableOpacity accessibilityRole="button" style={styles.guideToggle} onPress={() => setShowGuide(!showGuide)}>
         <Text style={styles.guideToggleText}>{showGuide ? 'Hide' : 'Show'} LUT Style Guide</Text>
       </TouchableOpacity>
 
@@ -202,7 +202,7 @@ export default function ColorReferencesScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-color-reference' as never)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a color reference" style={styles.fab} onPress={() => router.push('/new-color-reference' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>
@@ -221,14 +221,14 @@ const styles = StyleSheet.create({
   guideColors: { flexDirection: 'row', height: 30, borderRadius: 6, overflow: 'hidden', marginBottom: 6 },
   guideColorBar: { flex: 1 },
   guideName: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.primary },
-  guideDesc: { fontSize: 9, color: Colors.text.tertiary, marginTop: 2 },
+  guideDesc: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2 },
   // Card
   card: { backgroundColor: Colors.bg.card, borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 0.5, borderColor: Colors.border.subtle },
   cardExpanded: { borderColor: Colors.accent.gold + '44', borderWidth: 1 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerLeft: { flex: 1, marginRight: 10 },
   cardTitle: { fontSize: 15, fontWeight: '700' as const, color: Colors.text.primary },
-  sceneText: { fontSize: 11, color: Colors.text.tertiary, marginTop: 2 },
+  sceneText: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   miniSwatches: { flexDirection: 'row', gap: 3 },
   lutPreview: { flexDirection: 'row', width: 48, height: 16, borderRadius: 3, overflow: 'hidden' },
@@ -238,13 +238,13 @@ const styles = StyleSheet.create({
   expandedBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   paletteRow: { flexDirection: 'row', gap: 16, marginBottom: 12, justifyContent: 'center' },
   paletteItem: { alignItems: 'center', gap: 4 },
-  paletteLabel: { fontSize: 9, color: Colors.text.tertiary, textTransform: 'uppercase' as const },
-  paletteHex: { fontSize: 9, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
+  paletteLabel: { fontSize: 12, color: Colors.text.tertiary, textTransform: 'uppercase' as const },
+  paletteHex: { fontSize: 12, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
   attributeRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 12 },
   attrChip: { backgroundColor: Colors.bg.elevated, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
-  attrText: { fontSize: 10, color: Colors.text.secondary, fontWeight: '600' as const, textTransform: 'capitalize' as const },
+  attrText: { fontSize: 12, color: Colors.text.secondary, fontWeight: '600' as const, textTransform: 'capitalize' as const },
   detailBlock: { marginBottom: 8 },
-  detailLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 3 },
+  detailLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 3 },
   lutLabelText: { fontSize: 12, color: Colors.text.secondary },
   refFilm: { fontSize: 12, color: Colors.accent.goldLight },
   notesText: { fontSize: 12, color: Colors.text.tertiary, fontStyle: 'italic' as const, lineHeight: 18 },

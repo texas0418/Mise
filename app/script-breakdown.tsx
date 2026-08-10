@@ -151,11 +151,11 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 
           {/* Action buttons */}
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -174,7 +174,7 @@ export default function ScriptBreakdownScreen() {
   const { isTablet, contentPadding } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // CSV/AI import still writes legacy breakdown records (scene-native import
+  // CSV import still writes legacy breakdown records (scene-native import
   // needs eighths parsing the import registry cannot express yet). Reconciling
   // on mount is idempotent and means an import shows up here immediately
   // instead of after the next launch.
@@ -239,7 +239,7 @@ export default function ScriptBreakdownScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a scene breakdown"
         style={styles.fab}
         onPress={() => router.push('/new-breakdown' as never)}
         activeOpacity={0.8}
@@ -266,18 +266,18 @@ const styles = StyleSheet.create({
   sceneName: { fontSize: 15, fontWeight: '600' as const, color: Colors.text.primary, marginBottom: 4 },
   tagRow: { flexDirection: 'row', gap: 6 },
   tag: { backgroundColor: Colors.bg.elevated, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-  tagText: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.secondary, letterSpacing: 0.5 },
+  tagText: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.secondary, letterSpacing: 0.5 },
   collapsedSummary: { paddingHorizontal: 14, paddingBottom: 12, gap: 4 },
   cardBody: { paddingHorizontal: 14, paddingBottom: 14, gap: 6 },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   detailText: { fontSize: 12, color: Colors.text.secondary, flex: 1 },
-  detailTextSmall: { fontSize: 11, color: Colors.text.tertiary, flex: 1 },
+  detailTextSmall: { fontSize: 12, color: Colors.text.tertiary, flex: 1 },
   detailBlock: { marginTop: 4 },
-  detailLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 2 },
+  detailLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 2 },
   equipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
   equipBadge: { backgroundColor: Colors.status.warning + '15', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, borderWidth: 0.5, borderColor: Colors.status.warning + '33' },
-  equipText: { fontSize: 10, fontWeight: '600' as const, color: Colors.status.warning },
-  notes: { fontSize: 11, color: Colors.text.tertiary, fontStyle: 'italic' as const, marginTop: 4 },
+  equipText: { fontSize: 12, fontWeight: '600' as const, color: Colors.status.warning },
+  notes: { fontSize: 12, color: Colors.text.tertiary, fontStyle: 'italic' as const, marginTop: 4 },
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 10, marginTop: 6, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },
   editBtnText: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold },

@@ -151,7 +151,7 @@ export default function NewWrapReportScreen() {
       <Text style={styles.label}>Notes</Text>
       <TextInput style={[styles.input, styles.multiline]} value={notes} onChangeText={setNotes} placeholder="Wrap notes..." placeholderTextColor={Colors.text.tertiary} multiline numberOfLines={4} />
 
-      <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.saveBtn} onPress={handleSave} activeOpacity={0.8}>
         <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Save Wrap Report'}</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg.primary },
   content: { padding: 20, paddingBottom: 40 },
   autoBox: { backgroundColor: Colors.accent.goldBg, borderRadius: 10, padding: 12, marginBottom: 10 },
-  autoTitle: { fontSize: 11, fontWeight: '700' as const, color: Colors.accent.gold, marginBottom: 4 },
+  autoTitle: { fontSize: 12, fontWeight: '700' as const, color: Colors.accent.gold, marginBottom: 4 },
   autoText: { fontSize: 13, color: Colors.accent.goldLight },
   label: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.secondary, textTransform: 'uppercase' as const, letterSpacing: 0.8, marginBottom: 6, marginTop: 16 },
   input: { backgroundColor: Colors.bg.input, borderRadius: 10, padding: 14, fontSize: 15, color: Colors.text.primary, borderWidth: 0.5, borderColor: Colors.border.subtle },

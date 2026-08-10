@@ -98,14 +98,14 @@ export default function NewNoteScreen() {
 
       <View style={styles.field}>
         <Text style={styles.label}>Category</Text>
-        <TouchableOpacity style={styles.selector} onPress={() => setShowCategories(!showCategories)}>
+        <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowCategories(!showCategories)}>
           <Text style={styles.selectorText}>{CATEGORY_OPTIONS.find(c => c.value === category)?.label}</Text>
           <ChevronDown color={Colors.text.tertiary} size={18} />
         </TouchableOpacity>
         {showCategories && (
           <View style={styles.optionsList}>
             {CATEGORY_OPTIONS.map(c => (
-              <TouchableOpacity key={c.value}
+              <TouchableOpacity accessibilityRole="button" key={c.value}
                 style={[styles.option, category === c.value && styles.optionActive]}
                 onPress={() => { setCategory(c.value); setShowCategories(false); }}>
                 <Text style={[styles.optionText, category === c.value && styles.optionTextActive]}>{c.label}</Text>
@@ -129,7 +129,7 @@ export default function NewNoteScreen() {
           multiline numberOfLines={8} textAlignVertical="top" />
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Save Note'}</Text>
       </TouchableOpacity>
     </ScrollView>

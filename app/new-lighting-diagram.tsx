@@ -183,7 +183,7 @@ export default function NewLightingDiagramScreen() {
             {LIGHTING_TEMPLATES.map(tmpl => {
               const selected = !selectedCustomId && templateName === tmpl.name;
               return (
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   key={tmpl.name}
                   style={[styles.templateCard, selected && styles.templateCardSelected]}
                   onPress={() => { setTemplateName(tmpl.name); setSelectedCustomId(null); }}
@@ -209,7 +209,7 @@ export default function NewLightingDiagramScreen() {
                 {customTemplates.map(tmpl => {
                   const selected = selectedCustomId === tmpl.id;
                   return (
-                    <TouchableOpacity
+                    <TouchableOpacity accessibilityRole="button"
                       key={tmpl.id}
                       style={[styles.templateCard, selected && styles.templateCardSelected]}
                       onPress={() => { setSelectedCustomId(tmpl.id); }}
@@ -259,7 +259,7 @@ export default function NewLightingDiagramScreen() {
       />
 
       {/* Save */}
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button"
         style={[styles.saveButton, !title.trim() && styles.saveButtonDisabled]}
         onPress={handleSave}
         disabled={!title.trim()}
@@ -310,8 +310,8 @@ const styles = StyleSheet.create({
   },
   templateLabel: { fontSize: 13, fontWeight: '700' as const, color: Colors.text.primary, marginBottom: 2 },
   templateLabelSelected: { color: Colors.accent.gold },
-  templateDesc: { fontSize: 11, color: Colors.text.tertiary, lineHeight: 15, marginBottom: 4 },
-  templateCount: { fontSize: 10, color: Colors.text.tertiary, fontWeight: '600' as const },
+  templateDesc: { fontSize: 12, color: Colors.text.tertiary, lineHeight: 15, marginBottom: 4 },
+  templateCount: { fontSize: 12, color: Colors.text.tertiary, fontWeight: '600' as const },
 
   // Save
   saveButton: {

@@ -253,6 +253,77 @@ const KEY_ROLES: { title: string; patterns: RegExp }[] = [
 ];
 
 /**
+ * The order a unit is listed in on a call sheet.
+ *
+ * Not alphabetical, and not by department. A call sheet is read in a hurry by
+ * someone looking for a specific person, and the convention every crew already
+ * knows puts the people who run the day at the top: director, then the ADs,
+ * then production, then camera, then the departments.
+ *
+ * Printed alphabetically by department, a real sheet put the 1st AC first and
+ * the director ninth (2026-08-10, on a device). That is not a cosmetic
+ * complaint — it is the difference between finding a number and scanning for
+ * it.
+ *
+ * Roles are free text, so this matches rather than switches. Anything
+ * unrecognised sorts after everything known, alphabetically, so a unit full of
+ * unusual titles still comes out in a stable, readable order.
+ */
+const ROLE_RANK: RegExp[] = [
+  /^(the )?director$/i,
+  /\b(1st|first)\s*(ad|assistant director)\b|^ad$/i,
+  /\b(2nd|second)\s*(ad|assistant director)\b/i,
+  /^(line |executive |co-)?producer$/i,
+  /\bupm\b|unit production manager/i,
+  /production manager|production coordinator/i,
+  /\b(dp|dop)\b|director of photography|cinematographer/i,
+  /camera operator|\bcam op\b/i,
+  /\b1st ac\b|first assistant camera|focus puller/i,
+  /\b2nd ac\b|second assistant camera|clapper/i,
+  /\bdit\b|digital imaging/i,
+  /^gaffer$|chief lighting/i,
+  /best boy electric|\bbbe\b/i,
+  /electrician|\bspark\b/i,
+  /key grip/i,
+  /best boy grip/i,
+  /dolly grip|grip/i,
+  /sound mixer|production sound/i,
+  /boom/i,
+  /production designer/i,
+  /art director/i,
+  /set dec/i,
+  /costume|wardrobe/i,
+  /hair|makeup|\bhmu\b/i,
+  /script supervisor|\bscripty\b/i,
+  /location manager/i,
+  /medic/i,
+  /transport/i,
+  /craft|catering/i,
+  /production assistant|\bpa\b/i,
+];
+
+/** Where a role sits in the running order; unknown roles go last. */
+export function crewRank(role: string): number {
+  const text = String(role ?? '').trim();
+  const index = ROLE_RANK.findIndex(pattern => pattern.test(text));
+  return index === -1 ? ROLE_RANK.length : index;
+}
+
+/**
+ * A unit in call sheet order. Does not mutate the input — the caller's array
+ * is a React prop more often than not.
+ */
+export function orderCrew<T extends { name: string; projectRole?: string; role?: string }>(
+  crew: T[],
+): T[] {
+  return [...(crew ?? [])].sort((a, b) => {
+    const rankA = crewRank(a.projectRole ?? a.role ?? '');
+    const rankB = crewRank(b.projectRole ?? b.role ?? '');
+    return rankA - rankB || String(a.name ?? '').localeCompare(String(b.name ?? ''));
+  });
+}
+
+/**
  * Key contacts, read out of the crew already assigned to the production
  * rather than typed a second time.
  *
@@ -333,6 +404,14 @@ export interface CastMemberLike {
   characterName: string;
   actorName: string;
   status?: string;
+  /**
+   * The production's cast number — #1 is the lead. Set once and stable for the
+   * whole shoot, which is the point: crew say "cast 3" and mean the same
+   * person on every day.
+   */
+  castNumber?: number | null;
+  /** Fallback ordering when no number has been assigned. */
+  createdAt?: string;
 }
 
 export interface CastCallTimeLike {
@@ -344,6 +423,8 @@ export interface CastCallTimeLike {
 
 export interface CastRow {
   castMemberId: string;
+  /** The production's cast number, or null when none is assigned. */
+  castNumber: number | null;
   character: string;
   actor: string;
   status: string;
@@ -403,9 +484,20 @@ export function castRows(
     rows.push(buildCastRow(member, sceneNumbers, times?.get(member.id)));
   }
 
-  return rows.sort((a, b) =>
-    b.sceneNumbers.length - a.sceneNumbers.length ||
-    a.character.localeCompare(b.character));
+  // Cast number first, because that is the order a crew reads. Sorting by how
+  // many of the day's scenes someone is in looks like importance and is not:
+  // it reshuffles the running order every day, so the lead is first on Monday
+  // and third on Tuesday. Unnumbered cast keep a stable order behind the
+  // numbered ones, by when they were added rather than by anything per-day.
+  const order = new Map((cast ?? []).map((m, i) => [m.id, i]));
+  return rows.sort((a, b) => {
+    if (a.castNumber !== b.castNumber) {
+      if (a.castNumber === null) return 1;
+      if (b.castNumber === null) return -1;
+      return a.castNumber - b.castNumber;
+    }
+    return (order.get(a.castMemberId) ?? 0) - (order.get(b.castMemberId) ?? 0);
+  });
 }
 
 /** Which of the day's scenes each character appears in, in the day's order. */
@@ -431,6 +523,8 @@ function buildCastRow(
   const time = (value: string | undefined) => String(value ?? '').trim();
   return {
     castMemberId: member.id,
+    castNumber: Number.isFinite(member.castNumber as number)
+      ? (member.castNumber as number) : null,
     character: member.characterName,
     actor: member.actorName,
     status: member.status ?? '',

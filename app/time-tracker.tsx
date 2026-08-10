@@ -5,6 +5,7 @@ import { Plus, Clock, AlertCircle, AlertTriangle, ChevronDown, ChevronUp, Pencil
 import { useProjects, useProjectTimeEntries } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { dateWith } from '@/utils/formatRecord';
 import ImportButton from '@/components/ImportButton';
 import { TimeEntry } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
@@ -30,7 +31,7 @@ function TimeCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }) {
   const deptColor = item.department ? DEPT_COLORS[item.department] ?? Colors.text.tertiary : Colors.text.tertiary;
   const hasOT = item.overtimeHours > 0;
-  const dateStr = new Date(item.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const dateStr = dateWith(item.date, { month: 'short', day: 'numeric' });
 
   const handleDelete = () => {
     Alert.alert('Delete Entry', `Remove time entry for ${dateStr}?`, [
@@ -104,11 +105,11 @@ function TimeCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 
           {/* Actions */}
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -189,7 +190,7 @@ export default function TimeTrackerScreen() {
 
             <View style={{ position: 'absolute', top: 80, right: 24, zIndex: 10 }}><ImportButton entityKey="timeEntries" variant="compact" /></View>
 
-<TouchableOpacity style={styles.fab} onPress={() => router.push('/new-time-entry' as never)} activeOpacity={0.8}>
+<TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a time entry" style={styles.fab} onPress={() => router.push('/new-time-entry' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>
@@ -203,29 +204,29 @@ const styles = StyleSheet.create({
   summaryBar: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 14, backgroundColor: Colors.bg.secondary, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
   summaryItem: { flex: 1, alignItems: 'center' },
   summaryValue: { fontSize: 20, fontWeight: '700' as const, color: Colors.text.primary },
-  summaryLabel: { fontSize: 9, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 0.5, marginTop: 2 },
+  summaryLabel: { fontSize: 12, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 0.5, marginTop: 2 },
   // Card
   card: { backgroundColor: Colors.bg.card, borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 0.5, borderColor: Colors.border.subtle },
   cardOT: { borderColor: Colors.status.warning + '40' },
   cardExpanded: { borderColor: Colors.accent.gold + '44', borderWidth: 1 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   deptBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  deptText: { fontSize: 9, fontWeight: '800' as const, letterSpacing: 0.8 },
+  deptText: { fontSize: 12, fontWeight: '800' as const, letterSpacing: 0.8 },
   dateText: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.primary },
-  compactTimes: { flex: 1, fontSize: 11, color: Colors.text.tertiary, textAlign: 'right' },
+  compactTimes: { flex: 1, fontSize: 12, color: Colors.text.tertiary, textAlign: 'right' },
   compactHours: { flexDirection: 'row', gap: 10, marginTop: 6 },
   compactHourText: { fontSize: 12, color: Colors.text.secondary, fontWeight: '500' as const },
   // Expanded
   expandedBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   timeRow: { flexDirection: 'row', gap: 16, marginBottom: 12 },
   timeBlock: {},
-  timeLabel: { fontSize: 10, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  timeLabel: { fontSize: 12, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   timeValue: { fontSize: 14, fontWeight: '600' as const, color: Colors.text.primary, marginTop: 2 },
   hoursRow: { flexDirection: 'row', marginBottom: 8 },
   hourItem: { flex: 1, alignItems: 'center' },
   hourValue: { fontSize: 16, fontWeight: '700' as const, color: Colors.text.primary },
-  hourLabel: { fontSize: 9, color: Colors.text.tertiary, textTransform: 'uppercase' as const, marginTop: 2 },
-  notesText: { fontSize: 11, color: Colors.text.tertiary, fontStyle: 'italic' as const, marginTop: 8, marginBottom: 4 },
+  hourLabel: { fontSize: 12, color: Colors.text.tertiary, textTransform: 'uppercase' as const, marginTop: 2 },
+  notesText: { fontSize: 12, color: Colors.text.tertiary, fontStyle: 'italic' as const, marginTop: 8, marginBottom: 4 },
   // Actions
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 10, marginTop: 4, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },

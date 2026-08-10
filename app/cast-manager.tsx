@@ -102,7 +102,7 @@ function CastCard({ member, index, onEdit, onDelete, onStatusChange }: {
                   const cfg = STATUS_CONFIG[s];
                   const isActive = member.status === s;
                   return (
-                    <TouchableOpacity
+                    <TouchableOpacity accessibilityRole="button"
                       key={s}
                       style={[
                         styles.statusToggleChip,
@@ -196,11 +196,11 @@ function CastCard({ member, index, onEdit, onDelete, onStatusChange }: {
 
             {/* Action buttons */}
             <View style={styles.footerActions}>
-              <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+              <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
                 <Pencil color={Colors.accent.gold} size={15} />
                 <Text style={styles.editBtnText}>Edit</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+              <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
                 <Trash2 color={Colors.status.error} size={15} />
                 <Text style={styles.deleteBtnText}>Delete</Text>
               </TouchableOpacity>
@@ -288,7 +288,7 @@ export default function CastManagerScreen() {
 
             <View style={styles.filterRow}>
               {filters.map(f => (
-                <TouchableOpacity key={f.key}
+                <TouchableOpacity accessibilityRole="button" key={f.key}
                   style={[styles.filterChip, filter === f.key && styles.filterChipActive]}
                   onPress={() => setFilter(f.key)}>
                   <Text style={[styles.filterChipText, filter === f.key && styles.filterChipTextActive]}>{f.label}</Text>
@@ -306,7 +306,7 @@ export default function CastManagerScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a cast member"
         style={styles.fab}
         onPress={() => router.push('/new-cast-member' as never)}
         activeOpacity={0.8}
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   statsBar: { flexDirection: 'row', backgroundColor: Colors.bg.card, borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 0.5, borderColor: Colors.border.subtle, justifyContent: 'space-around' },
   statItem: { alignItems: 'center' },
   statValue: { fontSize: 22, fontWeight: '700' as const, color: Colors.text.primary },
-  statLabel: { fontSize: 11, color: Colors.text.tertiary, marginTop: 2, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  statLabel: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   statDivider: { width: 1, backgroundColor: Colors.border.subtle },
   filterRow: { flexDirection: 'row', marginBottom: 16, gap: 8, flexWrap: 'wrap' },
   filterChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: Colors.bg.card, borderWidth: 0.5, borderColor: Colors.border.subtle },
@@ -341,27 +341,27 @@ const styles = StyleSheet.create({
   characterName: { fontSize: 17, fontWeight: '700' as const, color: Colors.text.primary },
   statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12, borderWidth: 0.5 },
   statusDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 5 },
-  statusLabel: { fontSize: 9, fontWeight: '700' as const, letterSpacing: 0.8 },
+  statusLabel: { fontSize: 12, fontWeight: '700' as const, letterSpacing: 0.8 },
   actorName: { fontSize: 14, color: Colors.accent.goldLight, fontWeight: '600' as const, marginBottom: 4 },
   characterDesc: { fontSize: 12, color: Colors.text.secondary, lineHeight: 17, marginBottom: 8 },
   quickStats: { flexDirection: 'row', gap: 12 },
   quickStat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  quickStatText: { fontSize: 11, color: Colors.text.tertiary },
+  quickStatText: { fontSize: 12, color: Colors.text.tertiary },
   cardActions: { alignItems: 'center', gap: 12 },
   expandedSection: { marginTop: 14, paddingTop: 14, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   detailBlock: { marginBottom: 14 },
-  detailLabel: { fontSize: 10, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 5 },
+  detailLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 5 },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 },
   detailText: { fontSize: 13, color: Colors.text.secondary, lineHeight: 19 },
   detailTextDim: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2 },
   sceneChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   sceneChip: { backgroundColor: Colors.accent.goldBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 0.5, borderColor: Colors.accent.gold + '33' },
-  sceneChipText: { fontSize: 11, fontWeight: '600' as const, color: Colors.accent.gold },
+  sceneChipText: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold },
   // Quick status toggle
   statusToggleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   statusToggleChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, backgroundColor: Colors.bg.tertiary, borderWidth: 0.5, borderColor: Colors.border.subtle },
   statusToggleDot: { width: 7, height: 7, borderRadius: 3.5 },
-  statusToggleText: { fontSize: 11, color: Colors.text.secondary, fontWeight: '500' as const },
+  statusToggleText: { fontSize: 12, color: Colors.text.secondary, fontWeight: '500' as const },
   // Action buttons
   footerActions: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },

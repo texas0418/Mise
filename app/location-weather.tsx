@@ -13,6 +13,7 @@ import * as ExpoLocation from 'expo-location';
 import { useProjects } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
+import { timeWith } from '@/utils/formatRecord';
 import PermissionGate from '@/contexts/PermissionGate';
 
 // ─── Types ───
@@ -109,10 +110,10 @@ async function fetchForecast(lat: number, lon: number): Promise<DayForecast[]> {
     const hourlyHumidity = data.hourly?.relative_humidity_2m?.slice(i * 24, (i + 1) * 24) ?? [];
     const avgHumidity = hourlyHumidity.length > 0
       ? Math.round(hourlyHumidity.reduce((s: number, v: number) => s + v, 0) / hourlyHumidity.length) : 0;
-    const fmtSun = (iso: string) => {
-      try { return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); }
-      catch { return iso; }
-    };
+    // The try/catch this replaces could never fire: an invalid Date does not
+    // throw from toLocaleTimeString, it returns the string "Invalid Date".
+    const fmtSun = (iso: string) =>
+      timeWith(iso, { hour: 'numeric', minute: '2-digit', hour12: true });
     days.push({
       date: data.daily.time[i],
       tempHigh: Math.round(data.daily.temperature_2m_max[i]),
@@ -163,7 +164,7 @@ function ForecastCard({ day, isExpanded, onToggle }: { day: DayForecast; isExpan
   const isToday = new Date().toISOString().split('T')[0] === day.date;
 
   return (
-    <TouchableOpacity
+    <TouchableOpacity accessibilityRole="button"
       style={[styles.card, isToday && styles.cardToday]}
       onPress={onToggle}
       activeOpacity={0.7}
@@ -249,11 +250,13 @@ function WeatherSection({ title, subtitle, forecast, loading, error, onRefresh, 
           )}
         </View>
         <View style={{ flexDirection: 'row', gap: 4 }}>
-          <TouchableOpacity onPress={onRefresh} style={styles.refreshBtn}>
+          <TouchableOpacity onPress={onRefresh} style={styles.refreshBtn}
+            accessibilityRole="button" accessibilityLabel="Refresh the forecast">
             <RefreshCw color={Colors.accent.gold} size={16} />
           </TouchableOpacity>
           {onDismiss && (
-            <TouchableOpacity onPress={onDismiss} style={styles.refreshBtn}>
+            <TouchableOpacity onPress={onDismiss} style={styles.refreshBtn}
+              accessibilityRole="button" accessibilityLabel="Dismiss the forecast">
               <X color={Colors.text.tertiary} size={16} />
             </TouchableOpacity>
           )}
@@ -535,18 +538,19 @@ export default function LocationWeatherScreen() {
               onSubmitEditing={handleSearch}
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); }}>
+              <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); }}
+                accessibilityRole="button" accessibilityLabel="Clear the search">
                 <X color={Colors.text.tertiary} size={14} />
               </TouchableOpacity>
             )}
           </View>
-          <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
+          <TouchableOpacity accessibilityRole="button" style={styles.searchBtn} onPress={handleSearch}>
             <Text style={styles.searchBtnText}>Go</Text>
           </TouchableOpacity>
         </View>
 
         {/* GPS button */}
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={styles.gpsBtn}
           onPress={handleCurrentLocation}
           activeOpacity={0.7}
@@ -576,7 +580,7 @@ export default function LocationWeatherScreen() {
         <View style={styles.resultsDropdown}>
           <Text style={styles.resultsHint}>Select a location:</Text>
           {searchResults.map((geo, i) => (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               key={`${geo.lat}-${geo.lon}-${i}`}
               style={styles.resultItem}
               onPress={() => addSearchSection(geo)}
@@ -655,7 +659,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg.primary },
   content: { padding: 16, paddingBottom: 40 },
   poweredBy: { alignItems: 'center', paddingVertical: 6, marginBottom: 8 },
-  poweredByText: { fontSize: 11, color: Colors.text.tertiary },
+  poweredByText: { fontSize: 12, color: Colors.text.tertiary },
 
   // Search
   searchSection: { marginBottom: 16 },
@@ -669,21 +673,21 @@ const styles = StyleSheet.create({
 
   // Results dropdown
   resultsDropdown: { backgroundColor: Colors.bg.card, borderRadius: 10, borderWidth: 0.5, borderColor: Colors.border.subtle, marginBottom: 12, overflow: 'hidden' },
-  resultsHint: { fontSize: 11, color: Colors.text.tertiary, padding: 10, paddingBottom: 4 },
+  resultsHint: { fontSize: 12, color: Colors.text.tertiary, padding: 10, paddingBottom: 4 },
   resultItem: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   resultName: { fontSize: 14, fontWeight: '600' as const, color: Colors.text.primary },
-  resultSub: { fontSize: 11, color: Colors.text.tertiary, marginTop: 1 },
+  resultSub: { fontSize: 12, color: Colors.text.tertiary, marginTop: 1 },
 
   // Divider
   divider: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 16 },
   dividerLine: { flex: 1, height: 0.5, backgroundColor: Colors.border.subtle },
-  dividerText: { fontSize: 11, fontWeight: '700' as const, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 0.8 },
+  dividerText: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 0.8 },
 
   // Section
   section: { marginBottom: 20 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   sectionTitle: { fontSize: 16, fontWeight: '700' as const, color: Colors.accent.gold, letterSpacing: 0.3 },
-  sectionSub: { fontSize: 11, color: Colors.text.tertiary },
+  sectionSub: { fontSize: 12, color: Colors.text.tertiary },
   refreshBtn: { padding: 8 },
 
   // Forecast card
@@ -693,7 +697,7 @@ const styles = StyleSheet.create({
   cardHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   dayText: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.primary },
   condBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
-  condText: { fontSize: 11, fontWeight: '600' as const },
+  condText: { fontSize: 12, fontWeight: '600' as const },
   tempCompact: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.secondary },
 
   // Card body (expanded)
@@ -708,10 +712,10 @@ const styles = StyleSheet.create({
   sunItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   sunText: { fontSize: 12, color: Colors.text.secondary },
   goldenRow: { backgroundColor: Colors.accent.goldBg, borderRadius: 8, padding: 10, marginBottom: 8 },
-  goldenLabel: { fontSize: 11, fontWeight: '700' as const, color: Colors.accent.gold, marginBottom: 4 },
+  goldenLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.accent.gold, marginBottom: 4 },
   goldenText: { fontSize: 12, color: Colors.accent.goldLight, marginBottom: 1 },
   alertRow: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.status.warning + '12', borderRadius: 6, padding: 8, marginTop: 4 },
-  alertText: { fontSize: 11, color: Colors.status.warning, flex: 1 },
+  alertText: { fontSize: 12, color: Colors.status.warning, flex: 1 },
 
   // Loading / error
   loadingBox: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 20, justifyContent: 'center' },

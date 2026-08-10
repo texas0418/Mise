@@ -35,10 +35,12 @@ function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
         <Text style={styles.colorHex}>{item.color}</Text>
         {isSelected && (
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.actionBtnSmall}>
+            <TouchableOpacity onPress={onEdit} style={styles.actionBtnSmall}
+              accessibilityRole="button" accessibilityLabel={`Edit ${item.label}`}>
               <Pencil color={Colors.accent.gold} size={13} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.actionBtnSmallDanger}>
+            <TouchableOpacity onPress={handleDelete} style={styles.actionBtnSmallDanger}
+              accessibilityRole="button" accessibilityLabel={`Delete ${item.label}`}>
               <Trash2 color={Colors.status.error} size={13} />
             </TouchableOpacity>
           </View>
@@ -56,10 +58,12 @@ function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
         </View>
         {isSelected && (
           <View style={styles.refActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.actionBtnOverlay}>
+            <TouchableOpacity onPress={onEdit} style={styles.actionBtnOverlay}
+              accessibilityRole="button" accessibilityLabel={`Edit ${item.label}`}>
               <Pencil color="#fff" size={14} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.actionBtnOverlay}>
+            <TouchableOpacity onPress={handleDelete} style={styles.actionBtnOverlay}
+              accessibilityRole="button" accessibilityLabel={`Delete ${item.label}`}>
               <Trash2 color="#FF6B6B" size={14} />
             </TouchableOpacity>
           </View>
@@ -77,11 +81,11 @@ function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
       <Text style={styles.noteText}>{item.note}</Text>
       {isSelected && (
         <View style={styles.cardActionsRow}>
-          <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+          <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
             <Pencil color={Colors.accent.gold} size={13} />
             <Text style={styles.editBtnText}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+          <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
             <Trash2 color={Colors.status.error} size={13} />
             <Text style={styles.deleteBtnText}>Delete</Text>
           </TouchableOpacity>
@@ -164,7 +168,7 @@ export default function MoodBoardsScreen() {
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push('/new-mood-item' as never)} activeOpacity={0.8}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a mood board item" style={styles.fab} onPress={() => router.push('/new-mood-item' as never)} activeOpacity={0.8}>
         <Plus color={Colors.text.inverse} size={24} />
       </TouchableOpacity>
     </View>
@@ -184,13 +188,13 @@ const styles = StyleSheet.create({
   // Color card
   colorCard: { width: '30%' as unknown as number, flexGrow: 0, flexShrink: 0, flexBasis: '30%', backgroundColor: Colors.bg.card, borderRadius: 12, overflow: 'hidden', borderWidth: 0.5, borderColor: Colors.border.subtle },
   colorSwatch: { height: 60, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
-  colorLabel: { fontSize: 11, fontWeight: '600' as const, color: Colors.text.primary, paddingHorizontal: 8, paddingTop: 6 },
-  colorHex: { fontSize: 9, color: Colors.text.tertiary, paddingHorizontal: 8, paddingBottom: 8, fontVariant: ['tabular-nums'] },
+  colorLabel: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.primary, paddingHorizontal: 8, paddingTop: 6 },
+  colorHex: { fontSize: 12, color: Colors.text.tertiary, paddingHorizontal: 8, paddingBottom: 8, fontVariant: ['tabular-nums'] },
   // Reference card
   refCard: { width: '47%' as unknown as number, flexGrow: 0, flexShrink: 0, flexBasis: '47%', height: 140, borderRadius: 12, overflow: 'hidden', borderWidth: 0.5, borderColor: Colors.border.subtle },
   refImage: { width: '100%', height: '100%' },
   refOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 8, backgroundColor: 'rgba(0,0,0,0.6)' },
-  refLabel: { fontSize: 11, fontWeight: '600' as const, color: '#fff' },
+  refLabel: { fontSize: 12, fontWeight: '600' as const, color: '#fff' },
   refActions: { position: 'absolute', top: 8, right: 8, flexDirection: 'row', gap: 6 },
   // Note card
   noteCard: { width: '100%' as unknown as number, backgroundColor: Colors.bg.card, borderRadius: 12, padding: 14, borderWidth: 0.5, borderColor: Colors.border.subtle, borderLeftWidth: 3, borderLeftColor: Colors.accent.gold },
@@ -204,9 +208,9 @@ const styles = StyleSheet.create({
   actionBtnOverlay: { width: 32, height: 32, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
   cardActionsRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 10, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },
-  editBtnText: { fontSize: 11, fontWeight: '600' as const, color: Colors.accent.gold },
+  editBtnText: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold },
   deleteBtnAction: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: Colors.status.error + '12', borderWidth: 0.5, borderColor: Colors.status.error + '44' },
-  deleteBtnText: { fontSize: 11, fontWeight: '600' as const, color: Colors.status.error },
+  deleteBtnText: { fontSize: 12, fontWeight: '600' as const, color: Colors.status.error },
   fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.accent.gold, justifyContent: 'center', alignItems: 'center', shadowColor: Colors.accent.gold, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
   emptyContainer: { flex: 1, backgroundColor: Colors.bg.primary, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyInner: { alignItems: 'center', paddingVertical: 60 },

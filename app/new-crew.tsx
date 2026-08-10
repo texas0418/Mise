@@ -96,14 +96,14 @@ export default function NewCrewScreen() {
 
       <View style={styles.field}>
         <Text style={styles.label}>Department</Text>
-        <TouchableOpacity style={styles.selector} onPress={() => setShowDepartments(!showDepartments)} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowDepartments(!showDepartments)} activeOpacity={0.7}>
           <Text style={styles.selectorText}>{DEPARTMENTS.find(d => d.value === department)?.label}</Text>
           <ChevronDown color={Colors.text.tertiary} size={18} />
         </TouchableOpacity>
         {showDepartments && (
           <View style={styles.optionsList}>
             {DEPARTMENTS.map(d => (
-              <TouchableOpacity key={d.value}
+              <TouchableOpacity accessibilityRole="button" key={d.value}
                 style={[styles.option, department === d.value && styles.optionActive]}
                 onPress={() => { setDepartment(d.value as Department); setShowDepartments(false); }}>
                 <Text style={[styles.optionText, department === d.value && styles.optionTextActive]}>{d.label}</Text>
@@ -126,7 +126,7 @@ export default function NewCrewScreen() {
           keyboardType="email-address" autoCapitalize="none" />
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-crew-button">
+      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-crew-button">
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Add Crew Member'}</Text>
       </TouchableOpacity>
     </ScrollView>

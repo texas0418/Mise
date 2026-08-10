@@ -154,7 +154,7 @@ export default function ShotChecklistScreen() {
           const isCollapsed = collapsedScenes.has(s.sceneNumber);
           const allDone = sceneDone === sceneTotal;
           return (
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button"
               style={[styles.sceneHeader, allDone && styles.sceneHeaderDone]}
               onPress={() => toggleScene(s.sceneNumber)}
               activeOpacity={0.7}
@@ -187,7 +187,7 @@ export default function ShotChecklistScreen() {
             <View style={styles.progressCard}>
               <View style={styles.progressHeader}>
                 <Text style={styles.progressTitle}>Daily Progress</Text>
-                <TouchableOpacity onPress={resetAll} style={styles.resetBtn}>
+                <TouchableOpacity accessibilityRole="button" onPress={resetAll} style={styles.resetBtn}>
                   <RotateCcw color={Colors.text.tertiary} size={14} />
                   <Text style={styles.resetText}>Reset</Text>
                 </TouchableOpacity>
@@ -227,7 +227,7 @@ export default function ShotChecklistScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a shot"
         style={styles.fab}
         onPress={() => router.push('/new-shot' as never)}
         activeOpacity={0.8}
@@ -246,15 +246,15 @@ const styles = StyleSheet.create({
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   progressTitle: { fontSize: 18, fontWeight: '700' as const, color: Colors.text.primary },
   resetBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: Colors.bg.tertiary },
-  resetText: { fontSize: 11, color: Colors.text.tertiary, fontWeight: '600' as const },
+  resetText: { fontSize: 14, color: Colors.text.tertiary, fontWeight: '600' as const },
   bigProgressTrack: { height: 10, backgroundColor: Colors.bg.tertiary, borderRadius: 5, overflow: 'hidden', marginBottom: 6 },
   bigProgressFill: { height: '100%', backgroundColor: Colors.accent.gold, borderRadius: 5 },
   bigProgressPct: { fontSize: 28, fontWeight: '800' as const, color: Colors.accent.gold, textAlign: 'center', marginBottom: 12 },
   statsRow: { flexDirection: 'row', justifyContent: 'space-around' },
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   statDot: { width: 8, height: 8, borderRadius: 4 },
-  statText: { fontSize: 11, color: Colors.text.secondary, fontWeight: '500' as const },
-  instruction: { fontSize: 11, color: Colors.text.tertiary, textAlign: 'center', marginBottom: 16, fontStyle: 'italic' as const },
+  statText: { fontSize: 14, color: Colors.text.secondary, fontWeight: '500' as const },
+  instruction: { fontSize: 14, color: Colors.text.tertiary, textAlign: 'center', marginBottom: 16, fontStyle: 'italic' as const },
   sceneHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Colors.bg.secondary, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginTop: 12, marginBottom: 6, borderWidth: 0.5, borderColor: Colors.border.subtle },
   sceneHeaderDone: { borderColor: '#4ADE8033' },
   sceneHeaderLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   sceneProgress: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
   sceneProgressTrack: { flex: 1, height: 4, backgroundColor: Colors.bg.tertiary, borderRadius: 2, overflow: 'hidden', maxWidth: 120 },
   sceneProgressFill: { height: '100%', backgroundColor: Colors.accent.gold, borderRadius: 2 },
-  sceneProgressText: { fontSize: 11, color: Colors.text.tertiary, fontWeight: '600' as const, minWidth: 30 },
+  sceneProgressText: { fontSize: 14, color: Colors.text.tertiary, fontWeight: '600' as const, minWidth: 30 },
   shotRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bg.card, borderRadius: 10, padding: 12, marginBottom: 6, borderWidth: 0.5, borderColor: Colors.border.subtle, gap: 10 },
   shotRowDone: { opacity: 0.7 },
   statusCircle: { width: 32, height: 32, borderRadius: 16, borderWidth: 1.5, justifyContent: 'center', alignItems: 'center' },
@@ -271,13 +271,13 @@ const styles = StyleSheet.create({
   shotTopRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 3 },
   shotNumber: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.primary },
   shotNumberDone: { textDecorationLine: 'line-through', color: Colors.text.tertiary },
-  shotType: { fontSize: 11, fontWeight: '600' as const, textTransform: 'uppercase' as const },
-  shotLens: { fontSize: 11, color: Colors.text.tertiary },
-  shotDesc: { fontSize: 12, color: Colors.text.secondary, lineHeight: 17 },
+  shotType: { fontSize: 14, fontWeight: '600' as const, textTransform: 'uppercase' as const },
+  shotLens: { fontSize: 14, color: Colors.text.tertiary },
+  shotDesc: { fontSize: 14, color: Colors.text.secondary, lineHeight: 17 },
   shotDescDone: { color: Colors.text.tertiary },
-  shotMovement: { fontSize: 10, color: Colors.accent.goldDim, fontWeight: '500' as const, marginTop: 2, textTransform: 'uppercase' as const },
+  shotMovement: { fontSize: 14, color: Colors.accent.goldDim, fontWeight: '500' as const, marginTop: 2, textTransform: 'uppercase' as const },
   statusTag: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, borderWidth: 0.5 },
-  statusTagText: { fontSize: 9, fontWeight: '700' as const, letterSpacing: 0.5 },
+  statusTagText: { fontSize: 14, fontWeight: '700' as const, letterSpacing: 0.5 },
   emptyContainer: { alignItems: 'center', paddingVertical: 60 },
   emptyTitle: { fontSize: 18, fontWeight: '600' as const, color: Colors.text.primary, marginTop: 16 },
   emptySubtitle: { fontSize: 14, color: Colors.text.secondary, marginTop: 4 },

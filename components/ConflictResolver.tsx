@@ -102,7 +102,7 @@ export default function ConflictResolver({
               <View key={field} style={s.fieldRow}>
                 <Text style={s.fieldName}>{formatFieldName(field)}</Text>
                 <View style={s.versions}>
-                  <TouchableOpacity
+                  <TouchableOpacity accessibilityRole="button"
                     style={[s.versionCard, selected === 'local' && s.versionSelected]}
                     onPress={() => toggleField(field)}
                     activeOpacity={0.7}
@@ -111,7 +111,7 @@ export default function ConflictResolver({
                     <Text style={s.versionValue} numberOfLines={2}>{localVal}</Text>
                     {selected === 'local' && <Check color={Colors.accent.gold} size={14} style={s.checkIcon} />}
                   </TouchableOpacity>
-                  <TouchableOpacity
+                  <TouchableOpacity accessibilityRole="button"
                     style={[s.versionCard, selected === 'remote' && s.versionSelected]}
                     onPress={() => toggleField(field)}
                     activeOpacity={0.7}
@@ -127,21 +127,21 @@ export default function ConflictResolver({
         </ScrollView>
 
         <View style={s.actions}>
-          <TouchableOpacity style={s.quickBtn} onPress={handleKeepLocal} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" style={s.quickBtn} onPress={handleKeepLocal} activeOpacity={0.7}>
             <ArrowLeft color={Colors.text.secondary} size={14} />
             <Text style={s.quickBtnText}>Keep All Local</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.mergeBtn} onPress={handleMerge} activeOpacity={0.8}>
+          <TouchableOpacity accessibilityRole="button" style={s.mergeBtn} onPress={handleMerge} activeOpacity={0.8}>
             <GitMerge color={Colors.text.inverse} size={16} />
             <Text style={s.mergeBtnText}>Merge Selected</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.quickBtn} onPress={handleKeepRemote} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" style={s.quickBtn} onPress={handleKeepRemote} activeOpacity={0.7}>
             <Text style={s.quickBtnText}>Keep All Remote</Text>
             <ArrowRight color={Colors.text.secondary} size={14} />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={s.dismissBtn} onPress={onDismiss} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={s.dismissBtn} onPress={onDismiss} activeOpacity={0.7}>
           <Text style={s.dismissText}>Dismiss (auto-resolve later)</Text>
         </TouchableOpacity>
       </View>
@@ -168,12 +168,12 @@ const s = StyleSheet.create({
   versions: { flexDirection: 'row', gap: 8 },
   versionCard: { flex: 1, backgroundColor: Colors.bg.card, borderRadius: 8, padding: 10, borderWidth: 1, borderColor: Colors.border.subtle },
   versionSelected: { borderColor: Colors.accent.gold, backgroundColor: Colors.accent.goldBg },
-  versionLabel: { fontSize: 10, fontWeight: '600', color: Colors.text.tertiary, marginBottom: 4 },
+  versionLabel: { fontSize: 12, fontWeight: '600', color: Colors.text.tertiary, marginBottom: 4 },
   versionValue: { fontSize: 13, color: Colors.text.primary },
   checkIcon: { position: 'absolute', top: 6, right: 6 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 16 },
   quickBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, padding: 10, borderRadius: 8, borderWidth: 0.5, borderColor: Colors.border.subtle },
-  quickBtnText: { fontSize: 11, color: Colors.text.secondary, fontWeight: '500' },
+  quickBtnText: { fontSize: 12, color: Colors.text.secondary, fontWeight: '500' },
   mergeBtn: { flex: 1.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: Colors.accent.gold, padding: 12, borderRadius: 8 },
   mergeBtnText: { fontSize: 13, fontWeight: '700', color: Colors.text.inverse },
   dismissBtn: { alignItems: 'center', marginTop: 12, paddingVertical: 8 },

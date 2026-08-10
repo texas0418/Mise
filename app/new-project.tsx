@@ -122,14 +122,14 @@ export default function NewProjectScreen() {
 
       <View style={styles.field}>
         <Text style={styles.label}>Genre</Text>
-        <TouchableOpacity style={styles.selector} onPress={() => setShowGenres(!showGenres)} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowGenres(!showGenres)} activeOpacity={0.7}>
           <Text style={styles.selectorText}>{genre}</Text>
           <ChevronDown color={Colors.text.tertiary} size={18} />
         </TouchableOpacity>
         {showGenres && (
           <View style={styles.optionsList}>
             {GENRES.map(g => (
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 key={g}
                 style={[styles.option, genre === g && styles.optionActive]}
                 onPress={() => { setGenre(g); setShowGenres(false); }}
@@ -143,14 +143,14 @@ export default function NewProjectScreen() {
 
       <View style={styles.field}>
         <Text style={styles.label}>Format</Text>
-        <TouchableOpacity style={styles.selector} onPress={() => setShowFormats(!showFormats)} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowFormats(!showFormats)} activeOpacity={0.7}>
           <Text style={styles.selectorText}>{format}</Text>
           <ChevronDown color={Colors.text.tertiary} size={18} />
         </TouchableOpacity>
         {showFormats && (
           <View style={styles.optionsList}>
             {formats.map(f => (
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 key={f}
                 style={[styles.option, format === f && styles.optionActive]}
                 onPress={() => { setFormat(f); setShowFormats(false); }}
@@ -164,14 +164,14 @@ export default function NewProjectScreen() {
 
       <View style={styles.field}>
         <Text style={styles.label}>Status</Text>
-        <TouchableOpacity style={styles.selector} onPress={() => setShowStatuses(!showStatuses)} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" style={styles.selector} onPress={() => setShowStatuses(!showStatuses)} activeOpacity={0.7}>
           <Text style={styles.selectorText}>{PROJECT_STATUSES.find(s => s.value === status)?.label}</Text>
           <ChevronDown color={Colors.text.tertiary} size={18} />
         </TouchableOpacity>
         {showStatuses && (
           <View style={styles.optionsList}>
             {PROJECT_STATUSES.map(s => (
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button"
                 key={s.value}
                 style={[styles.option, status === s.value && styles.optionActive]}
                 onPress={() => { setStatus(s.value as ProjectStatus); setShowStatuses(false); }}
@@ -236,7 +236,7 @@ export default function NewProjectScreen() {
         </View>
       )}
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-project-button">
+      <TouchableOpacity accessibilityRole="button" style={styles.saveButton} onPress={handleSave} activeOpacity={0.8} testID="save-project-button">
         <Text style={styles.saveButtonText}>{isEditing ? 'Save Changes' : 'Create Project'}</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     fontWeight: '500' as const,
   },
   switchHint: {
-    fontSize: 11,
+    fontSize: 12,
     color: Colors.text.tertiary,
     marginTop: 2,
   },

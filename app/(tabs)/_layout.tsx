@@ -44,9 +44,12 @@ export default function TabLayout() {
             : {}),
         },
         tabBarLabelStyle: {
-          fontSize: isTablet ? 14 : 10,
+          // Was 10 on phones — the smallest text in the app, on the one control
+          // that is on every screen. At 12 the six labels no longer fit with
+          // letter spacing on, so phones lose it; tablets have the room.
+          fontSize: isTablet ? 14 : 12,
           fontWeight: '600' as const,
-          letterSpacing: 0.3,
+          letterSpacing: isTablet ? 0.3 : 0,
           ...(isTablet ? { marginTop: 2 } : {}),
         },
         tabBarIconStyle: isTablet ? { marginBottom: 0 } : {},
@@ -57,6 +60,11 @@ export default function TabLayout() {
               marginVertical: 2,
               marginHorizontal: 4,
             }
+          // Nothing here on phones. Six tabs across 375pt gives each item 63,
+          // of which React Navigation's own 5pt padding leaves the label 53 —
+          // and that padding is additive rather than overridable, so the width
+          // is what it is. Every title has to fit inside 53pt at 12pt, which is
+          // why the schedule tab is "Days": "Schedule" needed 55 and truncated.
           : {},
         ...(isTablet ? { tabBarPosition: 'left' } : {}),
       }}
@@ -91,7 +99,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="schedule"
         options={{
-          title: "Schedule",
+          // "Days", not "Schedule": it lists shoot days, and at 12pt the longer
+          // word does not fit a sixth of a phone's width.
+          title: "Days",
           tabBarIcon: ({ color, size }) => (
             <CalendarDays color={color} size={isTablet ? 28 : size - 2} />
           ),

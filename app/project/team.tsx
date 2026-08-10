@@ -159,7 +159,7 @@ export default function TeamScreen() {
 
       {/* Invite button */}
       {canInvite() && (
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button"
           style={s.inviteButton}
           onPress={() => router.push('/project/invite')}
           activeOpacity={0.8}
@@ -197,7 +197,7 @@ export default function TeamScreen() {
             {/* Actions — only if I can manage and it's not me or the owner */}
             {canManageMembers() && !isMe && member.role !== 'owner' && (
               <View style={s.memberActions}>
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   style={s.actionBtn}
                   onPress={() => handleChangeRole(member.id, member.displayName, member.role)}
                   activeOpacity={0.7}
@@ -207,7 +207,7 @@ export default function TeamScreen() {
                     : <><ChevronDown color={Colors.accent.gold} size={14} /><Text style={s.actionGold}>Change Role</Text></>
                   }
                 </TouchableOpacity>
-                <TouchableOpacity
+                <TouchableOpacity accessibilityRole="button"
                   style={s.actionBtn}
                   onPress={() => handleRemoveMember(member.id, member.displayName)}
                   activeOpacity={0.7}
@@ -250,13 +250,13 @@ const s = StyleSheet.create({
   roleRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   roleText: { fontSize: 12, color: Colors.text.secondary },
   pendingBadge: { backgroundColor: Colors.status.warning + '20', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4, marginLeft: 4 },
-  pendingText: { fontSize: 10, fontWeight: '600', color: Colors.status.warning },
+  pendingText: { fontSize: 12, fontWeight: '600', color: Colors.status.warning },
   memberActions: { flexDirection: 'row', gap: 16, marginTop: 10, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   actionGold: { fontSize: 13, fontWeight: '500', color: Colors.accent.gold },
   actionRed: { fontSize: 13, fontWeight: '500', color: Colors.status.error },
   myRoleCard: { backgroundColor: Colors.accent.goldBg, borderRadius: 12, padding: 16, marginTop: 20, borderWidth: 0.5, borderColor: Colors.accent.gold + '30' },
-  myRoleTitle: { fontSize: 11, fontWeight: '600', color: Colors.accent.gold, textTransform: 'uppercase', letterSpacing: 0.8 },
+  myRoleTitle: { fontSize: 12, fontWeight: '600', color: Colors.accent.gold, textTransform: 'uppercase', letterSpacing: 0.8 },
   myRoleValue: { fontSize: 18, fontWeight: '700', color: Colors.accent.gold, marginTop: 4 },
   myRoleDesc: { fontSize: 13, color: Colors.text.secondary, marginTop: 4, lineHeight: 18 },
 });

@@ -32,6 +32,7 @@ export default function NewCastMemberScreen() {
 
   const [actorName, setActorName] = useState('');
   const [characterName, setCharacterName] = useState('');
+  const [castNumber, setCastNumber] = useState('');
   const [characterDescription, setCharacterDescription] = useState('');
   const [status, setStatus] = useState<CastStatus>('wishlist');
   const [headshot, setHeadshot] = useState<string | undefined>(undefined);
@@ -50,6 +51,7 @@ export default function NewCastMemberScreen() {
     if (existingMember) {
       setActorName(existingMember.actorName || '');
       setCharacterName(existingMember.characterName);
+      setCastNumber(existingMember.castNumber ? String(existingMember.castNumber) : '');
       setCharacterDescription(existingMember.characterDescription || '');
       setStatus(existingMember.status);
       setHeadshot(existingMember.headshot);
@@ -81,6 +83,7 @@ export default function NewCastMemberScreen() {
       projectId: activeProjectId || '1',
       actorName: actorName.trim(),
       characterName: characterName.trim(),
+      castNumber: castNumber.trim() ? Number(castNumber.trim()) : undefined,
       characterDescription: characterDescription.trim(),
       status,
       headshot,
@@ -117,7 +120,7 @@ export default function NewCastMemberScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Headshot picker */}
-        <TouchableOpacity style={styles.headshotPicker} onPress={handlePickHeadshot}>
+        <TouchableOpacity accessibilityRole="button" style={styles.headshotPicker} onPress={handlePickHeadshot}>
           {headshot ? (
             <Image source={{ uri: resolvePhotoUri(headshot) }} style={styles.headshotPreview} contentFit="cover" />
           ) : (
@@ -134,6 +137,15 @@ export default function NewCastMemberScreen() {
         <TextInput style={styles.input} value={characterName} onChangeText={setCharacterName}
           placeholder="e.g. Marcus" placeholderTextColor={Colors.text.tertiary} />
 
+        {/* The production's cast number. Stable for the whole shoot, which is
+            what makes it useful: crew say "cast 3" and mean the same person on
+            every day's sheet. Optional — unnumbered cast simply sort behind
+            the numbered ones rather than reshuffling day to day. */}
+        <Text style={styles.label}>Cast Number</Text>
+        <TextInput style={styles.input} value={castNumber} onChangeText={setCastNumber}
+          placeholder="1 for the lead" placeholderTextColor={Colors.text.tertiary}
+          keyboardType="number-pad" />
+
         <Text style={styles.label}>Character Description</Text>
         <TextInput style={[styles.input, styles.textArea]} value={characterDescription} onChangeText={setCharacterDescription}
           placeholder="Age, personality, role in story..." placeholderTextColor={Colors.text.tertiary} multiline numberOfLines={3} />
@@ -141,7 +153,7 @@ export default function NewCastMemberScreen() {
         <Text style={styles.label}>Status</Text>
         <View style={styles.optionsRow}>
           {STATUS_OPTIONS.map(opt => (
-            <TouchableOpacity key={opt.value}
+            <TouchableOpacity accessibilityRole="button" key={opt.value}
               style={[styles.optionChip, status === opt.value && styles.optionChipActive]}
               onPress={() => setStatus(opt.value)}>
               <Text style={[styles.optionChipText, status === opt.value && styles.optionChipTextActive]}>{opt.label}</Text>
@@ -205,7 +217,7 @@ export default function NewCastMemberScreen() {
         <TextInput style={[styles.input, styles.textArea]} value={costumeNotes} onChangeText={setCostumeNotes}
           placeholder="Character's look, key wardrobe pieces..." placeholderTextColor={Colors.text.tertiary} multiline numberOfLines={3} />
 
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+        <TouchableOpacity accessibilityRole="button" style={styles.saveBtn} onPress={handleSave}>
           <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Add Cast Member'}</Text>
         </TouchableOpacity>
 
@@ -221,7 +233,7 @@ const styles = StyleSheet.create({
   headshotPicker: { alignSelf: 'center', marginBottom: 16, marginTop: 8 },
   headshotPreview: { width: 100, height: 130, borderRadius: 14 },
   headshotPlaceholder: { width: 100, height: 130, borderRadius: 14, backgroundColor: Colors.bg.card, borderWidth: 1, borderColor: Colors.border.subtle, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
-  headshotPlaceholderText: { fontSize: 10, color: Colors.text.tertiary, marginTop: 4 },
+  headshotPlaceholderText: { fontSize: 12, color: Colors.text.tertiary, marginTop: 4 },
   sectionTitle: { fontSize: 16, fontWeight: '700' as const, color: Colors.accent.gold, marginTop: 20, marginBottom: 12, letterSpacing: 0.3 },
   label: { fontSize: 12, fontWeight: '600' as const, color: Colors.text.secondary, marginBottom: 6, marginTop: 12, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
   input: { backgroundColor: Colors.bg.card, borderRadius: 10, padding: 14, fontSize: 15, color: Colors.text.primary, borderWidth: 0.5, borderColor: Colors.border.subtle },

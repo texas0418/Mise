@@ -12,6 +12,7 @@ import {
   sceneRows, dayTotals, sceneListLabel, resolveDayScenes, castRows, detailSummaryLines,
 } from '@/utils/callSheet';
 import Colors from '@/constants/colors';
+import { dateWith, weekdayDate } from '@/utils/formatRecord';
 import { ScheduleDay, Scene, CastMember, CastCallTime } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -209,9 +210,10 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
   onSetCastTime: (dayId: string, castMemberId: string, field: CastTimeField, value: string) => void;
   onEditDetails: () => void;
 }) {
-  const dateObj = new Date(day.date + 'T00:00:00');
-  const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  const dateFull = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  // Guarded: a call sheet whose day has no readable date used this string as
+  // the row's title, so the row announced itself as "Invalid Date". See #90.
+  const dateStr = weekdayDate(day.date);
+  const dateFull = dateWith(day.date, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
   const handleDelete = () => {
     Alert.alert('Delete Call Sheet', `Remove Day ${day.dayNumber} call sheet?\n\nThis will also delete the schedule day.`, [
@@ -325,7 +327,7 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
 
           {/* Actions */}
           <View style={styles.cardActions}>
-            <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+            <TouchableOpacity accessibilityRole="button" onPress={onEdit} style={styles.editBtn}>
               <Pencil color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Edit</Text>
             </TouchableOpacity>
@@ -339,7 +341,7 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
               <ShieldAlert color={Colors.accent.gold} size={15} />
               <Text style={styles.editBtnText}>Details</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.deleteBtnAction}>
+            <TouchableOpacity accessibilityRole="button" onPress={handleDelete} style={styles.deleteBtnAction}>
               <Trash2 color={Colors.status.error} size={15} />
               <Text style={styles.deleteBtnText}>Delete</Text>
             </TouchableOpacity>
@@ -445,7 +447,7 @@ export default function CallSheetsScreen() {
         }
       />
 
-      <TouchableOpacity
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a shoot day"
         style={styles.fab}
         onPress={() => router.push('/new-schedule-day' as never)}
         activeOpacity={0.8}
@@ -472,32 +474,32 @@ const styles = StyleSheet.create({
   headerCenter: { flex: 1 },
   headerDate: { fontSize: 15, fontWeight: '600' as const, color: Colors.text.primary },
   headerMeta: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
-  headerMetaText: { fontSize: 11, color: Colors.text.tertiary, marginRight: 6 },
+  headerMetaText: { fontSize: 12, color: Colors.text.tertiary, marginRight: 6 },
   // Sheet body
   sheetBody: { borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   sheetTitleBlock: { alignItems: 'center', padding: 16, backgroundColor: Colors.bg.elevated, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
   sheetTitle: { fontSize: 16, fontWeight: '800' as const, color: Colors.text.primary, letterSpacing: 1 },
-  sheetSubtitle: { fontSize: 10, fontWeight: '700' as const, color: Colors.accent.gold, letterSpacing: 2, marginTop: 4 },
+  sheetSubtitle: { fontSize: 12, fontWeight: '700' as const, color: Colors.accent.gold, letterSpacing: 2, marginTop: 4 },
   sheetDateFull: { fontSize: 13, fontWeight: '500' as const, color: Colors.text.secondary, marginTop: 6 },
   // Time grid
   timeGrid: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
   timeCell: { flex: 1, alignItems: 'center', padding: 14, gap: 4 },
   timeDivider: { width: 0.5, backgroundColor: Colors.border.subtle },
-  timeLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1 },
+  timeLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1 },
   timeValue: { fontSize: 18, fontWeight: '700' as const, color: Colors.text.primary },
   // Details
   detailSection: { padding: 14, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
   detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   detailContent: { flex: 1 },
-  detailLabel: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1, marginBottom: 4 },
+  detailLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1, marginBottom: 4 },
   detailValue: { fontSize: 14, color: Colors.text.primary, fontWeight: '500' as const },
   scenesText: { fontSize: 15, fontWeight: '600' as const, color: Colors.accent.goldLight },
-  sceneFallbackNote: { fontSize: 11, color: Colors.text.tertiary, marginTop: 6, lineHeight: 16 },
+  sceneFallbackNote: { fontSize: 12, color: Colors.text.tertiary, marginTop: 6, lineHeight: 16 },
   // Scene table
   sceneHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-  sceneTotals: { fontSize: 11, color: Colors.accent.goldLight, fontWeight: '600' as const, fontVariant: ['tabular-nums'] },
+  sceneTotals: { fontSize: 12, color: Colors.accent.goldLight, fontWeight: '600' as const, fontVariant: ['tabular-nums'] },
   sceneTableHeader: { flexDirection: 'row', alignItems: 'center', paddingBottom: 5, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
-  sceneColHeader: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5 },
+  sceneColHeader: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5 },
   sceneRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 7, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
   colScene: { width: 40 },
   colIntExt: { width: 46 },
@@ -505,36 +507,36 @@ const styles = StyleSheet.create({
   colHeading: { flex: 1, paddingRight: 8 },
   colPages: { width: 42, textAlign: 'right' as const },
   sceneNumber: { fontSize: 13, fontWeight: '700' as const, color: Colors.accent.gold, fontVariant: ['tabular-nums'] },
-  sceneCell: { fontSize: 11, color: Colors.text.secondary },
+  sceneCell: { fontSize: 12, color: Colors.text.secondary },
   sceneHeading: { fontSize: 12, color: Colors.text.primary, fontWeight: '500' as const },
-  sceneCast: { fontSize: 10, color: Colors.text.tertiary, marginTop: 2 },
-  scenePages: { fontSize: 11, color: Colors.text.secondary, fontVariant: ['tabular-nums'] },
+  sceneCast: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2 },
+  scenePages: { fontSize: 12, color: Colors.text.secondary, fontVariant: ['tabular-nums'] },
   notesText: { fontSize: 13, color: Colors.text.secondary, lineHeight: 19 },
   // Crew
   crewSection: { padding: 14 },
   crewHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  crewTitle: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1 },
+  crewTitle: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1 },
   crewTableHeader: { flexDirection: 'row', paddingBottom: 6, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle, marginBottom: 2 },
-  crewColHeader: { fontSize: 9, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5 },
+  crewColHeader: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5 },
   crewRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
   crewName: { fontSize: 13, fontWeight: '600' as const, color: Colors.text.primary },
   crewRole: { fontSize: 12, color: Colors.text.secondary },
   crewCall: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold, fontVariant: ['tabular-nums'] },
   crewCallInput: { paddingVertical: 2, paddingHorizontal: 4, borderRadius: 4, backgroundColor: Colors.bg.elevated, minWidth: 68 },
   summaryRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 4 },
-  summaryLabel: { fontSize: 10, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5, width: 96 },
+  summaryLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.5, width: 96 },
   summaryValue: { flex: 1, fontSize: 12, color: Colors.text.secondary, lineHeight: 17 },
   // Cast
   castSection: { padding: 14, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
-  castEmpty: { fontSize: 11, color: Colors.text.tertiary, lineHeight: 16 },
+  castEmpty: { fontSize: 12, color: Colors.text.tertiary, lineHeight: 16 },
   castRow: { paddingVertical: 9, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle },
   castIdentity: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
   castCharacter: { fontSize: 13, fontWeight: '700' as const, color: Colors.text.primary, maxWidth: '40%' },
-  castActor: { flex: 1, fontSize: 11, color: Colors.text.secondary },
-  castScenes: { fontSize: 10, color: Colors.accent.goldLight, fontVariant: ['tabular-nums'] },
+  castActor: { flex: 1, fontSize: 12, color: Colors.text.secondary },
+  castScenes: { fontSize: 12, color: Colors.accent.goldLight, fontVariant: ['tabular-nums'] },
   castTimes: { flexDirection: 'row', gap: 8, marginTop: 7 },
   castTimeCell: { flex: 1 },
-  castTimeLabel: { fontSize: 8, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 3, textAlign: 'center' as const },
+  castTimeLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8, marginBottom: 3, textAlign: 'center' as const },
   castTimeInput: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold, fontVariant: ['tabular-nums'], paddingVertical: 5, borderRadius: 6, backgroundColor: Colors.bg.elevated, borderWidth: 0.5, borderColor: Colors.border.subtle },
   // Actions
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 14, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
