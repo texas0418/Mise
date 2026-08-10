@@ -178,8 +178,21 @@ function ProStatusCard({ isPro }: { isPro: boolean }) {
       </View>
       <View style={styles.subTextWrap}>
         <Text style={styles.subTitle}>{isPro ? 'Mise Pro' : 'Upgrade to Pro'}</Text>
+        {/*
+          Names what Pro actually unlocks, and nothing else.
+
+          This used to promise a category of feature the app does not contain and
+          never has — the same false claim #96 removed from onboarding, except
+          here it sat on the row that opens the paywall, so it was inducing a
+          purchase rather than merely misdescribing the app. See #101.
+
+          "& more" was overpromising on its own account: PRO_FEATURES in
+          app/paywall.tsx is exactly four things, three of them import and the
+          fourth sync, with nothing unnamed behind them. Keep this line in step
+          with that list rather than writing fresh copy here.
+        */}
         <Text style={styles.subSubtitle}>
-          {isPro ? 'All premium features unlocked' : 'Unlock import, AI tools & more'}
+          {isPro ? 'All premium features unlocked' : 'Unlock import & multi-device sync'}
         </Text>
       </View>
       {!isPro && (
