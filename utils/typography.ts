@@ -86,11 +86,18 @@ export function scaleNonText(base: number, fontScale: number): number {
 /**
  * A line height for a font size.
  *
- * Line height set as a raw number does **not** scale with Dynamic Type the way
- * fontSize does, so a fixed `lineHeight` clips scaled text against its own next
- * line — which reads as a rendering bug rather than a setting, and so rarely
- * gets reported as an accessibility one. Prefer omitting lineHeight entirely on
- * scalable text; use this only where a specific rhythm is needed.
+ * An earlier version of this comment claimed a raw `lineHeight` does not scale
+ * with Dynamic Type and therefore clips scaled text. That is **wrong** in RN
+ * 0.81, on both architectures: `lineHeight` is multiplied by exactly the same
+ * effective multiplier as `fontSize` before it reaches the paragraph style
+ * (Fabric: RCTAttributedTextUtils.mm line 225; Paper: RCTTextAttributes.mm line
+ * 139). The 70 raw `lineHeight` values in this app are not an accessibility bug
+ * and do not need sweeping.
+ *
+ * What a raw `lineHeight` does fix in place is the *ratio* to the font size,
+ * and a ratio that is too tight is cramped at every setting rather than only
+ * the large ones. That is the reason to use this helper: it makes the ratio
+ * explicit instead of leaving it implied by two unrelated numbers.
  */
 export function lineHeightFor(size: number, ratio = 1.35): number {
   return Math.round(size * ratio);
