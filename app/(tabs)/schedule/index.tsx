@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { formatEighths, totalEighths } from '@/utils/eighths';
 import { runSceneMigration } from '@/lib/sceneMigration';
 import { useLayout } from '@/utils/useLayout';
+import { useTypography } from '@/utils/useTypography';
 import Colors from '@/constants/colors';
 import { dateWith, dayOfMonth } from '@/utils/formatRecord';
 import ImportToolbar from '@/components/ImportToolbar';
@@ -18,6 +19,7 @@ import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 function ScheduleCard({ day, scenes, onDelete }: { day: ScheduleDay; scenes: Scene[]; onDelete: () => void }) {
   const [expanded, setExpanded] = useState(false);
+  const { isLargeText } = useTypography();
   const swipeableRef = useRef<Swipeable>(null);
 
   const pages = formatEighths(totalEighths(scenes.map(sc => sc.pageEighths)));
@@ -49,8 +51,15 @@ function ScheduleCard({ day, scenes, onDelete }: { day: ScheduleDay; scenes: Sce
         activeOpacity={0.7}
         testID={`schedule-card-${day.id}`}
       >
-        <View style={styles.cardMainRow}>
-          <View style={styles.dateBlock}>
+        <View style={[styles.cardMainRow, isLargeText && styles.cardMainRowStacked]}>
+          {/*
+            A 64pt calendar tile. 64pt fits "AUG" at the default setting and
+            not one character of it at the largest, which is what rendered as
+            AU/G · 1/0 · Mo/n on the iPad. Past the threshold the tile stops
+            being a tile and becomes a plain date line across the top of the
+            card, where it has the whole width to use.
+          */}
+          <View style={[styles.dateBlock, isLargeText && styles.dateBlockStacked]}>
             <Text style={styles.dateMonth}>{monthShort.toUpperCase()}</Text>
             <Text style={styles.dateDay}>{dayNum}</Text>
             <Text style={styles.dateWeekday}>{weekday}</Text>
@@ -300,12 +309,24 @@ const styles = StyleSheet.create({
   cardMainRow: {
     flexDirection: 'row',
   },
+  cardMainRowStacked: {
+    flexDirection: 'column',
+  },
   dateBlock: {
     width: 64,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.bg.elevated,
+  },
+  dateBlockStacked: {
+    width: undefined,
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'flex-start',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
   },
   dateMonth: {
     fontSize: 12,
