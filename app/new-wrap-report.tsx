@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectShots, useProjectTakes, useProjectSchedule, useProjectWrapReports } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { DateField, TimeField } from '@/components/DateTimeField';
 
 export default function NewWrapReportScreen() {
   const router = useGuardedRouter();
@@ -115,11 +116,12 @@ export default function NewWrapReportScreen() {
       <TextInput style={styles.input} value={dayNumber} onChangeText={setDayNumber} keyboardType="number-pad" placeholderTextColor={Colors.text.tertiary} />
 
       <Text style={styles.label}>Date</Text>
-      <TextInput style={styles.input} value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" placeholderTextColor={Colors.text.tertiary} />
+      <DateField value={date} onChange={setDate}
+        accessibilityLabel="Date of this shoot day" testID="wrap-report-date" />
 
       <View style={styles.row}>
-        <View style={styles.half}><Text style={styles.label}>Call Time</Text><TextInput style={styles.input} value={callTime} onChangeText={setCallTime} placeholderTextColor={Colors.text.tertiary} /></View>
-        <View style={styles.half}><Text style={styles.label}>Actual Wrap</Text><TextInput style={styles.input} value={actualWrap} onChangeText={setActualWrap} placeholderTextColor={Colors.text.tertiary} /></View>
+        <View style={styles.half}><Text style={styles.label}>Call Time</Text><TimeField value={callTime} onChange={setCallTime} accessibilityLabel="Call time" testID="wrap-report-call-time" /></View>
+        <View style={styles.half}><Text style={styles.label}>Actual Wrap</Text><TimeField value={actualWrap} onChange={setActualWrap} accessibilityLabel="Actual wrap time" testID="wrap-report-actual-wrap" /></View>
       </View>
 
       <Text style={styles.label}>Scenes Scheduled</Text>

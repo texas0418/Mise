@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Stack } from 'expo-router';
 import { ClipboardList, MapPin, Clock, Users, Drama, ShieldAlert, AlertCircle, Plus, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import {
@@ -16,6 +16,7 @@ import { dateWith, weekdayDate } from '@/utils/formatRecord';
 import { ScheduleDay, Scene, CastMember, CastCallTime } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { CompactTimeField } from '@/components/DateTimeField';
 
 /** Which of an actor's three times is being edited. */
 type CastTimeField = 'makeupTime' | 'wardrobeTime' | 'onSetTime';
@@ -137,13 +138,12 @@ function CastTable({ day, cast, scenes, onSetCastTime }: {
             {CAST_TIME_FIELDS.map(field => (
               <View key={field.key} style={styles.castTimeCell}>
                 <Text style={styles.castTimeLabel}>{field.label}</Text>
-                <TextInput
+                <CompactTimeField
                   style={styles.castTimeInput}
                   value={row[field.key]}
                   placeholder={day.callTime}
-                  placeholderTextColor={Colors.text.tertiary}
-                  onChangeText={value => onSetCastTime(day.id, row.castMemberId, field.key, value)}
-                  textAlign="center"
+                  onChange={value => onSetCastTime(day.id, row.castMemberId, field.key, value)}
+                  title={`${field.label.toLowerCase()} — ${row.character}`}
                   accessibilityLabel={`${field.label.toLowerCase()} time for ${row.character}`}
                   testID={`cast-time-${row.castMemberId}-${field.key}`}
                 />
@@ -308,13 +308,12 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
                     call — which is what everyone used to get (#39). */}
                 {/* Editable: this is the whole point of a call sheet. Blank
                     means they are on the general call. */}
-                <TextInput
+                <CompactTimeField
                   style={[styles.crewCall, styles.crewCallInput, { flex: 1 }]}
                   value={member.callTime ?? ''}
                   placeholder={day.callTime}
-                  placeholderTextColor={Colors.text.tertiary}
-                  onChangeText={t => onSetCallTime(member.assignmentId, t)}
-                  textAlign="right"
+                  onChange={t => onSetCallTime(member.assignmentId, t)}
+                  title={`Call time — ${member.name}`}
                   accessibilityLabel={`Call time for ${member.name}`}
                 />
               </View>
