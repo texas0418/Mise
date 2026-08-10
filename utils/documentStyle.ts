@@ -23,6 +23,60 @@ export interface DocumentMeta {
   generatedAt: string;
 }
 
+/**
+ * The page margins, in millimetres.
+ *
+ * ## Why this is not just the `@page` rule below
+ *
+ * `@page { margin: … }` does nothing to a PDF produced by `printToFileAsync` on
+ * iOS, and the exported call sheet came off an iPad printed edge to edge —
+ * close enough to the paper's edge that a printer's own unprintable border
+ * would have clipped the outer text.
+ *
+ * expo-print never reads the CSS. It drives `UIPrintPageRenderer` with an
+ * explicit printable rect, and builds that rect from its own `margins` option
+ * (expo-print 15's `PrintOptions.swift`):
+ *
+ *     if let margins = self.margins { … }        // absent → 0 on every side
+ *     CGRect(x: left, y: top,
+ *            width:  pageSize.width  - right - left,
+ *            height: pageSize.height - top   - bottom)
+ *
+ * With no `margins` the printable rect is the whole 612×792 page, so the
+ * markup is laid out corner to corner whatever the stylesheet asks for. This is
+ * the same shape of bug as the `<thead>` repeat in #96: correct in Chrome,
+ * ignored by the renderer that actually makes the file.
+ *
+ * So the numbers live here once, and go out through two routes:
+ *
+ * - **iOS** takes them as `margins` on `printToFileAsync` — see
+ *   `utils/shareDocument.ts`. The `@page` rule is inert on that path.
+ * - **Android and web** honour the `@page` rule; expo-print's `margins` option
+ *   is documented `@platform ios` and is ignored there.
+ *
+ * Exactly one of the two applies per platform, so they do not compound. Change
+ * these and the `@page` rule follows automatically — `scripts/test-calldoc.ts`
+ * fails if the two ever disagree.
+ */
+export const PAGE_MARGIN_MM = { top: 14, right: 12, bottom: 14, left: 12 } as const;
+
+/** 72 points to the inch, 25.4 millimetres to the inch. */
+const PT_PER_MM = 72 / 25.4;
+
+/**
+ * The same margins in PDF points, which is what expo-print's option wants.
+ *
+ * Rounded to whole points: a PDF point is already finer than any printer
+ * resolves a margin to, and a whole number is far easier to check against a
+ * rendered file.
+ */
+export const PAGE_MARGIN_PT = {
+  top: Math.round(PAGE_MARGIN_MM.top * PT_PER_MM),
+  right: Math.round(PAGE_MARGIN_MM.right * PT_PER_MM),
+  bottom: Math.round(PAGE_MARGIN_MM.bottom * PT_PER_MM),
+  left: Math.round(PAGE_MARGIN_MM.left * PT_PER_MM),
+} as const;
+
 /** Escape values that came from user input before they land in markup. */
 export function escapeHtml(value: unknown): string {
   return String(value ?? '')
@@ -40,7 +94,8 @@ const CSS = `
   :root { color-scheme: only light; }
   html, body { background: #ffffff; }
 
-  @page { margin: 14mm 12mm; }
+  /* Honoured on Android and web. Inert on iOS — see PAGE_MARGIN_MM above. */
+  @page { margin: ${PAGE_MARGIN_MM.top}mm ${PAGE_MARGIN_MM.right}mm ${PAGE_MARGIN_MM.bottom}mm ${PAGE_MARGIN_MM.left}mm; }
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -68,7 +123,26 @@ const CSS = `
      sheet arrived with the crew table headless: four unlabelled columns of
      names, roles, departments and times. Caught by printing one on an iPad,
      which is exactly the class of difference a headless-Chrome proof cannot
-     see. */
+     see.
+
+     THIS DOES NOT WORK ON iOS, and #96 was wrong to record finding 18 as
+     fixed. A 44-crew call sheet exported from the app puts the header on page
+     1 only; pages 2 and 3 open straight onto unlabelled rows. Measured out of
+     the PDF with pdftotext, not eyeballed — see #103.
+
+     It is correct CSS and it is honoured on Android and web, so it stays. What
+     it cannot do is survive expo-print's iOS path, which paginates a
+     UIViewPrintFormatter rather than using the CSS paged-media model.
+
+     Already tried and ruled out, so nobody repeats it: setting the table to
+     border-collapse: separate with border-spacing: 0, on the theory that
+     WebKit suppresses repeating header groups while borders collapse. It made
+     no difference — same one header, same pages. Reverted rather than left in
+     as a change that bought nothing.
+
+     Note for anyone editing these comments: this stylesheet is a template
+     literal, so a backtick here ends the string and the build fails in Metro
+     rather than in tsc. */
   thead { display: table-header-group; }
   tfoot { display: table-footer-group; }
 
