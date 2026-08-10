@@ -160,25 +160,27 @@ function TakeCard({ take, onToggleCircle, onToggleNG, onEdit, onDelete }: {
   return (
     <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
       <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
-        {/* The card carries a label but deliberately no accessibilityRole. It
-            contains the circle and NG buttons, and giving the container the
-            button role makes react-native-web emit a button wrapping two more
-            buttons — invalid HTML, which React reports as a hydration error.
-            The same shape on iOS is a focusable element containing focusable
-            elements, where VoiceOver tends to reach the container and never
-            the controls inside it. Labelled and role-less, the container
-            announces its contents while the two controls stay individually
-            reachable. Worth listening to on the device. */}
-        <TouchableOpacity
+        {/* A plain View, not a Touchable.
+            
+            This row used to be one big TouchableOpacity wrapping the two
+            buttons, on the theory that the container would announce itself
+            while the controls inside stayed reachable. VoiceOver on an iPad
+            proved otherwise (2026-08-10): focus landed on the row and never
+            on the buttons, and touching a button directly read the row. A
+            VoiceOver user could not circle a take or mark it NG at all — the
+            two calls that matter most on set.
+
+            So the row groups nothing. It holds three separate controls:
+            circle, NG, and the rest of the row, which opens the take. Tapping
+            the card's padding no longer opens the form, which is a small loss
+            and arguably a gain — a near-miss on the circle button used to open
+            the editor instead. */}
+        <View
           style={[
             styles.takeCard,
             take.isCircled && styles.takeCardCircled,
             take.isNG && styles.takeCardNG,
           ]}
-          onPress={() => onEdit(take)}
-          activeOpacity={0.7}
-          accessibilityLabel={describes}
-          accessibilityHint="Opens this take to edit it"
         >
           {/* Circle and NG are the two calls made at the moment of the take,
               so both are one tap from the log rather than behind the form.
@@ -202,19 +204,29 @@ function TakeCard({ take, onToggleCircle, onToggleNG, onEdit, onDelete }: {
             accessibilityHint={take.isNG ? 'Clears the no-good mark' : 'Marks this take as unusable'}>
             <CircleX color={take.isNG ? Colors.status.error : Colors.text.tertiary} size={22} />
           </TouchableOpacity>
-          <View style={styles.takeInfo}>
-            <View style={styles.takeHeader}>
-              <Text style={styles.takeLabel}>Sc.{take.sceneNumber} / {take.shotNumber}</Text>
-              <View style={styles.takeBadge}>
-                <Text style={styles.takeBadgeText}>T{take.takeNumber}</Text>
+          <TouchableOpacity
+            style={styles.takeOpen}
+            onPress={() => onEdit(take)}
+            activeOpacity={0.7}
+            testID={`take-card-${take.id}`}
+            accessibilityRole="button"
+            accessibilityLabel={describes}
+            accessibilityHint="Opens this take to edit it"
+          >
+            <View style={styles.takeInfo}>
+              <View style={styles.takeHeader}>
+                <Text style={styles.takeLabel}>Sc.{take.sceneNumber} / {take.shotNumber}</Text>
+                <View style={styles.takeBadge}>
+                  <Text style={styles.takeBadgeText}>T{take.takeNumber}</Text>
+                </View>
               </View>
+              {take.notes ? (
+                <Text style={styles.takeNotes} numberOfLines={2}>{take.notes}</Text>
+              ) : null}
             </View>
-            {take.notes ? (
-              <Text style={styles.takeNotes} numberOfLines={2}>{take.notes}</Text>
-            ) : null}
-          </View>
-          <Text style={styles.takeTime}>{timeStr}</Text>
-        </TouchableOpacity>
+            <Text style={styles.takeTime}>{timeStr}</Text>
+          </TouchableOpacity>
+        </View>
       </Swipeable>
     </Animated.View>
   );
@@ -495,7 +507,11 @@ const styles = StyleSheet.create({
   takeCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bg.card, borderRadius: 12, padding: 12, marginBottom: 6, borderWidth: 0.5, borderColor: Colors.border.subtle },
   takeCardCircled: { borderColor: Colors.status.active + '44', backgroundColor: Colors.status.active + '08' },
   takeCardNG: { borderColor: Colors.status.error + '33', backgroundColor: Colors.status.error + '06' },
-  circleBtn: { marginRight: 10, padding: 2 },
+  // 44x44 is Apple's minimum. These were about 30 and 26 points — the two most
+  // used controls on the screen, tapped in the dark, sometimes with gloves.
+  // The glyphs stay their old size; only the target grows around them.
+  circleBtn: { minWidth: 44, minHeight: 44, alignItems: 'center' as const, justifyContent: 'center' as const, marginRight: 2 },
+  takeOpen: { flex: 1, flexDirection: 'row' as const, alignItems: 'center' as const, minHeight: 44, paddingLeft: 6 },
   takeInfo: { flex: 1 },
   takeHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   takeLabel: { fontSize: 14, fontWeight: '600' as const, color: Colors.text.primary, fontVariant: ['tabular-nums'] },
