@@ -62,6 +62,20 @@ const CSS = `
   td { font-size: 10pt; padding: 5px 6px; border-bottom: 1px solid #e3e3e3; vertical-align: top; }
   /* Rows should not be split across a page break — a half-row reads as an error. */
   tr { page-break-inside: avoid; }
+
+  /* Repeat column headers on every page a table continues onto.
+     Chrome does this by default, WKWebView does not — page 2 of a real call
+     sheet arrived with the crew table headless: four unlabelled columns of
+     names, roles, departments and times. Caught by printing one on an iPad,
+     which is exactly the class of difference a headless-Chrome proof cannot
+     see. */
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+
+  /* Keep a section heading with the table it introduces. An <h2> alone at the
+     foot of a page, with its rows overleaf, reads as a heading whose content
+     failed to print. */
+  h2 { page-break-after: avoid; break-after: avoid; }
   /* Label / value blocks: safety, logistics, weather, the advance. A fixed
      label column stops "Nearest hospital" wrapping onto two lines while the
      value beside it runs the width of the page. */

@@ -32,6 +32,7 @@ export default function NewCastMemberScreen() {
 
   const [actorName, setActorName] = useState('');
   const [characterName, setCharacterName] = useState('');
+  const [castNumber, setCastNumber] = useState('');
   const [characterDescription, setCharacterDescription] = useState('');
   const [status, setStatus] = useState<CastStatus>('wishlist');
   const [headshot, setHeadshot] = useState<string | undefined>(undefined);
@@ -50,6 +51,7 @@ export default function NewCastMemberScreen() {
     if (existingMember) {
       setActorName(existingMember.actorName || '');
       setCharacterName(existingMember.characterName);
+      setCastNumber(existingMember.castNumber ? String(existingMember.castNumber) : '');
       setCharacterDescription(existingMember.characterDescription || '');
       setStatus(existingMember.status);
       setHeadshot(existingMember.headshot);
@@ -81,6 +83,7 @@ export default function NewCastMemberScreen() {
       projectId: activeProjectId || '1',
       actorName: actorName.trim(),
       characterName: characterName.trim(),
+      castNumber: castNumber.trim() ? Number(castNumber.trim()) : undefined,
       characterDescription: characterDescription.trim(),
       status,
       headshot,
@@ -133,6 +136,15 @@ export default function NewCastMemberScreen() {
         <Text style={styles.label}>Character Name *</Text>
         <TextInput style={styles.input} value={characterName} onChangeText={setCharacterName}
           placeholder="e.g. Marcus" placeholderTextColor={Colors.text.tertiary} />
+
+        {/* The production's cast number. Stable for the whole shoot, which is
+            what makes it useful: crew say "cast 3" and mean the same person on
+            every day's sheet. Optional — unnumbered cast simply sort behind
+            the numbered ones rather than reshuffling day to day. */}
+        <Text style={styles.label}>Cast Number</Text>
+        <TextInput style={styles.input} value={castNumber} onChangeText={setCastNumber}
+          placeholder="1 for the lead" placeholderTextColor={Colors.text.tertiary}
+          keyboardType="number-pad" />
 
         <Text style={styles.label}>Character Description</Text>
         <TextInput style={[styles.input, styles.textArea]} value={characterDescription} onChangeText={setCharacterDescription}

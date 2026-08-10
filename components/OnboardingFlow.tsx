@@ -51,7 +51,7 @@ const SLIDES: OnboardingSlide[] = [
     features: [
       { icon: Film, label: 'Multiple projects' },
       { icon: ListChecks, label: 'Crew & cast management' },
-      { icon: Upload, label: 'CSV & AI import' },
+      { icon: Upload, label: 'Spreadsheet import' },
     ],
   },
   {

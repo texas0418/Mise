@@ -14,6 +14,7 @@
  * and has still never run on a device — see the note in the PR.
  */
 import { buildCallSheetHtml, buildBudgetHtml } from '@/utils/exportDocuments';
+import { castRows, crewRank } from '@/utils/callSheet';
 
 const project = { id: 'p1', title: 'The Lighthouse Keeper', logline: '', genre: 'Drama', status: 'production', format: 'Feature', createdAt: '' } as any;
 const day = { id: 'd2', projectId: 'p1', date: '2026-08-09', dayNumber: 2, sceneIds: ['s12', 's12a'], scenes: 'Sc. 12, 12A', location: 'Stage B', callTime: '7:00 AM', wrapTime: '7:00 PM', notes: 'Night interiors.' } as any;
@@ -145,6 +146,50 @@ more.push(['money table right-aligns', overspent.includes('<table class="money">
 more.push(['one table, not two', (overspent.match(/<table/g) || []).length === 1]);
 more.push(['totals row is inside it', overspent.includes('<tr class="total">')]);
 more.push(['category is title-cased', overspent.includes('>Camera<')]);
+
+// ─── What a real call sheet on a real iPad showed ──────────────────────────
+//
+// Printed from the device on 2026-08-10, all three of these were wrong on a
+// document that goes to a crew.
+
+// Page 2 of the crew table arrived with no column headers: four unlabelled
+// columns of names, roles, departments and times. Chrome repeats <thead>
+// across page breaks by default and WKWebView does not, so the headless proof
+// could not see it.
+more.push(['table headers repeat across pages', full.includes('display: table-header-group')]);
+more.push(['a heading stays with its table', full.includes('page-break-after: avoid')]);
+
+// Crew ran alphabetically by department, which put the 1st AC first and the
+// director ninth. A call sheet is read by someone hunting for one person.
+const unordered = [
+  { id: 'c1', assignmentId: 'a1', name: 'Zoe Vance', projectRole: 'Production Assistant', department: 'production', phone: '', email: '' },
+  { id: 'c2', assignmentId: 'a2', name: 'Ada Reeve', projectRole: '1st AC', department: 'camera', phone: '', email: '' },
+  { id: 'c3', assignmentId: 'a3', name: 'Mo Kane', projectRole: 'Director', department: 'production', phone: '555-1', email: '' },
+  { id: 'c4', assignmentId: 'a4', name: 'Bo Frank', projectRole: '1st AD', department: 'production', phone: '555-2', email: '' },
+] as any;
+const orderedSheet = buildCallSheetHtml(project, day, scenes, unordered, cast, times);
+const seq = ['Mo Kane', 'Bo Frank', 'Ada Reeve', 'Zoe Vance'].map(n => orderedSheet.indexOf(n));
+more.push(['director is first in the crew list', seq[0] < seq[1] && seq[1] < seq[2] && seq[2] < seq[3]],);
+more.push(['an unknown role sorts last', crewRank('Balloon Wrangler') > crewRank('Gaffer')]);
+more.push(['the director outranks the 1st AC', crewRank('Director') < crewRank('1st AC')]);
+
+// Cast ran by how many of the day's scenes someone was in, so the running
+// order reshuffled between days. Cast numbers are stable for the shoot.
+const numbered = [
+  { id: 'n1', projectId: 'p1', actorName: 'Third Billing', characterName: 'MAREN', status: 'confirmed', castNumber: 3 },
+  { id: 'n2', projectId: 'p1', actorName: 'The Lead', characterName: 'The Keeper', status: 'confirmed', castNumber: 1 },
+] as any;
+const byNumber = castRows(numbered, scenes, null);
+more.push(['cast sorts by number, not scene count', byNumber[0].actor === 'The Lead']);
+more.push(['the number reaches the row', byNumber[0].castNumber === 1]);
+more.push(['unnumbered cast keep a stable order',
+  castRows([{ id: 'u1', characterName: 'MAREN', actorName: 'A' },
+            { id: 'u2', characterName: 'The Keeper', actorName: 'B' }] as any, scenes, null)[0].actor === 'A']);
+more.push(['numbered cast come before unnumbered',
+  castRows([{ id: 'u1', characterName: 'MAREN', actorName: 'No number' },
+            { id: 'u2', characterName: 'The Keeper', actorName: 'Lead', castNumber: 1 }] as any,
+           scenes, null)[0].actor === 'Lead']);
+more.push(['the printed sheet has a number column', full.includes('<th>#</th>')]);
 
 checks.push(...more);
 
