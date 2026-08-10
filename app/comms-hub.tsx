@@ -1,12 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Share } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Share, Linking } from 'react-native';
 import { Plus, Send, Clock, AlertTriangle, MessageCircle, Trash2, Share2, ChevronDown, ChevronUp, Megaphone } from 'lucide-react-native';
-import { useProjects, useProjectMessages } from '@/contexts/ProjectContext';
+import { useProjects, useProjectMessages, useProjectCrew } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { DirectorMessage, MessageCategory, MessagePriority } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import * as SMS from 'expo-sms';
+import * as MailComposer from 'expo-mail-composer';
+import {
+  resolveAudience, composeBody, describeAudience, phoneNumbers, emailAddresses,
+  mailtoUrl, type Contactable,
+} from '@/utils/messageDelivery';
 
 const CATEGORY_CONFIG: Record<MessageCategory, { label: string; color: string; icon: string }> = {
   'moving-on': { label: 'Moving On', color: '#34D399', icon: '→' },
@@ -36,7 +42,13 @@ function formatTime(iso: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function MessageCard({ msg, onDelete, onShare }: { msg: DirectorMessage; onDelete: () => void; onShare: () => void }) {
+function MessageCard({ msg, onDelete, onShare, onSendText, onSendEmail }: {
+  msg: DirectorMessage;
+  onDelete: () => void;
+  onShare: () => void;
+  onSendText: () => void;
+  onSendEmail: () => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const cat = CATEGORY_CONFIG[msg.category];
   const pri = PRIORITY_CONFIG[msg.priority];
@@ -70,6 +82,14 @@ function MessageCard({ msg, onDelete, onShare }: { msg: DirectorMessage; onDelet
           <Text style={styles.bodyText}>{msg.body}</Text>
           {msg.sceneNumber && <Text style={styles.sceneTag}>Scene {msg.sceneNumber}</Text>}
           <View style={styles.expandedActions}>
+            <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onSendText}>
+              <Send color={Colors.status.active} size={14} />
+              <Text style={[styles.actionBtnText, { color: Colors.status.active }]}>Text</Text>
+            </TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onSendEmail}>
+              <Megaphone color={Colors.status.active} size={14} />
+              <Text style={[styles.actionBtnText, { color: Colors.status.active }]}>Email</Text>
+            </TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" style={styles.actionBtn} onPress={onShare}>
               <Share2 color={Colors.accent.gold} size={14} />
               <Text style={styles.actionBtnText}>Share</Text>
@@ -88,6 +108,7 @@ function MessageCard({ msg, onDelete, onShare }: { msg: DirectorMessage; onDelet
 export default function CommsHubScreen() {
   const { activeProjectId, deleteMessage } = useProjects();
   const messages = useProjectMessages(activeProjectId);
+  const crew = useProjectCrew(activeProjectId);
   const router = useGuardedRouter();
   const { isTablet, contentPadding } = useLayout();
 
@@ -103,6 +124,84 @@ export default function CommsHubScreen() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => deleteMessage(msg.id) },
     ]);
+  };
+
+  /*
+   * Actually send it.
+   *
+   * Both channels open the platform's own composer prefilled: the director
+   * still presses send, which is the honest arrangement — Mise has no server to
+   * send from, and a crew member should see a message from their director's
+   * number rather than from an app.
+   *
+   * Nothing is opened before the director has been told who this reaches. The
+   * failure #42 describes is believing a safety notice went out; a silent send
+   * to four of twelve people is the same failure wearing a success message.
+   */
+  const handleSend = async (msg: DirectorMessage, channel: 'text' | 'email') => {
+    const audience = resolveAudience(msg.recipients, crew as Contactable[]);
+    const reachable = channel === 'text' ? audience.withPhone : audience.withEmail;
+
+    if (audience.unknownLabels.length > 0) {
+      Alert.alert(
+        'Unknown recipients',
+        `This message is addressed to ${audience.unknownLabels.join(', ')}, which matches no department. Edit the message or add crew to a department first.`);
+      return;
+    }
+
+    if (reachable.length === 0) {
+      Alert.alert('Nobody to send to', describeAudience(audience, channel));
+      return;
+    }
+
+    const missing = audience.people.length - reachable.length;
+    const warning = missing > 0
+      ? `\n\nNot included: ${audience.unreachable.concat(
+          audience.people.filter(p => !reachable.includes(p) && !audience.unreachable.includes(p)),
+        ).map(p => p.name).join(', ')}`
+      : '';
+
+    Alert.alert(
+      channel === 'text' ? 'Send as a text?' : 'Send as an email?',
+      `${describeAudience(audience, channel)}${warning}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: channel === 'text' ? 'Open Messages' : 'Open Mail',
+          onPress: () => void deliver(msg, channel, audience),
+        },
+      ]);
+  };
+
+  const deliver = async (
+    msg: DirectorMessage,
+    channel: 'text' | 'email',
+    audience: ReturnType<typeof resolveAudience>,
+  ) => {
+    const body = composeBody(msg);
+    try {
+      if (channel === 'text') {
+        if (!(await SMS.isAvailableAsync())) {
+          Alert.alert('Texting unavailable', 'This device cannot send text messages.');
+          return;
+        }
+        await SMS.sendSMSAsync(phoneNumbers(audience), body);
+        return;
+      }
+
+      const addresses = emailAddresses(audience);
+      if (await MailComposer.isAvailableAsync()) {
+        await MailComposer.composeAsync({ recipients: addresses, subject: msg.subject, body });
+        return;
+      }
+      /* No mail account configured — mailto still reaches whatever handles it. */
+      const url = mailtoUrl(addresses, msg.subject, body);
+      if (await Linking.canOpenURL(url)) await Linking.openURL(url);
+      else Alert.alert('Email unavailable', 'No mail app is set up on this device.');
+    } catch (e) {
+      console.warn('[comms-hub] send failed:', e);
+      Alert.alert('Could not send', 'The composer did not open. Please try again.');
+    }
   };
 
   const handleShare = async (msg: DirectorMessage) => {
@@ -126,6 +225,9 @@ export default function CommsHubScreen() {
     { key: 'moving-on', label: 'Moving On' },
     { key: 'pickup', label: 'Pickups' },
     { key: 'schedule-change', label: 'Schedule' },
+    // Was missing entirely: the one category worth pulling up fast could not be
+    // filtered for (#42).
+    { key: 'safety', label: 'Safety' },
     { key: 'creative', label: 'Creative' },
     { key: 'general', label: 'General' },
   ];
@@ -137,7 +239,13 @@ export default function CommsHubScreen() {
         data={filtered}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <MessageCard msg={item} onDelete={() => handleDelete(item)} onShare={() => handleShare(item)} />
+          <MessageCard
+            msg={item}
+            onDelete={() => handleDelete(item)}
+            onShare={() => handleShare(item)}
+            onSendText={() => handleSend(item, 'text')}
+            onSendEmail={() => handleSend(item, 'email')}
+          />
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
