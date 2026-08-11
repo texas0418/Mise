@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { Maximize2, Minimize2 } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
@@ -10,9 +10,13 @@ import PermissionGate from '@/contexts/PermissionGate';
 
 export default function DigitalSlateScreen() {
   const { activeProject } = useProjects();
-  const [scene, setScene] = useState('1');
-  const [shot, setShot] = useState('1A');
-  const [take, setTake] = useState('1');
+  /* Arrives from the On Set slate carrying the board it was showing, and
+     opens straight into full screen when asked — the point of that button is
+     one tap to a camera-ready frame, not two. */
+  const params = useLocalSearchParams<{ scene?: string; shot?: string; take?: string; fullscreen?: string }>();
+  const [scene, setScene] = useState(params.scene || '1');
+  const [shot, setShot] = useState(params.shot || '1A');
+  const [take, setTake] = useState(params.take || '1');
   const [isClapped, setIsClapped] = useState(false);
   /*
    * Full screen for the moment the slate is actually held up to camera.
@@ -23,7 +27,7 @@ export default function DigitalSlateScreen() {
    * the minimize button in the corner is the way back to the menu (Simon,
    * 08-10). Screen state, not a preference — it resets on unmount.
    */
-  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(params.fullscreen === '1');
   const [timestamp, setTimestamp] = useState('');
 
   const slapAnim = useRef(new Animated.Value(0)).current;
