@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, Alert, ActivityIndicator } from 'react-native';
-import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, Trash2, LogIn, UserCircle, Smartphone, Cloud, ScrollText, Lightbulb } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, Alert, ActivityIndicator, TextInput } from 'react-native';
+import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, Trash2, LogIn, UserCircle, Smartphone, Cloud, ScrollText, Lightbulb, Search, X } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProjects } from '@/contexts/ProjectContext';
 import { SAMPLE_PROJECT_IDS, removeSampleData } from '@/lib/dataMigration';
@@ -60,6 +60,19 @@ const REFERENCE_TOOLS: ToolItem[] = [
   { icon: Layers, label: 'Frame Guides', subtitle: 'Aspect ratio previews', route: '/frame-guides', color: '#E879F9' },
   { icon: Share2, label: 'Export & Share', subtitle: 'Share project data', route: '/export-share', color: '#94A3B8' },
 ];
+
+/** Every section in display order — the search filters over this. */
+const TOOL_SECTIONS: { title: string; tools: ToolItem[] }[] = [
+  { title: 'Pre-Production', tools: PRE_PROD_TOOLS },
+  { title: 'On Set', tools: ON_SET_TOOLS },
+  { title: 'Post-Production', tools: POST_TOOLS },
+  { title: 'Reference & Profile', tools: REFERENCE_TOOLS },
+];
+
+function toolMatches(tool: ToolItem, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  return tool.label.toLowerCase().includes(q) || tool.subtitle.toLowerCase().includes(q);
+}
 
 function ToolCard({ tool, index }: { tool: ToolItem; index: number }) {
   const router = useGuardedRouter();
@@ -317,8 +330,22 @@ export default function MoreScreen() {
     }
   };
 
+  const [toolQuery, setToolQuery] = useState('');
+  const searching = toolQuery.trim().length > 0;
+  const visibleSections = TOOL_SECTIONS
+    .map(section => ({
+      ...section,
+      tools: searching ? section.tools.filter(t => toolMatches(t, toolQuery)) : section.tools,
+    }))
+    .filter(section => section.tools.length > 0);
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
       {activeProject && (
         <View style={styles.projectContext}>
           <View style={styles.contextDot} />
@@ -326,10 +353,40 @@ export default function MoreScreen() {
         </View>
       )}
 
-      <ToolSection title="Pre-Production" tools={PRE_PROD_TOOLS} />
-      <ToolSection title="On Set" tools={ON_SET_TOOLS} />
-      <ToolSection title="Post-Production" tools={POST_TOOLS} />
-      <ToolSection title="Reference & Profile" tools={REFERENCE_TOOLS} />
+      {/* 29 tools across four sections is past the point of scanning — Simon
+          asked for search after hunting for tools on the device (08-10). Label
+          and subtitle both match, so "clapper" finds the Digital Slate. */}
+      <View style={styles.searchWrap}>
+        <Search color={Colors.text.tertiary} size={16} />
+        <TextInput
+          style={styles.searchInput}
+          value={toolQuery}
+          onChangeText={setToolQuery}
+          placeholder="Search tools"
+          placeholderTextColor={Colors.text.tertiary}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="search"
+          accessibilityLabel="Search tools"
+        />
+        {toolQuery.length > 0 && (
+          <TouchableOpacity
+            onPress={() => setToolQuery('')}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityRole="button"
+            accessibilityLabel="Clear tool search"
+          >
+            <X color={Colors.text.tertiary} size={16} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {visibleSections.map(section => (
+        <ToolSection key={section.title} title={section.title} tools={section.tools} />
+      ))}
+      {searching && visibleSections.length === 0 && (
+        <Text style={styles.searchEmpty}>No tool matches “{toolQuery.trim()}”.</Text>
+      )}
 
       {/* Subscription & Settings Section */}
       <View style={styles.section}>
@@ -358,6 +415,14 @@ const styles = StyleSheet.create({
   contextDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.accent.gold },
   contextText: { fontSize: 12, fontWeight: '600' as const, color: Colors.accent.gold, letterSpacing: 0.3 },
   section: { paddingHorizontal: 16, paddingTop: 20 },
+  searchWrap: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: Colors.bg.input, borderRadius: 10, borderWidth: 0.5,
+    borderColor: Colors.border.subtle, paddingHorizontal: 12, minHeight: 44,
+    marginBottom: 16,
+  },
+  searchInput: { flex: 1, fontSize: 15, color: Colors.text.primary, paddingVertical: 10 },
+  searchEmpty: { fontSize: 14, color: Colors.text.tertiary, textAlign: 'center', paddingVertical: 24 },
   sectionTitle: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 1.2, marginBottom: 10, paddingHorizontal: 4 },
   toolGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   toolCardWrapper: { width: '48.5%' as unknown as number, flexGrow: 0, flexShrink: 0, flexBasis: '48%' },

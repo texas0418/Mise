@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { Stack } from 'expo-router';
+import { Maximize2, Minimize2 } from 'lucide-react-native';
+import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { useProjects } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
@@ -12,6 +14,16 @@ export default function DigitalSlateScreen() {
   const [shot, setShot] = useState('1A');
   const [take, setTake] = useState('1');
   const [isClapped, setIsClapped] = useState(false);
+  /*
+   * Full screen for the moment the slate is actually held up to camera.
+   *
+   * The slate exists to be photographed at the head of a take, and the
+   * navigation header both shrinks it and reads as UI on footage. Full screen
+   * hides the header and status bar so the frame holds nothing but slate;
+   * the minimize button in the corner is the way back to the menu (Simon,
+   * 08-10). Screen state, not a preference — it resets on unmount.
+   */
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [timestamp, setTimestamp] = useState('');
 
   const slapAnim = useRef(new Animated.Value(0)).current;
@@ -58,7 +70,12 @@ export default function DigitalSlateScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
-      <Stack.Screen options={{ title: 'Digital Slate', headerStyle: { backgroundColor: '#000' } }} />
+      <Stack.Screen options={{
+        title: 'Digital Slate',
+        headerStyle: { backgroundColor: '#000' },
+        headerShown: !isFullScreen,
+      }} />
+      <StatusBar hidden={isFullScreen} />
 
       <Animated.View style={[styles.flash, { opacity: flashAnim }]} pointerEvents="none" />
 
@@ -112,6 +129,19 @@ export default function DigitalSlateScreen() {
         </View>
       </TouchableWithoutFeedback>
 
+      <TouchableOpacity
+        style={styles.fullScreenBtn}
+        onPress={() => setIsFullScreen(v => !v)}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={isFullScreen ? 'Exit full screen' : 'Make the slate full screen'}
+        accessibilityHint={isFullScreen ? 'Brings back the header and menu' : 'Hides the header so only the slate shows'}
+      >
+        {isFullScreen
+          ? <Minimize2 color={Colors.text.tertiary} size={20} />
+          : <Maximize2 color={Colors.text.tertiary} size={20} />}
+      </TouchableOpacity>
+
       <View style={styles.controls}>
         <TouchableOpacity accessibilityRole="button" style={styles.nextTakeBtn} onPress={incrementTake} activeOpacity={0.7}>
           <Text style={styles.nextTakeText}>Next Take</Text>
@@ -127,6 +157,17 @@ export default function DigitalSlateScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
+  /*
+   * Above the slate body (zIndex) but below the white clap flash (10) — the
+   * flash is the photographed frame and nothing should sit on it. 44pt target,
+   * glyph stays 20.
+   */
+  fullScreenBtn: {
+    position: 'absolute', top: 8, right: 8, zIndex: 5,
+    width: 44, height: 44, borderRadius: 22,
+    justifyContent: 'center', alignItems: 'center',
+    backgroundColor: '#1a1a1acc',
+  },
   flash: { ...StyleSheet.absoluteFillObject, backgroundColor: '#fff', zIndex: 10 },
   slateBody: { flex: 1, margin: 16, borderRadius: 16, backgroundColor: '#1a1a1a', overflow: 'hidden', borderWidth: 2, borderColor: '#333' },
   slapStick: { height: 48, backgroundColor: '#111', borderBottomWidth: 2, borderBottomColor: '#333', transformOrigin: 'left center' },
