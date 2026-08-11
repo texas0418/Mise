@@ -29,7 +29,19 @@ export default function DigitalSlateScreen() {
    * the minimize button in the controls row is the way back (Simon, 08-10/11). Screen state, not a preference — it resets on unmount.
    */
   const [isFullScreen, setIsFullScreen] = useState(params.fullscreen === '1');
-  const arrivedFullScreen = params.fullscreen === '1';
+  /*
+   * Captured ONCE, exactly like scene/shot/take above — never recomputed.
+   *
+   * As a plain `const` re-read each render this went stale: the clock re-renders
+   * this screen every second, and on a later render useLocalSearchParams no
+   * longer reported fullscreen='1', so minimize took the "show the top bar"
+   * branch instead of popping back to On Set. That is the bug Simon hit twice
+   * on the iPad ("only the back button shows up"), reproduced in the web
+   * harness with the URL literally still reading fullscreen=1. The board
+   * values never broke for precisely this reason — they were already
+   * useState-initialised. Read arrival params once, at arrival.
+   */
+  const [arrivedFullScreen] = useState(params.fullscreen === '1');
   const router = useGuardedRouter();
   const insets = useSafeAreaInsets();
 
@@ -172,7 +184,7 @@ export default function DigitalSlateScreen() {
             photographed frame entirely. */}
         <TouchableOpacity
           style={styles.fullScreenBtn}
-          onPress={() => setIsFullScreen(v => !v)}
+          onPress={toggleFullScreen}
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={isFullScreen ? 'Exit full screen' : 'Make the slate full screen'}
