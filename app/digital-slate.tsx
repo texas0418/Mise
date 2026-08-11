@@ -129,20 +129,26 @@ export default function DigitalSlateScreen() {
         </View>
       </TouchableWithoutFeedback>
 
-      <TouchableOpacity
-        style={styles.fullScreenBtn}
-        onPress={() => setIsFullScreen(v => !v)}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel={isFullScreen ? 'Exit full screen' : 'Make the slate full screen'}
-        accessibilityHint={isFullScreen ? 'Brings back the header and menu' : 'Hides the header so only the slate shows'}
-      >
-        {isFullScreen
-          ? <Minimize2 color={Colors.text.tertiary} size={20} />
-          : <Maximize2 color={Colors.text.tertiary} size={20} />}
-      </TouchableOpacity>
-
       <View style={styles.controls}>
+        {/* In the controls row, not overlaid on the slate. The first version
+            was a translucent circle in the top-right corner — which is the
+            right-most BLACK clapper stripe, so a near-black circle with a dim
+            grey glyph sat on near-black and Simon could not find it on the
+            device. The controls row is visible in both states, holds the
+            other two buttons a thumb already knows, and is outside the
+            photographed frame entirely. */}
+        <TouchableOpacity
+          style={styles.fullScreenBtn}
+          onPress={() => setIsFullScreen(v => !v)}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={isFullScreen ? 'Exit full screen' : 'Make the slate full screen'}
+          accessibilityHint={isFullScreen ? 'Brings back the header and menu' : 'Hides the header so only the slate shows'}
+        >
+          {isFullScreen
+            ? <Minimize2 color={Colors.accent.gold} size={22} />
+            : <Maximize2 color={Colors.accent.gold} size={22} />}
+        </TouchableOpacity>
         <TouchableOpacity accessibilityRole="button" style={styles.nextTakeBtn} onPress={incrementTake} activeOpacity={0.7}>
           <Text style={styles.nextTakeText}>Next Take</Text>
         </TouchableOpacity>
@@ -157,16 +163,10 @@ export default function DigitalSlateScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
-  /*
-   * Above the slate body (zIndex) but below the white clap flash (10) — the
-   * flash is the photographed frame and nothing should sit on it. 44pt target,
-   * glyph stays 20.
-   */
+  /* Sized to its row-mates; gold glyph so it reads on the dark controls bar. */
   fullScreenBtn: {
-    position: 'absolute', top: 8, right: 8, zIndex: 5,
-    width: 44, height: 44, borderRadius: 22,
-    justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#1a1a1acc',
+    minWidth: 56, backgroundColor: '#222', borderRadius: 12, padding: 16,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#444',
   },
   flash: { ...StyleSheet.absoluteFillObject, backgroundColor: '#fff', zIndex: 10 },
   slateBody: { flex: 1, margin: 16, borderRadius: 16, backgroundColor: '#1a1a1a', overflow: 'hidden', borderWidth: 2, borderColor: '#333' },
