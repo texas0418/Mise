@@ -69,7 +69,14 @@ function CrewCard({ member, isExpanded, onPress, onEdit, onDelete }: {
             </TouchableOpacity>
           </View>
         )}
-        {isExpanded ? <ChevronUp color={Colors.text.tertiary} size={16} /> : <ChevronDown color={Colors.text.tertiary} size={16} />}
+        {/* The chevron had no touch target at all — a bare 16pt glyph that only
+            worked because the whole card is tappable, so aiming at it felt like
+            a miss (Simon, on the iPad, 08-10). It is the same control as the
+            card, so it stays passive; the padded box just makes it read as
+            pressable at the size a finger needs. */}
+        <View style={styles.expandChevron}>
+          {isExpanded ? <ChevronUp color={Colors.text.tertiary} size={16} /> : <ChevronDown color={Colors.text.tertiary} size={16} />}
+        </View>
       </View>
 
       {isExpanded && (
@@ -420,8 +427,11 @@ const styles = StyleSheet.create({
   crewInfo: { flex: 1 },
   crewName: { fontSize: 15, fontWeight: '600' as const, color: Colors.text.primary },
   crewRole: { fontSize: 12, color: Colors.text.secondary, marginTop: 2 },
-  crewActions: { flexDirection: 'row', gap: 8, marginRight: 8 },
-  actionBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.bg.elevated, justifyContent: 'center', alignItems: 'center' },
+  crewActions: { flexDirection: 'row', gap: 4, marginRight: 4 },
+  // 44pt is Apple's minimum and what PR #97 set on the take row; these were 36
+  // and hard to hit on the device. Glyphs stay 16 — only the target grows.
+  actionBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.bg.elevated, justifyContent: 'center', alignItems: 'center' },
+  expandChevron: { minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center', marginRight: -12 },
   // Expanded
   expandedBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   detailGrid: { flexDirection: 'row', gap: 16, marginBottom: 12 },
@@ -431,7 +441,8 @@ const styles = StyleSheet.create({
   deptBadge: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   deptDot: { width: 8, height: 8, borderRadius: 4 },
   deptText: { fontSize: 13, fontWeight: '600' as const },
-  contactRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, paddingHorizontal: 4, backgroundColor: Colors.bg.tertiary, borderRadius: 8, marginBottom: 6 },
+  contactRow: {
+    minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, paddingHorizontal: 4, backgroundColor: Colors.bg.tertiary, borderRadius: 8, marginBottom: 6 },
   contactText: { fontSize: 14, color: Colors.accent.gold, fontWeight: '500' as const },
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 10, marginTop: 4, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },
