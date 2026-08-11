@@ -12,6 +12,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import { Alert } from 'react-native';
+import { PAGE_MARGIN_PT } from '@/utils/documentStyle';
 
 /** "The Last Light — Call Sheet Day 3" -> "the-last-light-call-sheet-day-3" */
 export function slugify(text: string): string {
@@ -33,7 +34,16 @@ function fail(message: string): false {
  */
 export async function sharePdf(html: string, baseName: string): Promise<boolean> {
   try {
-    const { uri } = await Print.printToFileAsync({ html });
+    /*
+     * `margins` and not the stylesheet's `@page` rule.
+     *
+     * expo-print builds the printable rect from this option alone and defaults
+     * it to zero, so without it the PDF is laid out corner to corner on the
+     * paper — which is how a real call sheet came off an iPad, close enough to
+     * the edge that a printer's unprintable border would clip the outer text.
+     * The numbers and the full explanation live in utils/documentStyle.ts.
+     */
+    const { uri } = await Print.printToFileAsync({ html, margins: PAGE_MARGIN_PT });
 
     // printToFileAsync names the file with a random uuid; rename it so the
     // recipient sees what it is.

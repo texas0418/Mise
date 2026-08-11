@@ -132,6 +132,7 @@ const COVERED = [
   'app/vfx-tracker.tsx',
   'app/wrap-reports.tsx',
   'components/ConflictResolver.tsx',
+  'components/DateTimeField.tsx',
   'components/ImportButton.tsx',
   'components/ImportToolbar.tsx',
   'components/NotificationSettings.tsx',

@@ -13,8 +13,10 @@
  * This checks composition, not rendering. `Print.printToFileAsync` is native
  * and has still never run on a device — see the note in the PR.
  */
+import { readFileSync } from 'node:fs';
 import { buildCallSheetHtml, buildBudgetHtml } from '@/utils/exportDocuments';
 import { castRows, crewRank } from '@/utils/callSheet';
+import { PAGE_MARGIN_MM, PAGE_MARGIN_PT, renderDocument } from '@/utils/documentStyle';
 
 const project = { id: 'p1', title: 'The Lighthouse Keeper', logline: '', genre: 'Drama', status: 'production', format: 'Feature', createdAt: '' } as any;
 const day = { id: 'd2', projectId: 'p1', date: '2026-08-09', dayNumber: 2, sceneIds: ['s12', 's12a'], scenes: 'Sc. 12, 12A', location: 'Stage B', callTime: '7:00 AM', wrapTime: '7:00 PM', notes: 'Night interiors.' } as any;
@@ -192,6 +194,45 @@ more.push(['numbered cast come before unnumbered',
 more.push(['the printed sheet has a number column', full.includes('<th>#</th>')]);
 
 checks.push(...more);
+
+// ─── Page margins ───────────────────────────────────────────────────────────
+
+/*
+ * The exported call sheet came off an iPad printed corner to corner, because
+ * `@page { margin }` does nothing to a PDF made by expo-print on iOS — it
+ * builds the printable rect from its own `margins` option and defaults that to
+ * zero. The numbers now live in one place and travel two routes: the option on
+ * iOS, the `@page` rule everywhere else. These assert the two cannot drift.
+ */
+const marginCss = renderDocument(
+  { projectTitle: 'x', documentTitle: 'y', generatedAt: '2026-08-10T00:00:00.000Z' }, '');
+
+checks.push(
+  ['the @page rule carries the shared millimetre margins',
+    marginCss.includes(
+      `@page { margin: ${PAGE_MARGIN_MM.top}mm ${PAGE_MARGIN_MM.right}mm ` +
+      `${PAGE_MARGIN_MM.bottom}mm ${PAGE_MARGIN_MM.left}mm; }`)],
+
+  // 72pt to the inch, 25.4mm to the inch: 14mm is 39.7pt, 12mm is 34.0pt.
+  ['14mm converts to 40pt', PAGE_MARGIN_PT.top === 40 && PAGE_MARGIN_PT.bottom === 40],
+  ['12mm converts to 34pt', PAGE_MARGIN_PT.left === 34 && PAGE_MARGIN_PT.right === 34],
+
+  /*
+   * A printer's own unprintable border is around 6mm on consumer hardware.
+   * Anything at or under that prints clipped however the file is made, which
+   * is the failure being fixed — so the floor matters more than the exact number.
+   */
+  ['every margin clears a printer unprintable border',
+    Math.min(...Object.values(PAGE_MARGIN_PT)) >= 25],
+
+  ['no margin is zero, which is what shipped',
+    Object.values(PAGE_MARGIN_PT).every(v => v > 0)],
+
+  /* The option is what iOS actually reads; the CSS route cannot cover for it. */
+  ['the PDF export passes the margins to expo-print',
+    readFileSync(new URL('../utils/shareDocument.ts', import.meta.url), 'utf8')
+      .includes('margins: PAGE_MARGIN_PT')],
+);
 
 let fail = 0;
 for (const [label, ok] of checks) {

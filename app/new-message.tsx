@@ -8,6 +8,7 @@ import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { DirectorMessage, MessagePriority, MessageCategory } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { RECIPIENT_LABELS, ALL_DEPARTMENTS } from '@/utils/messageDelivery';
 
 const PRIORITY_OPTIONS: { key: MessagePriority; label: string; color: string }[] = [
   { key: 'normal', label: 'Normal', color: Colors.text.secondary },
@@ -15,7 +16,13 @@ const PRIORITY_OPTIONS: { key: MessagePriority; label: string; color: string }[]
   { key: 'fyi', label: 'FYI', color: '#60A5FA' },
 ];
 
-const RECIPIENT_OPTIONS = ['All Departments', 'Camera', 'Sound', 'Lighting', 'Art', 'Production', 'Talent', 'Post'];
+/*
+ * Built from the same table the delivery resolver uses, so a chip cannot exist
+ * that addresses nobody. The hardcoded list this replaces offered "Post", which
+ * matched no department, and omitted Direction entirely — neither could fail
+ * while the screen sent nothing (#42).
+ */
+const RECIPIENT_OPTIONS = [ALL_DEPARTMENTS, ...RECIPIENT_LABELS.map(r => r.label)];
 
 export default function NewMessageScreen() {
   const { activeProjectId, addMessage } = useProjects();
@@ -27,21 +34,21 @@ export default function NewMessageScreen() {
   const [body, setBody] = useState('');
   const [priority, setPriority] = useState<MessagePriority>('normal');
   const [category, setCategory] = useState<MessageCategory>('general');
-  const [recipients, setRecipients] = useState<string[]>(['All Departments']);
+  const [recipients, setRecipients] = useState<string[]>([ALL_DEPARTMENTS]);
   const [sceneNumber, setSceneNumber] = useState('');
 
   const toggleRecipient = (r: string) => {
-    if (r === 'All Departments') {
-      setRecipients(['All Departments']);
+    if (r === ALL_DEPARTMENTS) {
+      setRecipients([ALL_DEPARTMENTS]);
       return;
     }
-    let next = recipients.filter(x => x !== 'All Departments');
+    let next = recipients.filter(x => x !== ALL_DEPARTMENTS);
     if (next.includes(r)) {
       next = next.filter(x => x !== r);
     } else {
       next.push(r);
     }
-    setRecipients(next.length === 0 ? ['All Departments'] : next);
+    setRecipients(next.length === 0 ? [ALL_DEPARTMENTS] : next);
   };
 
   const applyTemplate = (template: typeof MESSAGE_TEMPLATES[0]) => {

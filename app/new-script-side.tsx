@@ -9,6 +9,7 @@ import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { ScriptSide, SidesStatus, SideAnnotation } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { DateField } from '@/components/DateTimeField';
 
 const STATUS_OPTIONS: { value: SidesStatus; label: string }[] = [
   { value: 'upcoming', label: 'Upcoming' },
@@ -168,9 +169,9 @@ export default function NewScriptSideScreen() {
           </View>
         </View>
 
-        <Text style={styles.label}>Shoot Date (YYYY-MM-DD)</Text>
-        <TextInput style={styles.input} value={shootDate} onChangeText={setShootDate}
-          placeholder="2025-03-20" placeholderTextColor={Colors.text.tertiary} />
+        <Text style={styles.label}>Shoot Date</Text>
+        <DateField value={shootDate} onChange={setShootDate}
+          accessibilityLabel="Shoot date" testID="script-side-shoot-date" />
 
         <Text style={styles.label}>Status</Text>
         <View style={styles.optionsRow}>

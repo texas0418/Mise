@@ -9,6 +9,7 @@ import { Scene } from '@/types';
 import Colors from '@/constants/colors';
 import { scheduleNotificationsForDay } from '@/utils/notifications';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { DateField, TimeField } from '@/components/DateTimeField';
 
 export default function NewScheduleDayScreen() {
   const router = useGuardedRouter();
@@ -110,9 +111,9 @@ export default function NewScheduleDayScreen() {
       </View>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
-        <TextInput style={styles.input} value={date} onChangeText={setDate}
-          placeholder="2026-03-20" placeholderTextColor={Colors.text.tertiary} />
+        <Text style={styles.label}>Date</Text>
+        <DateField value={date} onChange={setDate}
+          accessibilityLabel="Shoot date" testID="schedule-day-date" />
       </View>
 
       <View style={styles.field}>
@@ -165,14 +166,14 @@ export default function NewScheduleDayScreen() {
       <View style={styles.row}>
         <View style={[styles.field, { flex: 1 }]}>
           <Text style={styles.label}>Call Time</Text>
-          <TextInput style={styles.input} value={callTime} onChangeText={setCallTime}
-            placeholder="7:00 AM" placeholderTextColor={Colors.text.tertiary} />
+          <TimeField value={callTime} onChange={setCallTime}
+            accessibilityLabel="Call time" testID="schedule-day-call-time" />
         </View>
         <View style={{ width: 12 }} />
         <View style={[styles.field, { flex: 1 }]}>
           <Text style={styles.label}>Wrap Time</Text>
-          <TextInput style={styles.input} value={wrapTime} onChangeText={setWrapTime}
-            placeholder="6:00 PM" placeholderTextColor={Colors.text.tertiary} />
+          <TimeField value={wrapTime} onChange={setWrapTime}
+            accessibilityLabel="Wrap time" testID="schedule-day-wrap-time" />
         </View>
       </View>
 

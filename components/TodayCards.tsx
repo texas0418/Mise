@@ -18,6 +18,7 @@ import {
   formatClock, formatDuration, type DayProgress, type Pace, type WorkSummary,
 } from '@/utils/today';
 import type { DayWeather } from '@/utils/forecast';
+import { useTypography } from '@/utils/useTypography';
 
 // ─── Header ──────────────────────────────────────────────────────
 
@@ -41,6 +42,42 @@ export function DayHeader({ dayNumber, totalDays, dateLabel, projectTitle, relat
       </View>
       <Text style={styles.headerDate}>{dateLabel}</Text>
       <Text style={styles.headerProject} numberOfLines={1}>{projectTitle}</Text>
+    </View>
+  );
+}
+
+// ─── Card header ─────────────────────────────────────────────────
+
+/**
+ * The title row every card starts with: an icon, a heading, and whatever
+ * trailing meta the card wants pushed to the right.
+ *
+ * Those three compete for one line, and past the accessibility text sizes there
+ * is no line left to compete for — on a real iPad "TODAY'S WORK" ran off the
+ * right edge and "PACE" wrapped one letter per line, squeezed by the status
+ * pill beside it. The answer is not to shrink the text a reader has explicitly
+ * asked to be bigger; it is to stop asking for one line. Past the threshold the
+ * row becomes two rows and the trailing meta loses its `marginLeft: auto`,
+ * which is why that lives on this wrapper rather than on the meta styles.
+ */
+function CardHeader({ icon: Icon, title, children }: {
+  icon: React.ComponentType<{ color?: string; size?: number }>;
+  title: string;
+  children?: React.ReactNode;
+}) {
+  const { icon, isLargeText } = useTypography();
+
+  return (
+    <View style={[styles.cardHeader, isLargeText && styles.cardHeaderStacked]}>
+      <View style={styles.cardHeaderTitle}>
+        <Icon color={Colors.accent.gold} size={icon(14)} />
+        <Text style={styles.cardTitle}>{title}</Text>
+      </View>
+      {children ? (
+        <View style={isLargeText ? styles.cardHeaderTrailingStacked : styles.cardHeaderTrailing}>
+          {children}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -145,15 +182,13 @@ export function WorkCard({ scenes, work, title, onScenePress }: {
 }) {
   return (
     <View style={styles.card} testID="today-work-card">
-      <View style={styles.cardHeader}>
-        <Film color={Colors.accent.gold} size={14} />
-        <Text style={styles.cardTitle}>{title}</Text>
+      <CardHeader icon={Film} title={title}>
         {scenes.length > 0 ? (
           <Text style={styles.cardMeta} testID="today-work-meta">
             {work.shotsCompleted}/{work.shotsPlanned} shots · {formatEighths(work.eighthsCompleted)} of {formatEighths(work.eighthsPlanned)} pages
           </Text>
         ) : null}
-      </View>
+      </CardHeader>
 
       {scenes.length === 0 ? (
         <Text style={styles.emptyLine}>No scenes are linked to this day yet.</Text>
@@ -209,15 +244,13 @@ export function PaceCard({ pace, progress, hasWork }: {
 
   return (
     <View style={styles.card} testID="today-pace-card">
-      <View style={styles.cardHeader}>
-        <Clock color={Colors.accent.gold} size={14} />
-        <Text style={styles.cardTitle}>PACE</Text>
+      <CardHeader icon={Clock} title="PACE">
         <View style={[styles.pacePill, { backgroundColor: tone + '22', borderColor: tone + '55' }]}>
           <Text style={[styles.pacePillText, { color: tone }]} testID="today-pace-status">
             {PACE_LABEL[pace.status]}
           </Text>
         </View>
-      </View>
+      </CardHeader>
 
       <View style={styles.paceBars}>
         <PaceBar label="Work" fraction={pace.workFraction} tone={tone} />
@@ -249,12 +282,37 @@ export function PaceCard({ pace, progress, hasWork }: {
   );
 }
 
+/**
+ * "Work 62% ▓▓▓▓░░░" — a label, a track and a percentage on one line.
+ *
+ * The label and percentage were pinned to `width: 30` and `width: 34`, which is
+ * exactly as wide as "Work" and "100%" at the default setting and narrower than
+ * a single character at the largest. That is what produced the `W/o/r/k` column
+ * on the iPad: not a wrapping bug, a box that never grew. Past the threshold
+ * the label and percentage share a line of their own above a full-width track.
+ */
 function PaceBar({ label, fraction, tone }: { label: string; fraction: number; tone: string }) {
   const pct = Math.round(Math.min(1, Math.max(0, fraction)) * 100);
+  const { isLargeText } = useTypography();
+
+  if (isLargeText) {
+    return (
+      <View>
+        <View style={styles.paceBarCaption}>
+          <Text style={styles.paceBarLabelStacked}>{label}</Text>
+          <Text style={styles.paceBarPctStacked}>{pct}%</Text>
+        </View>
+        <View style={styles.paceTrackStacked}>
+          <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: tone }]} />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.paceBarRow}>
       <Text style={styles.paceBarLabel}>{label}</Text>
-      <View style={styles.progressTrack}>
+      <View style={styles.paceTrack}>
         <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: tone }]} />
       </View>
       <Text style={styles.paceBarPct}>{pct}%</Text>
@@ -271,6 +329,38 @@ export interface CalledPerson {
   callTime?: string;
 }
 
+/**
+ * One person on the call: who they are, what they do, and when they are
+ * wanted.
+ *
+ * `numberOfLines={1}` and a `maxWidth: '45%'` keep this a row at the default
+ * setting and turn it into "Dana Whitfie… Unit Pr…" at the accessibility ones —
+ * a name and a role are the two things on this card that a reader who has
+ * turned text up cannot afford to lose. Past the threshold the row stacks and
+ * both are allowed to wrap in full.
+ */
+function PersonRow({ person, testID }: { person: CalledPerson; testID?: string }) {
+  const { isLargeText } = useTypography();
+
+  return (
+    <View style={[styles.personRow, isLargeText && styles.personRowStacked]} testID={testID}>
+      <Text
+        style={[styles.personPrimary, isLargeText && styles.personTextStacked]}
+        numberOfLines={isLargeText ? undefined : 1}
+      >
+        {person.primary}
+      </Text>
+      <Text
+        style={[styles.personSecondary, isLargeText && styles.personTextStacked]}
+        numberOfLines={isLargeText ? undefined : 1}
+      >
+        {person.secondary}
+      </Text>
+      {person.callTime ? <Text style={styles.personTime}>{person.callTime}</Text> : null}
+    </View>
+  );
+}
+
 export function CalledCard({ cast, crewWithOwnCalls, generalCall, title }: {
   cast: CalledPerson[];
   crewWithOwnCalls: CalledPerson[];
@@ -279,11 +369,9 @@ export function CalledCard({ cast, crewWithOwnCalls, generalCall, title }: {
 }) {
   return (
     <View style={styles.card} testID="today-called-card">
-      <View style={styles.cardHeader}>
-        <Users color={Colors.accent.gold} size={14} />
-        <Text style={styles.cardTitle}>{title}</Text>
+      <CardHeader icon={Users} title={title}>
         <Text style={styles.cardMeta}>{cast.length} cast</Text>
-      </View>
+      </CardHeader>
 
       {cast.length === 0 ? (
         <Text style={styles.emptyLine}>
@@ -291,10 +379,7 @@ export function CalledCard({ cast, crewWithOwnCalls, generalCall, title }: {
         </Text>
       ) : (
         cast.map(person => (
-          <View key={person.id} style={styles.personRow} testID={`today-cast-${person.id}`}>
-            <Text style={styles.personPrimary} numberOfLines={1}>{person.primary}</Text>
-            <Text style={styles.personSecondary} numberOfLines={1}>{person.secondary}</Text>
-          </View>
+          <PersonRow key={person.id} person={person} testID={`today-cast-${person.id}`} />
         ))
       )}
 
@@ -304,11 +389,7 @@ export function CalledCard({ cast, crewWithOwnCalls, generalCall, title }: {
             EARLY AND LATE CALLS{generalCall ? ` · GENERAL ${generalCall}` : ''}
           </Text>
           {crewWithOwnCalls.map(person => (
-            <View key={person.id} style={styles.personRow}>
-              <Text style={styles.personPrimary} numberOfLines={1}>{person.primary}</Text>
-              <Text style={styles.personSecondary} numberOfLines={1}>{person.secondary}</Text>
-              <Text style={styles.personTime}>{person.callTime}</Text>
-            </View>
+            <PersonRow key={person.id} person={person} />
           ))}
         </View>
       ) : null}
@@ -326,10 +407,7 @@ export function LocationCard({ name, address, parkingNotes, onDirections }: {
 }) {
   return (
     <View style={styles.card} testID="today-location-card">
-      <View style={styles.cardHeader}>
-        <MapPin color={Colors.accent.gold} size={14} />
-        <Text style={styles.cardTitle}>LOCATION</Text>
-      </View>
+      <CardHeader icon={MapPin} title="LOCATION" />
 
       <Text style={styles.locationName}>{name || 'No location set'}</Text>
       {address ? <Text style={styles.locationAddress}>{address}</Text> : null}
@@ -359,13 +437,11 @@ export function LocationCard({ name, address, parkingNotes, onDirections }: {
 export function WeatherCard({ weather, coverSet }: { weather: DayWeather; coverSet: boolean }) {
   return (
     <View style={styles.card} testID="today-weather-card">
-      <View style={styles.cardHeader}>
-        <CloudRain color={Colors.accent.gold} size={14} />
-        <Text style={styles.cardTitle}>WEATHER</Text>
+      <CardHeader icon={CloudRain} title="WEATHER">
         <Text style={styles.cardMeta}>
           {weather.conditionLabel} · {weather.tempHigh}° / {weather.tempLow}°
         </Text>
-      </View>
+      </CardHeader>
 
       {coverSet ? (
         <Text style={styles.coverSet} testID="today-cover-set">
@@ -453,8 +529,15 @@ const styles = StyleSheet.create({
     borderWidth: 0.5, borderColor: Colors.border.subtle,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
-  cardTitle: { fontSize: 14, fontWeight: '800' as const, color: Colors.text.primary, letterSpacing: 1 },
-  cardMeta: { marginLeft: 'auto', fontSize: 14, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
+  cardHeaderStacked: { flexDirection: 'column', alignItems: 'flex-start' },
+  cardHeaderTitle: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
+  cardHeaderTrailing: { marginLeft: 'auto', flexShrink: 1 },
+  cardHeaderTrailingStacked: { marginLeft: 0 },
+  cardTitle: {
+    fontSize: 14, fontWeight: '800' as const, color: Colors.text.primary,
+    letterSpacing: 1, flexShrink: 1,
+  },
+  cardMeta: { fontSize: 14, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
   emptyLine: { fontSize: 14, color: Colors.text.tertiary, lineHeight: 18 },
 
   // Times
@@ -489,12 +572,29 @@ const styles = StyleSheet.create({
   scenePages: { fontSize: 14, color: Colors.text.tertiary, fontVariant: ['tabular-nums'], minWidth: 34, textAlign: 'right' },
 
   // Pace
-  pacePill: { marginLeft: 'auto', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 20, borderWidth: 1 },
+  pacePill: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 20, borderWidth: 1 },
   pacePillText: { fontSize: 14, fontWeight: '800' as const, letterSpacing: 0.8 },
   paceBars: { gap: 6, marginBottom: 10 },
   paceBarRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  paceBarLabel: { fontSize: 14, color: Colors.text.tertiary, width: 30, fontWeight: '600' as const },
-  paceBarPct: { fontSize: 14, color: Colors.text.tertiary, width: 34, textAlign: 'right', fontVariant: ['tabular-nums'] },
+  /*
+   * `minWidth`, not `width`. These were pinned at 30 and 34, which is narrower
+   * than the words they hold: "Work" at 14pt needs about 33, so the label wrapped
+   * to "Wor / k" on an iPad at the *default* text size. The handoff filed that
+   * under the large-text findings; it was there at 1x the whole time. The minimum
+   * is what keeps the two tracks starting at the same x — growing past it costs
+   * nothing, since the track beside it is `flex: 1`.
+   */
+  paceBarLabel: { fontSize: 14, color: Colors.text.tertiary, minWidth: 30, fontWeight: '600' as const },
+  paceBarPct: { fontSize: 14, color: Colors.text.tertiary, minWidth: 34, textAlign: 'right', fontVariant: ['tabular-nums'] },
+  /** The shared `progressTrack` carries a `marginTop: 12` for the day bar it was written for. */
+  paceTrack: { flex: 1, height: 5, backgroundColor: Colors.bg.elevated, borderRadius: 3, overflow: 'hidden' },
+  paceBarCaption: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  paceBarLabelStacked: { fontSize: 14, color: Colors.text.tertiary, fontWeight: '600' as const, flexShrink: 1 },
+  paceBarPctStacked: { fontSize: 14, color: Colors.text.tertiary, fontVariant: ['tabular-nums'] },
+  paceTrackStacked: {
+    height: 5, backgroundColor: Colors.bg.elevated, borderRadius: 3,
+    overflow: 'hidden', marginTop: 4,
+  },
   paceProjection: { fontSize: 14, color: Colors.text.secondary, fontVariant: ['tabular-nums'] },
 
   // People
@@ -502,8 +602,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6,
     borderTopWidth: 0.5, borderTopColor: Colors.border.subtle,
   },
+  personRowStacked: { flexDirection: 'column', alignItems: 'flex-start', gap: 0 },
   personPrimary: { fontSize: 14, color: Colors.text.primary, fontWeight: '600' as const, maxWidth: '45%' },
   personSecondary: { flex: 1, fontSize: 14, color: Colors.text.tertiary },
+  /** Undoes the row-mode width constraints — both must go, or the other still clips. */
+  personTextStacked: { maxWidth: undefined, flex: 0, alignSelf: 'stretch' },
   personTime: { fontSize: 14, color: Colors.status.active, fontWeight: '700' as const, fontVariant: ['tabular-nums'] },
   subSection: { marginTop: 12, paddingTop: 4 },
   subSectionTitle: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 1, marginBottom: 2 },

@@ -14,6 +14,19 @@ PATTERNS=(
   'as an AI'
   'YOUR_API_KEY'
   'lorem ipsum'
+  # Mise has no machine-intelligence features and is not getting any. Copy
+  # claiming otherwise has now shipped twice — "CSV & AI import" on the
+  # onboarding screen (#96) and "AI tools" on the row that opens the paywall
+  # (#101), the second one inducing a purchase for something that does not
+  # exist. Both survived a manual sweep because the earlier grep was for the
+  # capitalised form and the string was lowercase. These are matched
+  # case-insensitively, like every pattern here.
+  'ai tools'
+  'ai import'
+  'ai-powered'
+  'ai powered'
+  'powered by ai'
+  'ai assistant'
 )
 
 FILES=$(git ls-files '*.ts' '*.tsx' '*.js' '*.jsx' | grep -v -e '^scripts/ci/' || true)

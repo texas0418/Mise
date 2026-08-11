@@ -8,6 +8,7 @@ import { DEPARTMENTS } from '@/constants/filmData';
 import Colors from '@/constants/colors';
 import { Department } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { DateField, TimeField } from '@/components/DateTimeField';
 
 export default function NewTimeEntryScreen() {
   const router = useGuardedRouter();
@@ -94,28 +95,32 @@ export default function NewTimeEntryScreen() {
       </View>
 
       <Text style={styles.label}>Date</Text>
-      <TextInput style={styles.input} value={date} onChangeText={setDate}
-        placeholder="YYYY-MM-DD" placeholderTextColor={Colors.text.tertiary} />
+      <DateField value={date} onChange={setDate}
+        accessibilityLabel="Date of this time entry" testID="time-entry-date" />
 
       <View style={styles.row}>
         <View style={styles.half}>
           <Text style={styles.label}>Call Time</Text>
-          <TextInput style={styles.input} value={callTime} onChangeText={setCallTime} placeholderTextColor={Colors.text.tertiary} />
+          <TimeField value={callTime} onChange={setCallTime}
+            accessibilityLabel="Call time" testID="time-entry-call-time" />
         </View>
         <View style={styles.half}>
           <Text style={styles.label}>Wrap Time</Text>
-          <TextInput style={styles.input} value={wrapTime} onChangeText={setWrapTime} placeholderTextColor={Colors.text.tertiary} />
+          <TimeField value={wrapTime} onChange={setWrapTime}
+            accessibilityLabel="Wrap time" testID="time-entry-wrap-time" />
         </View>
       </View>
 
       <View style={styles.row}>
         <View style={styles.half}>
           <Text style={styles.label}>Lunch Start</Text>
-          <TextInput style={styles.input} value={lunchStart} onChangeText={setLunchStart} placeholderTextColor={Colors.text.tertiary} />
+          <TimeField value={lunchStart} onChange={setLunchStart}
+            accessibilityLabel="Lunch start" testID="time-entry-lunch-start" />
         </View>
         <View style={styles.half}>
           <Text style={styles.label}>Lunch End</Text>
-          <TextInput style={styles.input} value={lunchEnd} onChangeText={setLunchEnd} placeholderTextColor={Colors.text.tertiary} />
+          <TimeField value={lunchEnd} onChange={setLunchEnd}
+            accessibilityLabel="Lunch end" testID="time-entry-lunch-end" />
         </View>
       </View>
 

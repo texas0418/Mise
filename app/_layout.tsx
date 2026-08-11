@@ -21,6 +21,7 @@ import { hasRunCrewMigration, runCrewMigration } from "@/lib/crewMigration";
 import { noteFirstLaunch } from "@/utils/reviewPrompt";
 import OnboardingFlow from "@/components/OnboardingFlow";
 import { useGuardedRouter } from "@/utils/useGuardedRouter";
+import { useTypography } from "@/utils/useTypography";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,6 +37,7 @@ const queryClient = new QueryClient();
  */
 function ModalCancelButton() {
   const router = useGuardedRouter();
+  const { denseTextCap } = useTypography();
   return (
     <TouchableOpacity
       onPress={() => router.back()}
@@ -44,9 +46,63 @@ function ModalCancelButton() {
       accessibilityLabel="Cancel and close this form"
       testID="modal-cancel-button"
     >
-      <Text style={styles.modalCancel}>Cancel</Text>
+      {/*
+        Capped, and this is the one place in the app where capping is right.
+        A navigation bar's height belongs to UIKit, not to us, so text that
+        outgrows it is not pushed down — it is sheared. At the largest setting
+        "Cancel" rendered as the top half of its own letters, which is worse
+        for the reader who turned text up than merely-large text would be.
+        Everywhere the layout can actually grow, text is left uncapped.
+      */}
+      <Text style={styles.modalCancel} maxFontSizeMultiplier={denseTextCap}>Cancel</Text>
     </TouchableOpacity>
   );
+}
+
+/**
+ * Rebuilds the screen tree when the reader changes their text size.
+ *
+ * ## Why this is not solvable by re-rendering
+ *
+ * Changing Dynamic Type while Mise is running left every screen clipped —
+ * headings sheared to a sliver, button labels cut to a dark line, the day's
+ * date showing only the bottom of its glyphs — until the app was killed and
+ * relaunched. Reproduced on an iPad and again on the simulator with
+ * `xcrun simctl ui <udid> content_size accessibility-extra-extra-extra-large`,
+ * which changes the setting without a relaunch.
+ *
+ * The cause is in React Native itself, not in this app. On the New
+ * Architecture a `<Text>` measures through `ParagraphShadowNode::getContent`,
+ * which memoises the built string on the node:
+ *
+ *     const Content& ParagraphShadowNode::getContent(
+ *         const LayoutContext& layoutContext) const {
+ *       if (content_.has_value()) {
+ *         return content_.value();          // never re-reads layoutContext
+ *       }
+ *       ...
+ *       textAttributes.fontSizeMultiplier = layoutContext.fontSizeMultiplier;
+ *
+ * The multiplier is read only on the miss. iOS does deliver the change —
+ * `RCTFabricSurface` observes `UIContentSizeCategoryDidChangeNotification` and
+ * re-runs layout with the new multiplier — but a shadow node that survives that
+ * pass answers from `content_` and reports the height it had at the old size.
+ * The glyphs are painted at the new size inside a box measured for the old one,
+ * which is the clipping. `content_` is only discarded when the node is cloned
+ * with new props, so no amount of re-rendering with unchanged props clears it.
+ *
+ * Hence a `key`. Changing it unmounts the tree and builds new shadow nodes,
+ * which take the current multiplier on their first measure. It sits inside the
+ * providers deliberately: auth, sync, subscription and project state all
+ * survive, and only the navigator and the screens below it are rebuilt.
+ *
+ * The cost is that navigation returns to the initial route, which is the reason
+ * to key here and not around the providers — and text size is a setting a
+ * reader changes in Settings and comes back from, not mid-task.
+ */
+function DynamicTypeBoundary({ children }: { children: React.ReactNode }) {
+  const { fontScale } = useTypography();
+  return <React.Fragment key={fontScale}>{children}</React.Fragment>;
 }
 
 /** Shared options for every data-entry modal. */
@@ -131,6 +187,7 @@ export default function RootLayout() {
             <SubscriptionProvider>
               <DeviceLicenseProvider>
               <PermissionProvider>
+              <DynamicTypeBoundary>
               {showOnboarding ? (
                 <OnboardingFlow onComplete={handleOnboardingComplete} />
               ) : (
@@ -497,6 +554,7 @@ export default function RootLayout() {
                   />
                 </Stack>
               )}
+              </DynamicTypeBoundary>
               </PermissionProvider>
               </DeviceLicenseProvider>
             </SubscriptionProvider>
