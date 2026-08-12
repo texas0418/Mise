@@ -1,18 +1,24 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
-import { Stack } from 'expo-router';
-import { Maximize2, Minimize2 } from 'lucide-react-native';
+import { Stack, useLocalSearchParams } from 'expo-router';
+import { Maximize2, Minimize2, ChevronLeft } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { useProjects } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import PermissionGate from '@/contexts/PermissionGate';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function DigitalSlateScreen() {
   const { activeProject } = useProjects();
-  const [scene, setScene] = useState('1');
-  const [shot, setShot] = useState('1A');
-  const [take, setTake] = useState('1');
+  /* Arrives from the On Set slate carrying the board it was showing, and
+     opens straight into full screen when asked — the point of that button is
+     one tap to a camera-ready frame, not two. */
+  const params = useLocalSearchParams<{ scene?: string; shot?: string; take?: string; fullscreen?: string }>();
+  const [scene, setScene] = useState(params.scene || '1');
+  const [shot, setShot] = useState(params.shot || '1A');
+  const [take, setTake] = useState(params.take || '1');
   const [isClapped, setIsClapped] = useState(false);
   /*
    * Full screen for the moment the slate is actually held up to camera.
@@ -20,10 +26,36 @@ export default function DigitalSlateScreen() {
    * The slate exists to be photographed at the head of a take, and the
    * navigation header both shrinks it and reads as UI on footage. Full screen
    * hides the header and status bar so the frame holds nothing but slate;
-   * the minimize button in the corner is the way back to the menu (Simon,
-   * 08-10). Screen state, not a preference — it resets on unmount.
+   * the minimize button in the controls row is the way back (Simon, 08-10/11). Screen state, not a preference — it resets on unmount.
    */
-  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(params.fullscreen === '1');
+  /*
+   * Captured ONCE, exactly like scene/shot/take above — never recomputed.
+   *
+   * As a plain `const` re-read each render this went stale: the clock re-renders
+   * this screen every second, and on a later render useLocalSearchParams no
+   * longer reported fullscreen='1', so minimize took the "show the top bar"
+   * branch instead of popping back to On Set. That is the bug Simon hit twice
+   * on the iPad ("only the back button shows up"), reproduced in the web
+   * harness with the URL literally still reading fullscreen=1. The board
+   * values never broke for precisely this reason — they were already
+   * useState-initialised. Read arrival params once, at arrival.
+   */
+  const [arrivedFullScreen] = useState(params.fullscreen === '1');
+  const router = useGuardedRouter();
+  const insets = useSafeAreaInsets();
+
+  /*
+   * Minimize means "give me the menu back", and what that is depends on how
+   * the reader got here. From the On Set expand button, the menu they left is
+   * the take log — so minimize pops straight back to it. Opened from Tools,
+   * it restores this screen's own top bar. No native header is involved in
+   * either path: re-showing one mid-screen silently failed on the device.
+   */
+  const toggleFullScreen = useCallback(() => {
+    if (isFullScreen && arrivedFullScreen) { router.back(); return; }
+    setIsFullScreen(v => !v);
+  }, [isFullScreen, arrivedFullScreen, router]);
   const [timestamp, setTimestamp] = useState('');
 
   const slapAnim = useRef(new Animated.Value(0)).current;
@@ -70,12 +102,25 @@ export default function DigitalSlateScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
-      <Stack.Screen options={{
-        title: 'Digital Slate',
-        headerStyle: { backgroundColor: '#000' },
-        headerShown: !isFullScreen,
-      }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <StatusBar hidden={isFullScreen} />
+
+      {!isFullScreen && (
+        <View style={[styles.topBar, { paddingTop: insets.top }]}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+          >
+            <ChevronLeft color={Colors.accent.gold} size={24} />
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.topBarTitle}>Digital Slate</Text>
+          <View style={styles.topBarSpacer} />
+        </View>
+      )}
 
       <Animated.View style={[styles.flash, { opacity: flashAnim }]} pointerEvents="none" />
 
@@ -129,20 +174,26 @@ export default function DigitalSlateScreen() {
         </View>
       </TouchableWithoutFeedback>
 
-      <TouchableOpacity
-        style={styles.fullScreenBtn}
-        onPress={() => setIsFullScreen(v => !v)}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel={isFullScreen ? 'Exit full screen' : 'Make the slate full screen'}
-        accessibilityHint={isFullScreen ? 'Brings back the header and menu' : 'Hides the header so only the slate shows'}
-      >
-        {isFullScreen
-          ? <Minimize2 color={Colors.text.tertiary} size={20} />
-          : <Maximize2 color={Colors.text.tertiary} size={20} />}
-      </TouchableOpacity>
-
       <View style={styles.controls}>
+        {/* In the controls row, not overlaid on the slate. The first version
+            was a translucent circle in the top-right corner — which is the
+            right-most BLACK clapper stripe, so a near-black circle with a dim
+            grey glyph sat on near-black and Simon could not find it on the
+            device. The controls row is visible in both states, holds the
+            other two buttons a thumb already knows, and is outside the
+            photographed frame entirely. */}
+        <TouchableOpacity
+          style={styles.fullScreenBtn}
+          onPress={toggleFullScreen}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={isFullScreen ? 'Exit full screen' : 'Make the slate full screen'}
+          accessibilityHint={isFullScreen ? 'Brings back the header and menu' : 'Hides the header so only the slate shows'}
+        >
+          {isFullScreen
+            ? <Minimize2 color={Colors.accent.gold} size={22} />
+            : <Maximize2 color={Colors.accent.gold} size={22} />}
+        </TouchableOpacity>
         <TouchableOpacity accessibilityRole="button" style={styles.nextTakeBtn} onPress={incrementTake} activeOpacity={0.7}>
           <Text style={styles.nextTakeText}>Next Take</Text>
         </TouchableOpacity>
@@ -157,16 +208,15 @@ export default function DigitalSlateScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
-  /*
-   * Above the slate body (zIndex) but below the white clap flash (10) — the
-   * flash is the photographed frame and nothing should sit on it. 44pt target,
-   * glyph stays 20.
-   */
+  topBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#000', paddingHorizontal: 4 },
+  backBtn: { flexDirection: 'row', alignItems: 'center', minHeight: 44, minWidth: 80, paddingHorizontal: 8 },
+  backText: { fontSize: 17, color: Colors.accent.gold },
+  topBarTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '600' as const, color: '#fff' },
+  topBarSpacer: { minWidth: 80 },
+  /* Sized to its row-mates; gold glyph so it reads on the dark controls bar. */
   fullScreenBtn: {
-    position: 'absolute', top: 8, right: 8, zIndex: 5,
-    width: 44, height: 44, borderRadius: 22,
-    justifyContent: 'center', alignItems: 'center',
-    backgroundColor: '#1a1a1acc',
+    minWidth: 56, backgroundColor: '#222', borderRadius: 12, padding: 16,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#444',
   },
   flash: { ...StyleSheet.absoluteFillObject, backgroundColor: '#fff', zIndex: 10 },
   slateBody: { flex: 1, margin: 16, borderRadius: 16, backgroundColor: '#1a1a1a', overflow: 'hidden', borderWidth: 2, borderColor: '#333' },
