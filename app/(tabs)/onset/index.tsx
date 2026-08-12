@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, TextInput, Keyboard, TouchableWithoutFeedback, Platform, Alert } from 'react-native';
-import { Plus, CircleDot, CircleCheck, CircleX, AlertCircle, ChevronDown, ChevronUp, Trash2 } from 'lucide-react-native';
+import { Plus, CircleDot, CircleCheck, CircleX, AlertCircle, ChevronDown, ChevronUp, Trash2, Maximize2 } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { useProjects, useProjectTakes } from '@/contexts/ProjectContext';
@@ -362,7 +362,26 @@ export default function OnSetScreen() {
           <View style={styles.liveDot} />
           <Text style={styles.headerTitle}>Digital Slate</Text>
         </View>
-        <Text style={styles.headerProject}>{activeProject.title}</Text>
+        <View style={styles.headerRight}>
+          <Text style={styles.headerProject}>{activeProject.title}</Text>
+          {/* Hands the current board to the standalone slate, full screen —
+              this embedded card cannot take over the display itself because
+              the tab rail is a parent navigator. Simon asked for this from
+              here, on the slate he actually shoots with (08-11); the first
+              attempt lived only under Tools → Digital Slate, which is not
+              the screen anyone is on when the camera rolls. */}
+          <TouchableOpacity
+            style={styles.fullScreenBtn}
+            onPress={() => router.push(
+              `/digital-slate?scene=${encodeURIComponent(scene)}&shot=${encodeURIComponent(shot)}&take=${encodeURIComponent(take)}&fullscreen=1` as never)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Open the slate full screen"
+            accessibilityHint="Shows only the slate, ready to hold up to camera"
+          >
+            <Maximize2 color={Colors.accent.gold} size={20} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Collapse toggle */}
@@ -459,6 +478,8 @@ const styles = StyleSheet.create({
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.status.error },
   headerTitle: { fontSize: 14, fontWeight: '700' as const, color: Colors.text.primary },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  fullScreenBtn: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   headerProject: { fontSize: 14, color: Colors.accent.gold, fontWeight: '600' as const },
 
   // Collapse toggle

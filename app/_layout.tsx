@@ -275,7 +275,12 @@ export default function RootLayout() {
                     name="digital-slate"
                     options={{
                       title: "Digital Slate",
-                      headerStyle: { backgroundColor: "#000" },
+                      // The slate draws its own top bar. Toggling the native
+                      // header back on mid-screen is unreliable on the iOS
+                      // native stack — Simon's minimize button did nothing on
+                      // the device — so the screen keeps the header off for
+                      // good and owns its chrome instead.
+                      headerShown: false,
                     }}
                   />
                   <Stack.Screen
