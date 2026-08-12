@@ -22,15 +22,40 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as StoreReview from 'expo-store-review';
-import * as Application from 'expo-application';
 import { hasEarnedTheAsk, MIN_DAYS_INSTALLED, ReviewSignals } from '@/utils/reviewPolicy';
+
+/*
+ * expo-store-review is required lazily, behind a native-registry check —
+ * copied from number-nine's src/review.ts, where the comment is load-bearing:
+ *
+ * Do NOT rely on try/catch around require() for fail-open here: when a
+ * module's factory throws (native half missing from the binary), Metro's
+ * guardedLoadModule reports it as a FATAL error itself — the exception never
+ * reaches the catch, and a release build aborts at launch. That bricked
+ * number-nine's 2026-07-27 device build. Checking the registry BEFORE
+ * requiring means the factory can never throw. A static top-level import —
+ * what this file had — is the same crash one import-graph change earlier.
+ */
+function getStoreReview(): typeof import('expo-store-review') | null {
+  const native = (globalThis as unknown as { expo?: { modules?: Record<string, unknown> } })
+    .expo?.modules?.ExpoStoreReview;
+  if (!native) return null;
+  try {
+    return require('expo-store-review');
+  } catch {
+    return null;
+  }
+}
 
 export type { ReviewSignals };
 export { hasEarnedTheAsk };
 
 const FIRST_LAUNCH_KEY = 'mise_review_first_launch';
-const ASKED_VERSION_KEY = 'mise_review_asked_version';
+/** Once ever — the catalog convention. The versioned key below is honoured as
+ * "already asked" so nobody prompted under the 1.1.0 per-version rule is
+ * asked a second time by the change. */
+const ASKED_EVER_KEY = 'mise_review_asked';
+const LEGACY_ASKED_VERSION_KEY = 'mise_review_asked_version';
 
 /** Record the first launch so the install age can be checked later. */
 export async function noteFirstLaunch(): Promise<void> {
@@ -65,14 +90,16 @@ export async function maybeAskForReview(signals: ReviewSignals): Promise<boolean
     if (!hasEarnedTheAsk(signals)) return false;
     if (await daysSinceFirstLaunch() < MIN_DAYS_INSTALLED) return false;
 
-    // Once per released version. Apple rate-limits too, but a request it
-    // silently swallows still burns one of the user's three yearly slots.
-    const version = Application.nativeApplicationVersion ?? 'unknown';
-    if (await AsyncStorage.getItem(ASKED_VERSION_KEY) === version) return false;
+    // Once ever. Apple rate-limits too, but a request it silently swallows
+    // still burns one of the user's three yearly slots.
+    if (await AsyncStorage.getItem(ASKED_EVER_KEY)) return false;
+    if (await AsyncStorage.getItem(LEGACY_ASKED_VERSION_KEY)) return false;
 
+    const StoreReview = getStoreReview();
+    if (!StoreReview) return false;
     if (!(await StoreReview.hasAction())) return false;
 
-    await AsyncStorage.setItem(ASKED_VERSION_KEY, version);
+    await AsyncStorage.setItem(ASKED_EVER_KEY, new Date().toISOString());
     await StoreReview.requestReview();
     return true;
   } catch {
