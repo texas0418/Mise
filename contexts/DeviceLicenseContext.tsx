@@ -40,6 +40,7 @@ import {
   type DeviceRecord,
 } from '@/lib/deviceManager';
 import { setProEntitled } from '@/lib/entitlement';
+import { mirrorEntitlement } from '@/lib/entitlementMirror';
 
 // ----------------------------------------------------------------------------
 // Result type returned by purchase functions
@@ -369,9 +370,15 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
 
   // Publish it where non-React code can read it. The sync engine gates on this;
   // see lib/entitlement.ts for why it is a module cell and not a hook (#43).
+  // Also mirror it to Supabase so the web build can gate without an RC SDK (#111).
   useEffect(() => {
     setProEntitled(isPro);
-  }, [isPro]);
+    mirrorEntitlement(
+      userId,
+      isPro,
+      isDeviceLicensed ? 'device_license' : isRevenueCatPro ? 'subscription' : null
+    );
+  }, [isPro, userId, isDeviceLicensed, isRevenueCatPro]);
 
   // Which purchase function to call — smart picker for the paywall
   const isFirstDevice = licensedCount === 0;
