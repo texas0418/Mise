@@ -185,7 +185,7 @@ export default function ScheduleScreen() {
     return day.sceneIds.map(id => byId.get(id)).filter((sc): sc is Scene => !!sc);
   }, [scenes]);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
 
   const handleDelete = useCallback((day: ScheduleDay) => {
     Alert.alert(
@@ -233,9 +233,7 @@ export default function ScheduleScreen() {
           styles.list,
           {
             paddingHorizontal: contentPadding,
-            maxWidth: isTablet ? 800 : undefined,
-            alignSelf: isTablet ? 'center' as const : undefined,
-            width: isTablet ? '100%' : undefined,
+            ...contentColumn,
           },
         ]}
         showsVerticalScrollIndicator={false}

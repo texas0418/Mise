@@ -167,7 +167,7 @@ export default function CrewDirectoryScreen() {
   }, [activeProjectId, crewAssignments, addCrewAssignment, deleteCrewAssignment]);
 
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('department');
@@ -294,9 +294,7 @@ export default function CrewDirectoryScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={

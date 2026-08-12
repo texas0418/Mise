@@ -93,7 +93,7 @@ export default function ContinuityScreen() {
   const { activeProject, activeProjectId, deleteContinuityNote } = useProjects();
   const notes = useProjectContinuity(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const sorted = useMemo(() => {
@@ -145,9 +145,7 @@ export default function ContinuityScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

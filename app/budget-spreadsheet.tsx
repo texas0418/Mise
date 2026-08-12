@@ -292,7 +292,7 @@ export default function BudgetSpreadsheetScreen() {
   const { activeProject, activeProjectId, updateBudgetItem, deleteBudgetItem } = useProjects();
   const budget = useProjectBudget(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding } = useLayout();
 
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const [editValue, setEditValue] = useState('');

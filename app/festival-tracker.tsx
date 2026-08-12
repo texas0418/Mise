@@ -102,7 +102,7 @@ export default function FestivalTrackerScreen() {
   const { activeProject, activeProjectId, deleteFestival } = useProjects();
   const festivals = useProjectFestivals(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<FestivalStatus | null>(null);
 
@@ -151,7 +151,7 @@ export default function FestivalTrackerScreen() {
             onEdit={() => router.push(`/new-festival?id=${item.id}` as never)}
             onDelete={() => { deleteFestival(item.id); setExpandedId(null); }} />
         )}
-        contentContainerStyle={[styles.list, { paddingHorizontal: contentPadding, maxWidth: isTablet ? 800 : undefined, alignSelf: isTablet ? 'center' as const : undefined, width: isTablet ? '100%' : undefined }]}
+        contentContainerStyle={[styles.list, { paddingHorizontal: contentPadding, ...contentColumn }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={<View style={styles.emptyInner}><Trophy color={Colors.text.tertiary} size={48} /><Text style={styles.emptyTitle}>No festivals tracked</Text><Text style={styles.emptySubtitle}>Track your festival submission strategy</Text></View>}
       />

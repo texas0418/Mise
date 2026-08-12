@@ -139,7 +139,7 @@ export default function ShotsScreen() {
   const shots = useProjectShots(activeProjectId);
   const scenes = useProjectScenes(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
 
   const sections = useMemo(() => {
     // Group by the linked Scene where there is one, falling back to the loose
@@ -221,9 +221,7 @@ export default function ShotsScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}

@@ -110,7 +110,7 @@ export default function CommsHubScreen() {
   const messages = useProjectMessages(activeProjectId);
   const crew = useProjectCrew(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
 
   const [filter, setFilter] = useState<'all' | MessageCategory>('all');
 
@@ -249,9 +249,7 @@ export default function CommsHubScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={

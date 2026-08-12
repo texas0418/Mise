@@ -138,7 +138,7 @@ export default function VFXTrackerScreen() {
   const { activeProject, activeProjectId, deleteVFXShot } = useProjects();
   const vfxShots = useProjectVFX(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<VFXShotStatus | null>(null);
 
@@ -214,9 +214,7 @@ export default function VFXTrackerScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

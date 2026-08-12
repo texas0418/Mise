@@ -35,7 +35,7 @@ type Step = 'pick' | 'map' | 'confirm';
 export default function ImportDataScreen() {
   const router = useGuardedRouter();
   const params = useLocalSearchParams<{ entity?: string }>();
-  const { isTablet, contentPadding } = useLayout();
+  const { isTablet, contentPadding, contentColumn } = useLayout();
   const projects = useProjects();
 
   const entityKey = params.entity ?? '';
@@ -219,6 +219,7 @@ export default function ImportDataScreen() {
           onNext={() => setStep('confirm')}
           isTablet={isTablet}
           contentPadding={contentPadding}
+          contentColumn={contentColumn}
         />
       )}
 
@@ -347,7 +348,7 @@ function PickStep({ entityConfig, loading, onPickFile }: {
 
 // ─── Step 2: Map Columns ─────────────────────────────────────────
 
-function MapStep({ parsedData, mappingResult, entityConfig, expandedColumn, onExpandColumn, onUpdateMapping, onBack, onNext, isTablet, contentPadding }: {
+function MapStep({ parsedData, mappingResult, entityConfig, expandedColumn, onExpandColumn, onUpdateMapping, onBack, onNext, isTablet, contentPadding, contentColumn }: {
   parsedData: ParsedSpreadsheet;
   mappingResult: MappingResult;
   entityConfig: EntityConfig;
@@ -358,6 +359,7 @@ function MapStep({ parsedData, mappingResult, entityConfig, expandedColumn, onEx
   onNext: () => void;
   isTablet: boolean;
   contentPadding: number;
+  contentColumn: ReturnType<typeof import('@/utils/useLayout').useLayout>['contentColumn'];
 }) {
   const mappedCount = mappingResult.mappings.filter(m => m.mappedField !== null).length;
   const totalFields = entityConfig.fields.length;
@@ -389,9 +391,7 @@ function MapStep({ parsedData, mappingResult, entityConfig, expandedColumn, onEx
       {/* Column mapping list */}
       <ScrollView style={styles.flex1} contentContainerStyle={[styles.mapList, {
         paddingHorizontal: contentPadding,
-        maxWidth: isTablet ? 800 : undefined,
-        alignSelf: isTablet ? 'center' as const : undefined,
-        width: isTablet ? '100%' : undefined,
+        ...contentColumn,
       }]}>
         {mappingResult.mappings.map((mapping) => (
           <ColumnMappingCard

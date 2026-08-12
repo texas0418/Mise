@@ -22,7 +22,7 @@
 // ----------------------------------------------------------------------------
 
 import { useEffect, useState, useCallback } from 'react';
-import { AppState, type AppStateStatus } from 'react-native';
+import { AppState, Platform, type AppStateStatus } from 'react-native';
 import createContextHook from '@nkzw/create-context-hook';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -40,6 +40,7 @@ import {
   type DeviceRecord,
 } from '@/lib/deviceManager';
 import { setProEntitled } from '@/lib/entitlement';
+import { readMirroredEntitlement } from '@/lib/entitlementMirror';
 
 // ----------------------------------------------------------------------------
 // Result type returned by purchase functions
@@ -65,6 +66,19 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
   } = useSubscription();
 
   const [isDeviceLicensed, setIsDeviceLicensed]     = useState(false);
+  /*
+   * Web only: the entitlement this account last mirrored from a device.
+   *
+   * In a browser both of the other paths are structurally false — device
+   * licensing is per-device and this is not one, and react-native-purchases
+   * has no web SDK so the RevenueCat path resolves to a stub. Without this,
+   * a paying subscriber opening Mise on their laptop is silently free (#111).
+   *
+   * Never written on native: the device is the source of truth for itself,
+   * and reading the mirror there could only ever contradict it with staler
+   * data.
+   */
+  const [mirroredPro, setMirroredPro] = useState(false);
   const [currentDevice, setCurrentDevice]           = useState<DeviceRecord | null>(null);
   const [devices, setDevices]                       = useState<DeviceRecord[]>([]);
   const [currentDeviceUuid, setCurrentDeviceUuid]   = useState<string | null>(null);
@@ -364,8 +378,20 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
   // Derived values
   // ----------------------------------------------------------------------------
 
-  // isPro = device licensed in Supabase OR active RC entitlement (legacy + anon)
-  const isPro = isDeviceLicensed || isRevenueCatPro;
+  // isPro = device licensed in Supabase OR active RC entitlement (legacy + anon),
+  // or — in a browser, where neither of those can ever be true — the entitlement
+  // this account mirrored from a device (#111).
+  const isPro = isDeviceLicensed || isRevenueCatPro || mirroredPro;
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    if (!userId) { setMirroredPro(false); return; }
+    let cancelled = false;
+    readMirroredEntitlement(userId).then(pro => {
+      if (!cancelled) setMirroredPro(pro);
+    });
+    return () => { cancelled = true; };
+  }, [userId]);
 
   // Publish it where non-React code can read it. The sync engine gates on this;
   // see lib/entitlement.ts for why it is a module cell and not a hook (#43).

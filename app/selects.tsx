@@ -117,7 +117,7 @@ export default function SelectsScreen() {
   const { activeProjectId, deleteSceneSelect } = useProjects();
   const selects = useProjectSelects(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [filter, setFilter] = useState<'all' | 'circled' | 'alt'>('all');
 
   const filtered = useMemo(() => {
@@ -172,9 +172,7 @@ export default function SelectsScreen() {
         }}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}

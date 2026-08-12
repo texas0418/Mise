@@ -403,7 +403,7 @@ function ProjectLocationSection({ locationName, address, latitude, longitude, ex
 // eslint-disable-next-line complexity -- tracked in #7
 export default function LocationWeatherScreen() {
   const { activeProject, locations } = useProjects();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const projectLocations = locations.filter(l => l.projectId === activeProject?.id);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -510,9 +510,7 @@ export default function LocationWeatherScreen() {
       style={styles.container}
       contentContainerStyle={[styles.content, {
         paddingHorizontal: contentPadding,
-        maxWidth: isTablet ? 800 : undefined,
-        alignSelf: isTablet ? 'center' as const : undefined,
-        width: isTablet ? '100%' : undefined,
+        ...contentColumn,
       }]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"

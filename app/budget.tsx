@@ -151,7 +151,7 @@ export default function BudgetScreen() {
   const { activeProject, activeProjectId, deleteBudgetItem, addBudgetItem, addBudgetItemBulk } = useProjects();
   const budget = useProjectBudget(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('category');
@@ -275,9 +275,7 @@ export default function BudgetScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={

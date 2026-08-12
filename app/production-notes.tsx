@@ -108,7 +108,7 @@ export default function ProductionNotesScreen() {
   const { activeProject, activeProjectId, deleteNote } = useProjects();
   const notes = useProjectNotes(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterCat, setFilterCat] = useState<NoteCategory | null>(null);
 
@@ -196,9 +196,7 @@ export default function ProductionNotesScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

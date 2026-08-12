@@ -99,7 +99,7 @@ export default function MoodBoardsScreen() {
   const { activeProject, activeProjectId, deleteMoodBoardItem } = useProjects();
   const items = useProjectMoodBoard(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const boards = useMemo(() => {
@@ -154,9 +154,7 @@ export default function MoodBoardsScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

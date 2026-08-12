@@ -40,7 +40,7 @@ export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { projects, deleteProject, selectProject } = useProjects();
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
 
   const project = projects.find(p => p.id === id) ?? null;
   const shots = useProjectShots(id ?? null);
@@ -94,9 +94,7 @@ export default function ProjectDetailScreen() {
           styles.scrollContent,
           {
             paddingHorizontal: contentPadding,
-            maxWidth: isTablet ? 800 : undefined,
-            alignSelf: isTablet ? 'center' as const : undefined,
-            width: isTablet ? '100%' : undefined,
+            ...contentColumn,
           },
         ]}
         showsVerticalScrollIndicator={false}

@@ -171,7 +171,7 @@ export default function ScriptBreakdownScreen() {
   const breakdowns = useProjectScenes(activeProjectId);
   const router = useGuardedRouter();
   const queryClient = useQueryClient();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // CSV import still writes legacy breakdown records (scene-native import
@@ -225,9 +225,7 @@ export default function ScriptBreakdownScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

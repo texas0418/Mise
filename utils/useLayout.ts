@@ -34,6 +34,31 @@ export interface LayoutInfo {
   cardMinWidth: number;
   // Font scale
   fontScale: number;
+  /**
+   * The centred content column every list screen uses.
+   *
+   * Twenty-eight screens each hardcoded `maxWidth: isTablet ? 800 : undefined`
+   * alongside a matching alignSelf and width — so the hook computed
+   * `contentWidth` and almost nothing read it, and the desktop breakpoint
+   * would have changed nothing on its own. Spreading this instead means a new
+   * screen gets the right column by default and the number lives in one place.
+   */
+  contentColumn: {
+    maxWidth: number | undefined;
+    alignSelf: 'center' | undefined;
+    width: '100%' | undefined;
+  };
+}
+
+/**
+ * The centred column, or nothing on a phone where the content is the window.
+ *
+ * A free function rather than three ternaries inline: the hook was already at
+ * the complexity limit and this is the part with no reason to be in it.
+ */
+function contentColumn(constrained: boolean, width: number): LayoutInfo['contentColumn'] {
+  if (!constrained) return { maxWidth: undefined, alignSelf: undefined, width: undefined };
+  return { maxWidth: width, alignSelf: 'center', width: '100%' };
 }
 
 export function useLayout(): LayoutInfo {
@@ -66,6 +91,7 @@ export function useLayout(): LayoutInfo {
   const fontScale = isTablet ? 1.1 : 1;
 
   return {
+    contentColumn: contentColumn(isTablet || isDesktop, contentWidth),
     isTablet,
     isDesktop,
     isLandscape,

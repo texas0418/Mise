@@ -64,7 +64,7 @@ function ShotRow({ shot, onCycleStatus, onStepBack }: {
 export default function ShotChecklistScreen() {
   const { activeProjectId, updateShot, updateShots } = useProjects();
   const shots = useProjectShots(activeProjectId);
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const router = useGuardedRouter();
   const [collapsedScenes, setCollapsedScenes] = useState<Set<number>>(new Set());
 
@@ -176,9 +176,7 @@ export default function ShotChecklistScreen() {
         }}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}

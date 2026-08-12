@@ -99,7 +99,7 @@ export default function WrapReportsScreen() {
   const { activeProject, activeProjectId, deleteWrapReport } = useProjects();
   const reports = useProjectWrapReports(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const totals = useMemo(() => ({
@@ -133,7 +133,7 @@ export default function WrapReportsScreen() {
             onEdit={() => router.push(`/new-wrap-report?id=${item.id}` as never)}
             onDelete={() => { deleteWrapReport(item.id); setExpandedId(null); }} />
         )}
-        contentContainerStyle={[styles.list, { paddingHorizontal: contentPadding, maxWidth: isTablet ? 800 : undefined, alignSelf: isTablet ? 'center' as const : undefined, width: isTablet ? '100%' : undefined }]}
+        contentContainerStyle={[styles.list, { paddingHorizontal: contentPadding, ...contentColumn }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={<View style={styles.emptyInner}><FileText color={Colors.text.tertiary} size={48} /><Text style={styles.emptyTitle}>No wrap reports yet</Text><Text style={styles.emptySub}>Generate a report after each shoot day</Text></View>}
       />

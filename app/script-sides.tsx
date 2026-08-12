@@ -206,7 +206,7 @@ export default function ScriptSidesScreen() {
   const sides = useProjectScriptSides(activeProjectId);
   const shots = useProjectShots(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [filter, setFilter] = useState<SidesStatus | 'all'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -251,9 +251,7 @@ export default function ScriptSidesScreen() {
         renderItem={renderSide}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
