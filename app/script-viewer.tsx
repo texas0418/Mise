@@ -21,7 +21,7 @@ import {
   Highlighter, MessageSquare, Undo2, X, Check,
   MessageCircle, Lock,
 } from 'lucide-react-native';
-import Pdf from 'react-native-pdf';
+import PdfSurface, { PDF_SURFACE_IS_PAGED } from '@/components/PdfSurface';
 import { useProjects, useScriptAnnotations } from '@/contexts/ProjectContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSignedScriptURL } from '@/utils/scriptPicker';
@@ -177,16 +177,10 @@ function PdfLayer({
       )}
 
       {pdfUrl && (
-        <Pdf
-          ref={pdfRef}
-          source={{ uri: pdfUrl, cache: true }}
+        <PdfSurface
+          uri={pdfUrl}
+          pdfRef={pdfRef}
           style={styles.pdf}
-          enablePaging={true}
-          horizontal={false}
-          enableAntialiasing={true}
-          enableAnnotationRendering={false}
-          fitPolicy={0}
-          spacing={0}
           onLoadComplete={onLoadComplete}
           onPageChanged={onPageChanged}
           onError={onError}
@@ -214,6 +208,15 @@ function AnnotationOverlay({
   pageNotes: ScriptAnnotation[];
   onNotePin: (annotation: ScriptAnnotation) => void;
 }) {
+  /*
+   * Annotation is anchored to a page number and a position within it. A
+   * browser PDF view reports neither, so on web this is not rendered at all
+   * rather than rendered inert — a highlighter that silently fails to save is
+   * worse than one that is honestly absent. Annotating stays on phone and
+   * iPad (#111). The guard lives here, not at the call site, so the screen
+   * does not carry three more branches for a platform constant.
+   */
+  if (!PDF_SURFACE_IS_PAGED) return null;
   return (
     <View
       style={styles.annotationOverlay}
@@ -299,6 +302,15 @@ function HighlightColorPicker({
   highlightColor: HighlightColor;
   onSelect: (color: HighlightColor) => void;
 }) {
+  /*
+   * Annotation is anchored to a page number and a position within it. A
+   * browser PDF view reports neither, so on web this is not rendered at all
+   * rather than rendered inert — a highlighter that silently fails to save is
+   * worse than one that is honestly absent. Annotating stays on phone and
+   * iPad (#111). The guard lives here, not at the call site, so the screen
+   * does not carry three more branches for a platform constant.
+   */
+  if (!PDF_SURFACE_IS_PAGED) return null;
   return (
     <View style={styles.colorPickerBar}>
       {HIGHLIGHT_COLORS.map(c => (
@@ -330,6 +342,15 @@ function BottomToolbar({
   onPrevPage: () => void;
   onNextPage: () => void;
 }) {
+  /*
+   * Annotation is anchored to a page number and a position within it. A
+   * browser PDF view reports neither, so on web this is not rendered at all
+   * rather than rendered inert — a highlighter that silently fails to save is
+   * worse than one that is honestly absent. Annotating stays on phone and
+   * iPad (#111). The guard lives here, not at the call site, so the screen
+   * does not carry three more branches for a platform constant.
+   */
+  if (!PDF_SURFACE_IS_PAGED) return null;
   return (
     <View style={styles.bottomBar}>
       <View style={styles.toolButtons}>

@@ -1,7 +1,25 @@
 import { useWindowDimensions, Platform } from 'react-native';
 
+/** Below this a browser window is a phone in disguise; above it, a desk. */
+export const DESKTOP_BREAKPOINT = 1024;
+/**
+ * Wide enough for a budget table or a call sheet without becoming a line of
+ * text too long to track back from. Prose caps lower; tables get this.
+ */
+export const DESKTOP_CONTENT_MAX = 1280;
+
 export interface LayoutInfo {
   isTablet: boolean;
+  /**
+   * A desk, not a device held in two hands.
+   *
+   * Separate from `isTablet` because they want opposite things: a tablet in
+   * landscape is still one column of cards read at arm's length, while a
+   * browser window at 1200px is a spreadsheet, a directory and a call sheet
+   * that should use the width they have. Everything above 1024 logical px on
+   * a platform with a pointer is treated as a desk (#111).
+   */
+  isDesktop: boolean;
   isLandscape: boolean;
   width: number;
   height: number;
@@ -22,13 +40,21 @@ export function useLayout(): LayoutInfo {
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
   const isTablet = Math.min(width, height) >= 600;
+  const isDesktop = Platform.OS === 'web' && width >= DESKTOP_BREAKPOINT;
 
   const sidebarWidth = isTablet ? 260 : 0;
   const availableWidth = isTablet && isLandscape ? width - sidebarWidth : width;
 
-  // Content width: cap at 800px for readability on large screens
-  const contentWidth = isTablet ? Math.min(availableWidth - 40, 800) : width;
-  const contentPadding = isTablet ? 24 : 16;
+  /*
+   * 800px is right for a card list read at arm's length and wrong for a desk:
+   * on a 1440px browser it left half the window empty while the budget table
+   * scrolled sideways inside it. Desktop gets the width, still capped so a
+   * maximised 4K window does not produce lines nobody can track back from.
+   */
+  const contentWidth = isDesktop
+    ? Math.min(availableWidth - 64, DESKTOP_CONTENT_MAX)
+    : isTablet ? Math.min(availableWidth - 40, 800) : width;
+  const contentPadding = isDesktop ? 32 : isTablet ? 24 : 16;
 
   // Grid columns based on available width
   let gridColumns = 1;
@@ -41,6 +67,7 @@ export function useLayout(): LayoutInfo {
 
   return {
     isTablet,
+    isDesktop,
     isLandscape,
     width,
     height,

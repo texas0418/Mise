@@ -18,6 +18,16 @@ interface ToolItem {
   route: string;
   color: string;
   badge?: string;
+  /**
+   * Needs the camera, the room, or a hand free — so it does not belong on a
+   * desktop browser. Hidden there rather than shipped broken or shipped
+   * pointless: a clapperboard on a laptop is not a clapperboard, and the lens
+   * calculator wants the lens in front of you.
+   *
+   * Hidden, and then said out loud — see the note under the grid. Silently
+   * dropping tools would read as a smaller app rather than a different one.
+   */
+  setOnly?: boolean;
 }
 
 const PRE_PROD_TOOLS: ToolItem[] = [
@@ -41,8 +51,8 @@ const PRE_PROD_TOOLS: ToolItem[] = [
 const ON_SET_TOOLS: ToolItem[] = [
   { icon: ListChecks, label: 'Shot Checklist', subtitle: 'Daily shot progress', route: '/shot-checklist', color: '#4ADE80' },
   { icon: Megaphone, label: 'Comms Hub', subtitle: 'Quick crew messages', route: '/comms-hub', color: '#F59E0B' },
-  { icon: Clapperboard, label: 'Digital Slate', subtitle: 'Clapperboard', route: '/digital-slate', color: '#F87171' },
-  { icon: BookOpen, label: 'Continuity', subtitle: 'Script supervisor notes', route: '/continuity', color: '#34D399' },
+  { icon: Clapperboard, label: 'Digital Slate', subtitle: 'Clapperboard', route: '/digital-slate', color: '#F87171', setOnly: true },
+  { icon: BookOpen, label: 'Continuity', subtitle: 'Script supervisor notes', route: '/continuity', color: '#34D399', setOnly: true },
   { icon: StickyNote, label: 'Notes', subtitle: 'Production notes', route: '/production-notes', color: '#FCD34D' },
   { icon: Clock, label: 'Time Tracker', subtitle: 'Hours & overtime', route: '/time-tracker', color: '#FB923C' },
 ];
@@ -55,9 +65,9 @@ const POST_TOOLS: ToolItem[] = [
 ];
 
 const REFERENCE_TOOLS: ToolItem[] = [
-  { icon: Aperture, label: 'Lens Calculator', subtitle: 'FOV & focal lengths', route: '/lens-calculator', color: '#06B6D4' },
+  { icon: Aperture, label: 'Lens Calculator', subtitle: 'FOV & focal lengths', route: '/lens-calculator', color: '#06B6D4', setOnly: true },
   { icon: User, label: 'Portfolio', subtitle: 'Your credits & reel', route: '/portfolio', color: Colors.accent.gold },
-  { icon: Layers, label: 'Frame Guides', subtitle: 'Aspect ratio previews', route: '/frame-guides', color: '#E879F9' },
+  { icon: Layers, label: 'Frame Guides', subtitle: 'Aspect ratio previews', route: '/frame-guides', color: '#E879F9', setOnly: true },
   { icon: Share2, label: 'Export & Share', subtitle: 'Share project data', route: '/export-share', color: '#94A3B8' },
 ];
 
@@ -287,6 +297,7 @@ function RestorePrivacyGroup({
 }
 
 export default function MoreScreen() {
+  const { isDesktop } = useLayout();
   const { activeProject, projects } = useProjects();
   useSubscription(); // kept for RC SDK initialization
   const { isPro, restoreAndActivate, isPurchasing } = useDeviceLicense();
@@ -332,10 +343,22 @@ export default function MoreScreen() {
 
   const [toolQuery, setToolQuery] = useState('');
   const searching = toolQuery.trim().length > 0;
+  /*
+   * On a desktop browser the set-only tools come out entirely. They are not
+   * degraded there, they are meaningless there — a clapperboard you cannot
+   * hold up to camera, a continuity camera with no camera. The count is kept
+   * so the grid can say so rather than just being quietly shorter.
+   */
+  const hideSetOnly = isDesktop;
+  const setOnlyCount = TOOL_SECTIONS.reduce(
+    (n, s) => n + s.tools.filter(t => t.setOnly).length, 0);
+
   const visibleSections = TOOL_SECTIONS
     .map(section => ({
       ...section,
-      tools: searching ? section.tools.filter(t => toolMatches(t, toolQuery)) : section.tools,
+      tools: section.tools
+        .filter(t => !(hideSetOnly && t.setOnly))
+        .filter(t => (searching ? toolMatches(t, toolQuery) : true)),
     }))
     .filter(section => section.tools.length > 0);
 
@@ -388,6 +411,13 @@ export default function MoreScreen() {
         <Text style={styles.searchEmpty}>No tool matches “{toolQuery.trim()}”.</Text>
       )}
 
+      {hideSetOnly && !searching && (
+        <Text style={styles.setOnlyNote}>
+          {setOnlyCount} on-set tools — the slate, continuity, frame guides and the
+          lens calculator — live on your phone and iPad, where the camera is.
+        </Text>
+      )}
+
       {/* Subscription & Settings Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>
@@ -422,6 +452,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   searchInput: { flex: 1, fontSize: 15, color: Colors.text.primary, paddingVertical: 10 },
+  setOnlyNote: {
+    fontSize: 13, color: Colors.text.tertiary, lineHeight: 19,
+    paddingHorizontal: 4, paddingBottom: 8, marginTop: -4,
+  },
   searchEmpty: { fontSize: 14, color: Colors.text.tertiary, textAlign: 'center', paddingVertical: 24 },
   sectionTitle: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 1.2, marginBottom: 10, paddingHorizontal: 4 },
   toolGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
