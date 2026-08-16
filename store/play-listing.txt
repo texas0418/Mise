@@ -1,0 +1,96 @@
+MISE — GOOGLE PLAY STORE LISTING (draft 2026-08-16, adapted from live iOS 1.1.0 copy)
+=======================================================================================
+
+APP NAME (30 chars max)
+Mise: Film Director Suite
+
+SHORT DESCRIPTION (80 chars max)
+Call sheets, shot lists, scripts, scheduling — run your production on set.
+
+FULL DESCRIPTION (4000 chars max) — adapted from the ASC 1.1.0 description
+-----------------------------------------------------
+Built for directors. Run your production from your phone or tablet.
+
+Mise is a complete production management suite for indie filmmakers. Call sheets, shot lists, scripts, scheduling, budgets, locations, lighting diagrams, all in one app, syncing across your crew in real time.
+
+Why directors switch to Mise:
+
+- Mobile-first. Works on set. Works offline. Syncs automatically when you reconnect.
+- Real-time collaboration. Invite your AD, DP, producer, or PA. Role-based access keeps the right people in the right tools.
+- Built for the way directors actually work. Type, paste, or photograph your shot lists, crew sheets, and scene notes. AI Import turns them into structured data. No retyping.
+- Made for indies. $4.99/month for the first device. $2.99/month for each additional device. Compare to other production tools at $29 to $99/month.
+
+What's inside:
+
+— Call sheets with location, crew, scenes, and call times
+— Shot lists with references, lighting diagrams, color notes
+— Script viewer and scene-by-scene breakdown
+— Scene-level scheduling with stripboard view
+— Crew and cast management with contact info and roles
+— Locations with maps, photos, and weather
+— Budget tracking with line items and categories
+— Mood boards and color references
+— VFX shot tracking
+— Festival submission tracker
+— Wrap reports and production notes
+— Export to PDF, CSV, or share via your device's native share sheet
+
+Built by an indie filmmaker. Used on real productions.
+
+Mise was built by Simon Shih, an actor-director making films in Atlanta, Georgia. Every feature exists because a real production needed it. Mise is owned and operated by Page 4 Films, LLC.
+
+Privacy-first. Your data, your call.
+
+Sign in to sync across your devices and crew, or use Mise locally without an account. Either way, we don't sell your data, never use it to train AI, and never share it with advertisers. Read our full privacy policy at page4films.com/mise/privacy.html.
+
+Subscription:
+
+- First device: $4.99/month or $49.99/year (save 17%)
+- Each additional device: $2.99/month or $29.99/year (save 17%)
+- Cancel anytime through your Google Play subscription settings
+
+Have questions or feature requests? Email hello@page4films.com. We read every message.
+-----------------------------------------------------
+
+CATEGORY: Productivity (match iOS category from ASC at submission)
+WEBSITE: page4films.com (mise-site also exists — confirm preferred marketing URL)
+PRIVACY POLICY URL (real, verified live 2026-08-16): https://page4films.com/mise/privacy.html
+
+GRAPHIC ASSETS (store/)
+- play-icon-512.png + play-feature-graphic.png — DONE
+- screenshots-android/ — 4 phone shots (1080x2160) from the signed release APK
+- screenshots-android-tablet/ — 3 TABLET shots (2560x1600 landscape, Pixel Tablet AVD).
+  Play has SEPARATE 7" and 10" tablet slots; filling them is what earns the
+  "Designed for tablets" treatment and better tablet ranking. Upload these there,
+  and complete the tablet-optimization checklist in Play Console.
+
+DATA SAFETY FORM — NOT local-only when signed in
+- Optional accounts + Supabase sync: email, synced production content — "collected", encrypted in transit; app fully usable without an account (declare optional)
+- AI Import sends photographed/pasted text for structured extraction — declare user content processed for app functionality; confirm retention with Simon
+- Purchases: RevenueCat subscriptions (first device + additional device tiers) — Play needs ONE subscription with base plans/offers per tier; RevenueCat Google config at submission
+
+CONTENT RATING: Everyone
+
+ANDROID QA — THE PORT-CRITICAL LIST
+- PDF export: VERIFIED on Android this run. Exported the budget from the app —
+  expo-print -> Android WebView -> share sheet, filename slug intact, and the print
+  preview is black-on-white with correct margins and an intact table.
+- Table headers across page breaks (iOS issue #103): the CSS already carries
+  `display: table-header-group`, which WKWebView ignores and Chromium honours.
+  Rendered the 3-page call sheet through Chromium (the engine Android WebView is)
+  and the cast/crew headers DO repeat on pages 2 and 3 — i.e. #103 is fixed for
+  free on Android. Still worth one on-device multi-page export to close it out
+  (needs a shoot day staged so the call sheet is exportable).
+- expo-print, expo-sms, expo-mail-composer flows (Comms Hub) on Android
+- react-native-pdf viewer renders on Android (different native lib than iOS)
+- Text-size relayout at max font scale (Simon's standard)
+- TABLET (Mise's best surface): verified on a 2560x1600 Pixel Tablet AVD — the tab
+  bar becomes a left sidebar and the Tools grid goes 2 columns -> 3. Fixed this run:
+  the sidebar's selected row drew the platform's Material BLUE fill because only the
+  icon/label tint was themed; now uses Colors.accent.goldBg. Phones were never affected.
+- Still unverified on tablet: landscape PDF export, split-screen/resizable windows,
+  and a real 7" device (the AVD is 10.9")
+- expo-symbols + expo-apple-authentication are UNUSED deps (verified by grep) — no Android impact; candidates for removal in a cleanup PR
+
+RELEASE NOTES (first release)
+Mise arrives on Android: the full director's suite — call sheets, shot lists, scripts, scheduling, budgets, and PDF exports — now on both platforms, syncing across your crew.

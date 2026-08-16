@@ -27,6 +27,12 @@ export default function TabLayout() {
         headerShown: false,
         tabBarActiveTintColor: Colors.accent.gold,
         tabBarInactiveTintColor: Colors.text.tertiary,
+        // The sidebar's selected row draws a filled pill behind the item, and
+        // with nothing set it takes the platform's own selection colour — a
+        // Material blue that belongs to no part of this app. Phones never show
+        // it (the bottom bar has no such fill), so it only ever appeared on the
+        // layout Mise is actually used on.
+        ...(isTablet ? { tabBarActiveBackgroundColor: Colors.accent.goldBg } : {}),
         tabBarStyle: {
           backgroundColor: Colors.bg.secondary,
           borderTopColor: Colors.border.subtle,
