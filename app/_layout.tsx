@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState, useCallback } from "react";
 import { StyleSheet, Text, TouchableOpacity, View} from "react-native";
@@ -121,6 +121,21 @@ export default function RootLayout() {
   const [checked, setChecked] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
+  /*
+   * Onboarding must not pre-empt the auth screens.
+   *
+   * It renders inside DesktopGate, so once auth routes were allowed past the
+   * gate the first-run carousel started answering for them: a new visitor
+   * pressed Sign in and got a five-slide product tour instead of the form.
+   * Recoverable by skipping, and still the wrong answer to what they asked
+   * for. Simon did not see it because his browser had already completed
+   * onboarding.
+   *
+   * Read here rather than beside the JSX: there is an early return below, and
+   * a hook after it is a hook that does not always run.
+   */
+  const onAuthRoute = usePathname().startsWith('/auth');
+
   useEffect(() => {
     (async () => {
       // Runs before the providers mount, so the stores read already-migrated
@@ -196,7 +211,7 @@ export default function RootLayout() {
                   route can be reached around it. */}
               <DesktopGate>
               <DynamicTypeBoundary>
-              {showOnboarding ? (
+              {showOnboarding && !onAuthRoute ? (
                 <OnboardingFlow onComplete={handleOnboardingComplete} />
               ) : (
                 /*
