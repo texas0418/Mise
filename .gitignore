@@ -70,3 +70,10 @@ android/
 
 # Rendered documents (scripts/render-documents.ts) — proofs, not sources
 .render/
+
+# Deno writes this when typechecking supabase/functions; the edge runtime
+# resolves its own deps, so a lockfile here would only ever go stale.
+deno.lock
+
+# Scratch the supabase CLI drops when it runs from this directory.
+supabase/.temp/
