@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, ActivityIndicator, TextInput, Platform} from 'react-native';
 import { appAlert } from '@/lib/appAlert';
-import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, Trash2, LogIn, UserCircle, Smartphone, Cloud, ScrollText, Lightbulb, Search, X } from 'lucide-react-native';
+import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, Trash2, LogIn, UserCircle, Smartphone, Monitor, Cloud, ScrollText, Lightbulb, Search, X } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProjects } from '@/contexts/ProjectContext';
 import { SAMPLE_PROJECT_IDS, removeSampleData } from '@/lib/dataMigration';
@@ -249,6 +249,45 @@ function ProStatusCard({ isPro }: { isPro: boolean }) {
   );
 }
 
+/**
+ * Tells a subscriber the website exists.
+ *
+ * Mise on a computer is included with a subscription and requires one, and
+ * nothing in the app said so — somebody paying for it had no way to discover
+ * there was anywhere to sign in. The App Store description reaches people who
+ * have not bought yet; this reaches the ones who have.
+ *
+ * Shown only to subscribers, because that is who it is true for: the gate
+ * turns everyone else away, and pointing a free user at a door that will not
+ * open is worse than saying nothing.
+ *
+ * Hidden on web for the obvious reason.
+ */
+function WebAppGroup() {
+  if (Platform.OS === 'web') return null;
+
+  return (
+    <View style={styles.settingsGroup}>
+      <TouchableOpacity accessibilityRole="button"
+        accessibilityLabel="Open Mise on your computer at mise.simonbuilds.app"
+        style={styles.settingsRowLast}
+        onPress={() => Linking.openURL('https://mise.simonbuilds.app')}
+        activeOpacity={0.7}
+      >
+        <Monitor color={Colors.accent.gold} size={18} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.settingsRowText}>Mise on your computer</Text>
+          <Text style={styles.webAppSubtitle}>
+            Included with your subscription. Sign in at mise.simonbuilds.app with this
+            same account.
+          </Text>
+        </View>
+        <ExternalLink color={Colors.text.tertiary} size={14} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 function ManageSubscriptionGroup() {
   return (
     <View style={styles.settingsGroup}>
@@ -460,6 +499,8 @@ export default function MoreScreen() {
 
         <ProStatusCard isPro={isPro} />
 
+        {isPro && <WebAppGroup />}
+
         {isPro && <ManageSubscriptionGroup />}
 
         {hasSampleData && <SampleDataGroup onRemove={handleRemoveSampleData} />}
@@ -511,6 +552,7 @@ const styles = StyleSheet.create({
   settingsRowLast: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 14, gap: 12 },
   settingsRowDisabled: { opacity: 0.4 },
   settingsRowText: { flex: 1, fontSize: 14, color: Colors.text.primary },
+  webAppSubtitle: { fontSize: 12, lineHeight: 16, color: Colors.text.secondary, marginTop: 2 },
   settingsRowTextDisabled: { color: Colors.text.tertiary },
   settingsRowHint: { fontSize: 12, color: Colors.text.tertiary, fontStyle: 'italic' },
 });
