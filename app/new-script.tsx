@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
 } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack } from 'expo-router';
@@ -36,6 +37,7 @@ const REVISION_OPTIONS: { value: ScriptRevisionColor; label: string; bg: string;
 ];
 
 export default function NewScriptScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { activeProjectId, addScriptPDF } = useProjects();
   const { user } = useAuth();
@@ -127,7 +129,7 @@ export default function NewScriptScreen() {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
       <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, formColumn]}
       keyboardShouldPersistTaps="handled"
     >
       <Stack.Screen options={{ title: 'Upload Script' }} />

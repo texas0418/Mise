@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -12,6 +13,7 @@ import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewContinuityScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addContinuityNote, updateContinuityNote, activeProjectId, activeProject } = useProjects();
   const notes = useProjectContinuity(activeProjectId);
@@ -84,7 +86,7 @@ export default function NewContinuityScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Continuity Note' : 'New Continuity Note' }} />
 
       <View style={styles.projectLabel}>

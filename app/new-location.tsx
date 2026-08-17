@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams, Stack } from 'expo-router';
@@ -13,6 +14,7 @@ import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewLocationScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addLocation, updateLocation, activeProjectId, activeProject } = useProjects();
   const locations = useProjectLocations(activeProjectId);
@@ -109,7 +111,7 @@ export default function NewLocationScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Location' : 'New Location' }} />
 
       <View style={styles.projectLabel}>

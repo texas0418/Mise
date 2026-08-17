@@ -239,7 +239,7 @@ export default function CrewDirectoryScreen() {
         <ImportButton entityKey="crew" variant="compact" />
       </View>
 
-      <View style={styles.scopeRow}>
+      <View style={[styles.scopeRow, contentColumn, { paddingHorizontal: contentPadding }]}>
         <TouchableOpacity
           style={[styles.scopeTab, !showAllContacts && styles.scopeTabActive]}
           onPress={() => setShowAllContacts(false)}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useProjects, useProjectColorReferences } from '@/contexts/ProjectContext';
@@ -9,6 +10,7 @@ import { LUTStyle } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewColorReferenceScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { activeProjectId, addColorReference, updateColorReference } = useProjects();
   const colorRefs = useProjectColorReferences(activeProjectId);
@@ -88,7 +90,7 @@ export default function NewColorReferenceScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Color Reference' : 'New Color Reference' }} />
 
       {isEditing && (

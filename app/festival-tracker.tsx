@@ -124,14 +124,14 @@ export default function FestivalTrackerScreen() {
     <PermissionGate resource="festivals">
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Festival Tracker' }} />
-      <View style={styles.statsRow}>
+      <View style={[styles.statsRow, contentColumn, { paddingHorizontal: contentPadding }]}>
         <View style={styles.statBox}><Text style={styles.statValue}>{stats.total}</Text><Text style={styles.statLabel}>Tracked</Text></View>
         <View style={styles.statBox}><Text style={[styles.statValue, { color: Colors.status.info }]}>{stats.submitted}</Text><Text style={styles.statLabel}>Submitted</Text></View>
         <View style={styles.statBox}><Text style={[styles.statValue, { color: Colors.status.active }]}>{stats.accepted}</Text><Text style={styles.statLabel}>Accepted</Text></View>
         <View style={styles.statBox}><Text style={[styles.statValue, { color: Colors.accent.gold }]}>${stats.totalFees}</Text><Text style={styles.statLabel}>Fees</Text></View>
       </View>
 
-      <View style={styles.filterRow}>
+      <View style={[styles.filterRow, contentColumn, { paddingHorizontal: contentPadding }]}>
         {[{ label: 'All', value: null as FestivalStatus | null }, ...Object.entries(STATUS_CONFIG).map(([v, c]) => ({ label: c.label, value: v as FestivalStatus }))].map(f => {
           const isActive = filterStatus === f.value;
           const color = f.value ? STATUS_CONFIG[f.value].color : Colors.accent.gold;

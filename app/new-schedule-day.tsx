@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams, Stack } from 'expo-router';
@@ -13,6 +14,7 @@ import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { DateField, TimeField } from '@/components/DateTimeField';
 
 export default function NewScheduleDayScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addScheduleDay, updateScheduleDay, activeProjectId, activeProject, schedule } = useProjects();
   const projectSchedule = useProjectSchedule(activeProjectId);
@@ -102,7 +104,7 @@ export default function NewScheduleDayScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Call Sheet' : 'New Shoot Day' }} />
 
       <View style={styles.projectLabel}>

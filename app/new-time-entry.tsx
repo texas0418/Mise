@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -12,6 +13,7 @@ import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { DateField, TimeField } from '@/components/DateTimeField';
 
 export default function NewTimeEntryScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { activeProjectId, addTimeEntry, updateTimeEntry } = useProjects();
   const entries = useProjectTimeEntries(activeProjectId);
@@ -81,7 +83,7 @@ export default function NewTimeEntryScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Time Entry' : 'New Time Entry' }} />
 
       <Text style={styles.label}>Department</Text>

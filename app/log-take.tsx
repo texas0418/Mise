@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -80,6 +81,7 @@ function TakeStatusRow({ isCircled, isNG, onToggleCircle, onToggleNG }: {
 }
 
 export default function LogTakeScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addTake, updateTake, deleteTake, activeProjectId, activeProject } = useProjects();
   const takes = useProjectTakes(activeProjectId);
@@ -180,7 +182,7 @@ export default function LogTakeScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Take' : 'Log Take' }} />
 
       <View style={styles.projectLabel}>

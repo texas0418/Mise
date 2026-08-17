@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -20,6 +21,7 @@ const CATEGORY_OPTIONS: { label: string; value: NoteCategory }[] = [
 ];
 
 export default function NewNoteScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addNote, updateNote, activeProjectId, activeProject } = useProjects();
   const notes = useProjectNotes(activeProjectId);
@@ -82,7 +84,7 @@ export default function NewNoteScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Note' : 'New Note' }} />
 
       <View style={styles.projectLabel}>

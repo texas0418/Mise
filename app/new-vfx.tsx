@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -27,6 +28,7 @@ const STATUS_OPTIONS: { label: string; value: VFXShotStatus }[] = [
 ];
 
 export default function NewVFXScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addVFXShot, updateVFXShot, activeProjectId, activeProject } = useProjects();
   const vfxShots = useProjectVFX(activeProjectId);
@@ -102,7 +104,7 @@ export default function NewVFXScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit VFX Shot' : 'New VFX Shot' }} />
 
       <View style={styles.projectLabel}>

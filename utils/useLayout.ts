@@ -7,6 +7,15 @@ export const DESKTOP_BREAKPOINT = 1024;
  * text too long to track back from. Prose caps lower; tables get this.
  */
 export const DESKTOP_CONTENT_MAX = 1280;
+/**
+ * Forms cap far lower than tables.
+ *
+ * A budget grid wants every pixel; a stack of single-line fields does not. At
+ * full width "Film title" became a 1385px input on a 1440px browser — legible,
+ * absurd, and the most obviously unfinished thing in the web build (#120). A
+ * field is only ever as useful as the text somebody types into it.
+ */
+export const FORM_COLUMN_MAX = 640;
 
 export interface LayoutInfo {
   isTablet: boolean;
@@ -44,6 +53,15 @@ export interface LayoutInfo {
    * screen gets the right column by default and the number lives in one place.
    */
   contentColumn: {
+    maxWidth: number | undefined;
+    alignSelf: 'center' | undefined;
+    width: '100%' | undefined;
+  };
+  /**
+   * The same idea as `contentColumn`, capped for a column of form fields
+   * rather than a table. See FORM_COLUMN_MAX.
+   */
+  formColumn: {
     maxWidth: number | undefined;
     alignSelf: 'center' | undefined;
     width: '100%' | undefined;
@@ -90,8 +108,13 @@ export function useLayout(): LayoutInfo {
   const cardMinWidth = isTablet ? 280 : 0;
   const fontScale = isTablet ? 1.1 : 1;
 
+  // Hoisted: repeating the `||` inline for both columns put this hook over the
+  // complexity limit it was already sitting on.
+  const constrained = isTablet || isDesktop;
+
   return {
-    contentColumn: contentColumn(isTablet || isDesktop, contentWidth),
+    contentColumn: contentColumn(constrained, contentWidth),
+    formColumn: contentColumn(constrained, Math.min(contentWidth, FORM_COLUMN_MAX)),
     isTablet,
     isDesktop,
     isLandscape,

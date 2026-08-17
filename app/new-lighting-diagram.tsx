@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -12,6 +13,7 @@ import { LIGHTING_TEMPLATES, getTemplate, loadCustomTemplates, deleteCustomTempl
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewLightingDiagramScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { activeProjectId, activeProject, addLightingDiagram, updateLightingDiagram } = useProjects();
   const diagrams = useProjectLightingDiagrams(activeProjectId);
@@ -131,7 +133,7 @@ export default function NewLightingDiagramScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Diagram Info' : 'New Lighting Diagram' }} />
 
       {isEditing && (

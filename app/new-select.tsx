@@ -16,7 +16,7 @@ export default function NewSelectScreen() {
   const { activeProjectId, addSceneSelect, updateSceneSelect } = useProjects();
   const selects = useProjectSelects(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { isTablet, contentPadding, formColumn} = useLayout();
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id;
   const existingItem = editId ? selects.find(s => s.id === editId) : null;
@@ -85,12 +85,11 @@ export default function NewSelectScreen() {
     <KeyboardAvoidingView style={styles.container} behavior={KEYBOARD_BEHAVIOR}>
       <Stack.Screen options={{ title: isEditing ? 'Edit Select' : 'New Select' }} />
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, {
-          paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 700 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
-        }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: contentPadding },
+          formColumn,
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {isEditing && (
