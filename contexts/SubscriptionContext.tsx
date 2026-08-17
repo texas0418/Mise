@@ -34,6 +34,7 @@ import React, {
 } from 'react';
 import { Platform, AppState, AppStateStatus } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { syncEntitlement } from '@/lib/syncEntitlement';
 
 /*
  * RevenueCat — required lazily so the app does not crash when the SDK is absent.
@@ -199,6 +200,17 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         // logOut throws when already anonymous; that is not a problem.
         console.log('[Subscription] identity:', e?.message || e);
       }
+      /*
+       * Outside the try, and after logIn rather than instead of it: aliasing
+       * emits no webhook event, so someone who subscribed before they had an
+       * account never gets an `entitlements` row and reads as free on the web
+       * until their next renewal. This asks the server to fill it in.
+       *
+       * It runs even if the identity call above threw, because the failure that
+       * matters most here — logIn rejecting after having already aliased — is
+       * exactly when the row is missing and worth requesting.
+       */
+      if (userId && !cancelled) await syncEntitlement();
     })();
     return () => { cancelled = true; };
   }, [userId]);
