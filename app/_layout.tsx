@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState, useCallback } from "react";
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SyncProvider } from "@/contexts/SyncContext";
@@ -24,6 +24,7 @@ import { useGuardedRouter } from "@/utils/useGuardedRouter";
 import { useTypography } from "@/utils/useTypography";
 import DesktopGate from "@/components/DesktopGate";
 import AlertHost from "@/components/AlertHost";
+import DesktopSidebar from "@/components/DesktopSidebar";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -198,6 +199,16 @@ export default function RootLayout() {
               {showOnboarding ? (
                 <OnboardingFlow onComplete={handleOnboardingComplete} />
               ) : (
+                /*
+                  The navigator sits beside the sidebar rather than inside the
+                  tab group, so opening a tool cannot unmount the navigation
+                  (#120). DesktopSidebar renders null on native and below the
+                  desktop breakpoint, where this row collapses to exactly what
+                  it was before: one flex child holding the Stack.
+                */
+                <View style={styles.shell}>
+                <DesktopSidebar />
+                <View style={styles.shellContent}>
                 <Stack
                   screenOptions={{
                     headerBackTitle: "Back",
@@ -565,6 +576,8 @@ export default function RootLayout() {
                     options={{ headerShown: false }}
                   />
                 </Stack>
+                </View>
+                </View>
               )}
               </DynamicTypeBoundary>
               {/* Draws confirmations on web, where Alert.alert renders nothing
@@ -584,6 +597,11 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+  // A row so the sidebar can sit beside the navigator. With DesktopSidebar
+  // returning null everywhere else, this is a single flex child and behaves
+  // exactly as the bare <Stack> did.
+  shell: { flex: 1, flexDirection: 'row' },
+  shellContent: { flex: 1 },
   modalCancel: {
     fontSize: 17,
     color: Colors.accent.gold,
