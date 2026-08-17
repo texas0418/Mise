@@ -83,6 +83,26 @@ ok('original_app_user_id is the fallback',
   (decide(event({ app_user_id: '$RCAnonymousID:abc', original_app_user_id: USER }), NOW) as any).userId === USER,
   'after logIn aliases an install, the real id can arrive in either field');
 
+// `aliases` is a real field, confirmed from an actual RevenueCat delivery.
+// It carries every id RevenueCat ties to one customer, so a subscription
+// bought before signing in is still attributable after logIn aliases it.
+ok('aliases is the last resort for attribution',
+  (decide(event({ app_user_id: '$RCAnonymousID:abc', original_app_user_id: '$RCAnonymousID:abc',
+    aliases: ['$RCAnonymousID:abc', USER] }), NOW) as any).userId === USER,
+  'an anonymous purchase that was later signed in must not be thrown away');
+
+ok('app_user_id still wins over aliases',
+  (decide(event({ app_user_id: USER,
+    aliases: ['9999aaaa-bbbb-4ccc-8ddd-eeeeffff0000', USER] }), NOW) as any).userId === USER,
+  'an install signed into two accounts has both in aliases; only app_user_id says which is current');
+
+ok('aliases with nothing usable is still refused',
+  decide(event({ app_user_id: '$RCAnonymousID:abc', original_app_user_id: null,
+    aliases: ['$RCAnonymousID:abc'] }), NOW).action === 'ignore');
+
+ok('a missing aliases field does not throw',
+  decide(event({ app_user_id: 'nope', aliases: undefined }), NOW).action === 'ignore');
+
 ok('an empty payload is refused', decide(null, NOW).action === 'ignore');
 ok('an event with no type is refused', decide(event({ type: null }), NOW).action === 'ignore');
 

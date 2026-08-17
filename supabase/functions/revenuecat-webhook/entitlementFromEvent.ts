@@ -35,6 +35,8 @@ export interface RevenueCatEvent {
   entitlement_ids?: string[] | null;
   /** Older RevenueCat payloads carry a single id instead of the array. */
   entitlement_id?: string | null;
+  /** Every id RevenueCat considers the same customer, including aliased ones. */
+  aliases?: string[] | null;
 }
 
 export type Decision =
@@ -101,11 +103,22 @@ export function isUuid(value: unknown): value is string {
  * `original_app_user_id` is checked second: after `logIn` aliases an anonymous
  * id, some events still carry the anonymous id as the original and the real
  * one as `app_user_id`, and occasionally the reverse.
+ *
+ * `aliases` is checked last, and exists in the payload because a real event
+ * from the dashboard showed it — it lists every id RevenueCat considers the
+ * same customer. When someone subscribes anonymously and signs in afterwards,
+ * both ids ride along in there, and an event whose `app_user_id` is still the
+ * anonymous one would otherwise be thrown away despite the account being
+ * right there in the payload.
+ *
+ * The order matters, not just the coverage: if an install has been signed into
+ * more than one account, `aliases` holds all of them and only `app_user_id`
+ * says which one is current.
  */
 export function resolveUserId(event: RevenueCatEvent): string | null {
   if (isUuid(event.app_user_id)) return event.app_user_id as string;
   if (isUuid(event.original_app_user_id)) return event.original_app_user_id as string;
-  return null;
+  return (Array.isArray(event.aliases) ? event.aliases.find(isUuid) : null) ?? null;
 }
 
 /**
