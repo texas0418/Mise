@@ -8,6 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { User, Lock, LogOut, Trash2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -17,6 +18,7 @@ import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function ProfileScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { user, signOut, updateProfile, updatePassword } = useAuth();
 
@@ -146,7 +148,7 @@ export default function ProfileScreen() {
   }, [user, signOut, router]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       {/* Account info */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>

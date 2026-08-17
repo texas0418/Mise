@@ -69,6 +69,13 @@ export default function DesktopSidebar() {
 
   if (!isDesktop) return null;
 
+  /*
+   * Not on the auth screens. Those are the one place a signed-out person
+   * legitimately reaches, and offering them six destinations that all lead
+   * straight back to the gate is navigation that goes nowhere.
+   */
+  if (pathname.startsWith('/auth')) return null;
+
   return (
     <View style={styles.sidebar} accessibilityRole="menubar">
       {DESTINATIONS.map(({ label, path, icon: Icon }) => {

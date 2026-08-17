@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { Mail } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,6 +18,7 @@ import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function ForgotPasswordScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { resetPassword } = useAuth();
 
@@ -69,7 +71,7 @@ export default function ForgotPasswordScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, formColumn]}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>Reset Password</Text>

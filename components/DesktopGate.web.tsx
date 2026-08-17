@@ -25,6 +25,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Monitor, LogIn } from 'lucide-react-native';
+import { usePathname } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -64,6 +65,21 @@ export default function DesktopGate({ children }: { children: React.ReactNode })
   const { isAuthenticated, isLoading, signOut } = useAuth();
   const { isPro } = useDeviceLicense();
   const router = useGuardedRouter();
+  const pathname = usePathname();
+
+  /*
+   * The auth screens are how somebody gets past this gate, so they cannot sit
+   * behind it.
+   *
+   * Without this the Sign in button worked perfectly and looked broken: it
+   * changed the URL to /auth/sign-in, the gate re-rendered itself on that
+   * route, and the panel stayed on screen. There was no way into the app at
+   * all — not a degraded state, a closed door with the key behind it.
+   *
+   * Checked before everything else, including the loading state: these routes
+   * are never gated, whatever auth is doing.
+   */
+  if (pathname.startsWith('/auth')) return <>{children}</>;
 
   /*
    * Nothing at all while auth resolves. A gate that flashes "sign in" at

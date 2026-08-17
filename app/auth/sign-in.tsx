@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { appAlert } from '@/lib/appAlert';
 import { Mail, Lock, Clapperboard } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -18,6 +19,7 @@ import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function SignInScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { signIn, signInWithMagicLink, signInWithApple } = useAuth();
 
@@ -96,7 +98,7 @@ export default function SignInScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, formColumn]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Logo / Brand */}
