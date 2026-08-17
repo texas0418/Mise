@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
@@ -20,6 +22,7 @@ const STATUS_OPTIONS: { value: ShotStatus; label: string; color: string }[] = [
 
 // eslint-disable-next-line complexity -- tracked in #10
 export default function NewShotScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addShot, updateShot, activeProjectId, activeProject } = useProjects();
   const shots = useProjectShots(activeProjectId);
@@ -64,11 +67,11 @@ export default function NewShotScreen() {
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
-      Alert.alert('No Project', 'Please select a project first.');
+      appAlert('No Project', 'Please select a project first.');
       return;
     }
     if (!sceneNumber.trim() || !shotNumber.trim()) {
-      Alert.alert('Missing Info', 'Please enter scene and shot numbers.');
+      appAlert('Missing Info', 'Please enter scene and shot numbers.');
       return;
     }
 
@@ -112,7 +115,7 @@ export default function NewShotScreen() {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={KEYBOARD_BEHAVIOR}>
       <Stack.Screen options={{ title: isEditing ? 'Edit Shot' : 'New Shot' }} />
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
         <View style={styles.projectLabel}>
           <Text style={styles.projectLabelText}>
             {isEditing ? `Editing: Sc.${existingItem!.sceneNumber} / ${existingItem!.shotNumber}` : `Adding to: ${activeProject.title}`}

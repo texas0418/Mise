@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useEffect, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Image } from 'expo-image';
 import { Plus, Film, ChevronRight, Trash2, Check, Archive, ArchiveRestore } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -152,8 +153,15 @@ export default function ProjectsScreen() {
   } = useProjects();
   const [showArchived, setShowArchived] = useState(false);
   const router = useGuardedRouter();
-  const { isTablet, gridColumns, contentPadding } = useLayout();
-  const columns = isTablet ? Math.min(gridColumns, 2) : 1;
+  const { isTablet, isDesktop, gridColumns, contentPadding } = useLayout();
+  /*
+   * Two columns is right for a tablet held at arm's length and thin on a desk,
+   * where a 1440px window fits three project cards comfortably. Phones stay at
+   * one (#120).
+   */
+  const columns = isDesktop
+    ? Math.min(gridColumns, 3)
+    : isTablet ? Math.min(gridColumns, 2) : 1;
 
   // Asked here rather than on set: this screen is where someone lands between
   // shoots, not mid-take. Silent unless the use has earned the ask.
@@ -175,7 +183,7 @@ export default function ProjectsScreen() {
   // shot, day and take behind. Now the delete really does take them, so the
   // warning names what goes and offers archiving as the way out (#46).
   const handleDeleteProject = useCallback((project: Project) => {
-    Alert.alert(
+    appAlert(
       `Delete "${project.title}"?`,
       'This deletes the film and everything in it — shots, shoot days, takes, '
       + 'scenes, cast, budget, notes and documents. It cannot be undone.\n\n'
@@ -289,14 +297,23 @@ export default function ProjectsScreen() {
         }
       />
 
-      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a film"
-        style={styles.fab}
-        onPress={() => router.push('/new-project' as never)}
-        activeOpacity={0.8}
-        testID="add-project-button"
-      >
-        <Plus color={Colors.text.inverse} size={24} />
-      </TouchableOpacity>
+      {/*
+        Hidden while the empty state is up: that screen already puts "Create
+        Your First Project" in the middle of the page, and a floating circle
+        offering the same thing three inches away reads as two different
+        actions (#120). Once there are projects to look at, it is the only
+        add affordance on the screen and stays.
+      */}
+      {listed.length > 0 && (
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a film"
+          style={styles.fab}
+          onPress={() => router.push('/new-project' as never)}
+          activeOpacity={0.8}
+          testID="add-project-button"
+        >
+          <Plus color={Colors.text.inverse} size={24} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

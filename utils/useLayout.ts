@@ -1,7 +1,34 @@
 import { useWindowDimensions, Platform } from 'react-native';
 
+/** Below this a browser window is a phone in disguise; above it, a desk. */
+export const DESKTOP_BREAKPOINT = 1024;
+/**
+ * Wide enough for a budget table or a call sheet without becoming a line of
+ * text too long to track back from. Prose caps lower; tables get this.
+ */
+export const DESKTOP_CONTENT_MAX = 1280;
+/**
+ * Forms cap far lower than tables.
+ *
+ * A budget grid wants every pixel; a stack of single-line fields does not. At
+ * full width "Film title" became a 1385px input on a 1440px browser — legible,
+ * absurd, and the most obviously unfinished thing in the web build (#120). A
+ * field is only ever as useful as the text somebody types into it.
+ */
+export const FORM_COLUMN_MAX = 640;
+
 export interface LayoutInfo {
   isTablet: boolean;
+  /**
+   * A desk, not a device held in two hands.
+   *
+   * Separate from `isTablet` because they want opposite things: a tablet in
+   * landscape is still one column of cards read at arm's length, while a
+   * browser window at 1200px is a spreadsheet, a directory and a call sheet
+   * that should use the width they have. Everything above 1024 logical px on
+   * a platform with a pointer is treated as a desk (#111).
+   */
+  isDesktop: boolean;
   isLandscape: boolean;
   width: number;
   height: number;
@@ -16,19 +43,61 @@ export interface LayoutInfo {
   cardMinWidth: number;
   // Font scale
   fontScale: number;
+  /**
+   * The centred content column every list screen uses.
+   *
+   * Twenty-eight screens each hardcoded `maxWidth: isTablet ? 800 : undefined`
+   * alongside a matching alignSelf and width — so the hook computed
+   * `contentWidth` and almost nothing read it, and the desktop breakpoint
+   * would have changed nothing on its own. Spreading this instead means a new
+   * screen gets the right column by default and the number lives in one place.
+   */
+  contentColumn: {
+    maxWidth: number | undefined;
+    alignSelf: 'center' | undefined;
+    width: '100%' | undefined;
+  };
+  /**
+   * The same idea as `contentColumn`, capped for a column of form fields
+   * rather than a table. See FORM_COLUMN_MAX.
+   */
+  formColumn: {
+    maxWidth: number | undefined;
+    alignSelf: 'center' | undefined;
+    width: '100%' | undefined;
+  };
+}
+
+/**
+ * The centred column, or nothing on a phone where the content is the window.
+ *
+ * A free function rather than three ternaries inline: the hook was already at
+ * the complexity limit and this is the part with no reason to be in it.
+ */
+function contentColumn(constrained: boolean, width: number): LayoutInfo['contentColumn'] {
+  if (!constrained) return { maxWidth: undefined, alignSelf: undefined, width: undefined };
+  return { maxWidth: width, alignSelf: 'center', width: '100%' };
 }
 
 export function useLayout(): LayoutInfo {
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
   const isTablet = Math.min(width, height) >= 600;
+  const isDesktop = Platform.OS === 'web' && width >= DESKTOP_BREAKPOINT;
 
   const sidebarWidth = isTablet ? 260 : 0;
   const availableWidth = isTablet && isLandscape ? width - sidebarWidth : width;
 
-  // Content width: cap at 800px for readability on large screens
-  const contentWidth = isTablet ? Math.min(availableWidth - 40, 800) : width;
-  const contentPadding = isTablet ? 24 : 16;
+  /*
+   * 800px is right for a card list read at arm's length and wrong for a desk:
+   * on a 1440px browser it left half the window empty while the budget table
+   * scrolled sideways inside it. Desktop gets the width, still capped so a
+   * maximised 4K window does not produce lines nobody can track back from.
+   */
+  const contentWidth = isDesktop
+    ? Math.min(availableWidth - 64, DESKTOP_CONTENT_MAX)
+    : isTablet ? Math.min(availableWidth - 40, 800) : width;
+  const contentPadding = isDesktop ? 32 : isTablet ? 24 : 16;
 
   // Grid columns based on available width
   let gridColumns = 1;
@@ -39,8 +108,15 @@ export function useLayout(): LayoutInfo {
   const cardMinWidth = isTablet ? 280 : 0;
   const fontScale = isTablet ? 1.1 : 1;
 
+  // Hoisted: repeating the `||` inline for both columns put this hook over the
+  // complexity limit it was already sitting on.
+  const constrained = isTablet || isDesktop;
+
   return {
+    contentColumn: contentColumn(constrained, contentWidth),
+    formColumn: contentColumn(constrained, Math.min(contentWidth, FORM_COLUMN_MAX)),
     isTablet,
+    isDesktop,
     isLandscape,
     width,
     height,

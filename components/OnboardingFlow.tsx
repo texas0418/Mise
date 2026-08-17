@@ -7,8 +7,8 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Dimensions,
-  FlatList, Animated, NativeSyntheticEvent, NativeScrollEvent,
+  View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
+  ScrollView, Animated, Platform, NativeSyntheticEvent, NativeScrollEvent,
 } from 'react-native';
 import {
   Clapperboard, Camera, CalendarDays, Wrench, ArrowRight,
@@ -16,7 +16,16 @@ import {
 } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+/*
+ * The slide width is read per render, not captured once at module load.
+ *
+ * `Dimensions.get('window')` at module scope is evaluated when the bundle is
+ * first required and never again, so a browser window resized after load — or
+ * an iPad rotated, or a Split View resize — left every slide and every paging
+ * calculation measuring against a width that no longer existed (#99). On the
+ * desktop build that is not hypothetical: the window is resizable by
+ * definition.
+ */
 
 interface Props {
   onComplete: () => void;
@@ -91,7 +100,8 @@ const SLIDES: OnboardingSlide[] = [
 ];
 
 export default function OnboardingFlow({ onComplete }: Props) {
-  const flatListRef = useRef<FlatList>(null);
+  const { width: slideWidth } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -101,16 +111,59 @@ export default function OnboardingFlow({ onComplete }: Props) {
   );
 
   const handleMomentumEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    const index = Math.round(e.nativeEvent.contentOffset.x / slideWidth);
     setCurrentIndex(index);
-  }, []);
+  }, [slideWidth]);
 
+  /*
+   * scrollToOffset, not scrollToIndex.
+   *
+   * `scrollToIndex` needs the list to know where item N starts, which it only
+   * does from `getItemLayout` or from having measured that far. On
+   * react-native-web neither held for an off-screen slide, so Next fired,
+   * changed the dot, and the list never moved — the carousel could only be
+   * advanced with the keyboard. Every slide is exactly one window wide, so the
+   * offset is arithmetic and needs no measurement at all.
+   */
+  /*
+   * Why this assigns scrollLeft on web instead of calling scrollTo.
+   *
+   * Onboarding could only be advanced with the arrow keys: the button ran,
+   * `currentIndex` advanced, the label eventually read "Get Started", and the
+   * carousel never moved. Three imperative APIs were tried and all three
+   * silently did nothing — scrollToIndex, scrollToOffset, and ScrollView's
+   * scrollTo.
+   *
+   * Two things were going on, and the first hid the second:
+   *
+   * 1. On react-native-web the ScrollView ref IS the DOM node (it carries
+   *    __reactFiber$… and satisfies `ref === getScrollableNode()`), so
+   *    `scrollTo({ x, animated })` was calling the DOM's scrollTo with an
+   *    options object it does not understand. No error, no movement.
+   *
+   * 2. Passing correct DOM options did not work either: `pagingEnabled` sets
+   *    `scroll-snap-type: x mandatory`, and Chromium re-snaps a programmatic
+   *    `scrollTo()` straight back to where it started. Measured — scrollTo
+   *    left it at 0, assigning `scrollLeft` landed on 1440 every time.
+   *
+   * So: assign the property on web, keep the RN call on native. The arrow keys
+   * always worked because the browser scrolls the node itself, which is the
+   * same mechanism this now uses.
+   */
   const goToNext = useCallback(() => {
-    if (currentIndex < SLIDES.length - 1) {
-      flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
-      setCurrentIndex(currentIndex + 1);
+    if (currentIndex >= SLIDES.length - 1) return;
+    const next = currentIndex + 1;
+    const x = next * slideWidth;
+    const sv = scrollRef.current as (ScrollView & { getScrollableNode?: () => unknown }) | null;
+
+    if (Platform.OS === 'web') {
+      const node = sv?.getScrollableNode?.() as { scrollLeft?: number } | undefined;
+      if (node) node.scrollLeft = x;
+    } else {
+      sv?.scrollTo({ x, animated: true });
     }
-  }, [currentIndex]);
+    setCurrentIndex(next);
+  }, [currentIndex, slideWidth]);
 
   const isLastSlide = currentIndex === SLIDES.length - 1;
 
@@ -124,10 +177,22 @@ export default function OnboardingFlow({ onComplete }: Props) {
       )}
 
       {/* Slides */}
-      <FlatList
-        ref={flatListRef}
-        data={SLIDES}
-        keyExtractor={item => item.id}
+      {/*
+        A ScrollView, not a FlatList.
+        
+        `scrollToIndex` and then `scrollToOffset` both silently did nothing on
+        react-native-web: the ref call is optional-chained, so a list that had
+        not attached its scroll node swallowed the request. The symptom was
+        exact — currentIndex advanced (the button eventually read "Get
+        Started") while the carousel never moved and the visible slide never
+        changed, so the only way through was the arrow keys.
+        
+        Five fixed-width slides never needed virtualisation. A ScrollView's
+        `scrollTo` drives the DOM node directly and works on every platform,
+        which is the whole job here.
+      */}
+      <ScrollView
+        ref={scrollRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -135,17 +200,19 @@ export default function OnboardingFlow({ onComplete }: Props) {
         onScroll={handleScroll}
         onMomentumScrollEnd={handleMomentumEnd}
         scrollEventThrottle={16}
-        renderItem={({ item, index }) => (
-          <SlideView slide={item} index={index} scrollX={scrollX} />
-        )}
-      />
+        style={styles.flex1}
+      >
+        {SLIDES.map((item, index) => (
+          <SlideView key={item.id} slide={item} index={index} scrollX={scrollX} slideWidth={slideWidth} />
+        ))}
+      </ScrollView>
 
       {/* Bottom section */}
       <View style={styles.bottomSection}>
         {/* Dot indicators */}
         <View style={styles.dotRow}>
           {SLIDES.map((_, i) => {
-            const inputRange = [(i - 1) * SCREEN_WIDTH, i * SCREEN_WIDTH, (i + 1) * SCREEN_WIDTH];
+            const inputRange = [(i - 1) * slideWidth, i * slideWidth, (i + 1) * slideWidth];
             const dotWidth = scrollX.interpolate({
               inputRange,
               outputRange: [8, 24, 8],
@@ -184,14 +251,15 @@ export default function OnboardingFlow({ onComplete }: Props) {
 
 // ─── Slide View ──────────────────────────────────────────────────
 
-function SlideView({ slide, index, scrollX }: {
+function SlideView({ slide, index, scrollX, slideWidth }: {
   slide: OnboardingSlide;
   index: number;
   scrollX: Animated.Value;
+  slideWidth: number;
 }) {
   const Icon = slide.icon;
 
-  const inputRange = [(index - 0.5) * SCREEN_WIDTH, index * SCREEN_WIDTH, (index + 0.5) * SCREEN_WIDTH];
+  const inputRange = [(index - 0.5) * slideWidth, index * slideWidth, (index + 0.5) * slideWidth];
   const scale = scrollX.interpolate({
     inputRange,
     outputRange: [0.8, 1, 0.8],
@@ -204,7 +272,7 @@ function SlideView({ slide, index, scrollX }: {
   });
 
   return (
-    <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
+    <View style={[styles.slide, { width: slideWidth }]}>
       <Animated.View style={[styles.slideContent, { opacity, transform: [{ scale }] }]}>
         <View style={[styles.iconContainer, { borderColor: slide.iconColor + '33' }]}>
           <View style={[styles.iconCircle, { backgroundColor: slide.iconColor + '15' }]}>
@@ -236,6 +304,7 @@ function SlideView({ slide, index, scrollX }: {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg.primary },
+  flex1: { flex: 1 },
   skipBtn: { position: 'absolute', top: 60, right: 24, zIndex: 10, paddingVertical: 8, paddingHorizontal: 16 },
   skipText: { fontSize: 15, color: Colors.text.tertiary, fontWeight: '500' },
   slide: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Plus, MapPin, Clock, FileText, CalendarDays, AlertCircle, Trash2, ChevronDown, ChevronUp, Film } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useProjects, useProjectSchedule, useProjectScenes } from '@/contexts/ProjectContext';
@@ -185,10 +186,10 @@ export default function ScheduleScreen() {
     return day.sceneIds.map(id => byId.get(id)).filter((sc): sc is Scene => !!sc);
   }, [scenes]);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
 
   const handleDelete = useCallback((day: ScheduleDay) => {
-    Alert.alert(
+    appAlert(
       'Delete Shoot Day',
       `Delete Day ${day.dayNumber} (${day.date})?`,
       [
@@ -233,9 +234,7 @@ export default function ScheduleScreen() {
           styles.list,
           {
             paddingHorizontal: contentPadding,
-            maxWidth: isTablet ? 800 : undefined,
-            alignSelf: isTablet ? 'center' as const : undefined,
-            width: isTablet ? '100%' : undefined,
+            ...contentColumn,
           },
         ]}
         showsVerticalScrollIndicator={false}

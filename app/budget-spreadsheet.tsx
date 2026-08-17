@@ -6,11 +6,11 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack } from 'expo-router';
 import {
@@ -61,8 +61,21 @@ const CATEGORY_ORDER: BudgetCategory[] = [
   'marketing', 'legal', 'insurance', 'contingency', 'other',
 ];
 
-// Column widths
-const COL = {
+/*
+ * Column widths.
+ *
+ * These are the phone widths: narrower than any phone, so the grid scrolls
+ * sideways inside a horizontal ScrollView. That is right on a phone and was
+ * wrong everywhere else — on a 1440px browser the table stopped dead at 796px
+ * and left the rest of the window empty, which is the opposite of the reason
+ * to open a budget on a laptop at all (#120).
+ *
+ * So they are a floor rather than a fixed size. Surplus width goes to the two
+ * columns that actually run out of room — a line item called "2nd AC / Clapper
+ * Loader" and a vendor name — while the numeric columns keep the width a
+ * currency figure needs and no more.
+ */
+const BASE_COL = {
   rowNum: 36,
   description: 180,
   vendor: 120,
@@ -72,7 +85,37 @@ const COL = {
   paid: 60,
   actions: 70,
 };
-const TOTAL_WIDTH = Object.values(COL).reduce((s, v) => s + v, 0);
+
+export type Cols = typeof BASE_COL;
+
+const BASE_TOTAL = Object.values(BASE_COL).reduce((s, v) => s + v, 0);
+
+/*
+ * Past this the table stops growing. A maximised window on a large display
+ * would otherwise produce a description column half a metre wide, which is
+ * harder to read across than the cramped one it replaced.
+ */
+const MAX_GRID_WIDTH = 1500;
+
+/** Share of the surplus given to the description column; the rest goes to vendor. */
+const DESCRIPTION_SHARE = 0.65;
+
+export function columnsFor(available: number): Cols {
+  const usable = Math.min(available, MAX_GRID_WIDTH);
+  const surplus = usable - BASE_TOTAL;
+  if (surplus <= 0) return BASE_COL;
+
+  const toDescription = Math.round(surplus * DESCRIPTION_SHARE);
+  return {
+    ...BASE_COL,
+    description: BASE_COL.description + toDescription,
+    vendor: BASE_COL.vendor + (surplus - toDescription),
+  };
+}
+
+export function totalWidth(cols: Cols): number {
+  return Object.values(cols).reduce((s, v) => s + v, 0);
+}
 const ROW_HEIGHT = 44;
 const HEADER_HEIGHT = 38;
 const GROUP_HEADER_HEIGHT = 36;
@@ -116,6 +159,7 @@ function SpreadsheetRow({
   onEditValueChange,
   onTogglePaid,
   onDelete,
+  cols,
 }: {
   item: BudgetItem;
   rowIndex: number;
@@ -127,6 +171,7 @@ function SpreadsheetRow({
   onEditValueChange: (v: string) => void;
   onTogglePaid: (item: BudgetItem) => void;
   onDelete: (item: BudgetItem) => void;
+  cols: Cols;
 }) {
   const variance = item.estimated - item.actual;
   const isEditing = (field: EditingCell['field']) =>
@@ -173,24 +218,24 @@ function SpreadsheetRow({
   return (
     <View style={[styles.row, rowIndex % 2 === 0 && styles.rowAlt]}>
       {/* Row number */}
-      <View style={[styles.cell, styles.rowNumCell, { width: COL.rowNum }]}>
+      <View style={[styles.cell, styles.rowNumCell, { width: cols.rowNum }]}>
         <Text style={styles.rowNumText}>{rowIndex + 1}</Text>
       </View>
 
       {/* Description */}
-      {renderEditableText('description', item.description, COL.description)}
+      {renderEditableText('description', item.description, cols.description)}
 
       {/* Vendor */}
-      {renderEditableText('vendor', item.vendor || '—', COL.vendor)}
+      {renderEditableText('vendor', item.vendor || '—', cols.vendor)}
 
       {/* Estimated */}
-      {renderEditableText('estimated', formatCurrency(item.estimated), COL.estimated, 'right', 'decimal-pad')}
+      {renderEditableText('estimated', formatCurrency(item.estimated), cols.estimated, 'right', 'decimal-pad')}
 
       {/* Actual */}
-      {renderEditableText('actual', formatCurrency(item.actual), COL.actual, 'right', 'decimal-pad')}
+      {renderEditableText('actual', formatCurrency(item.actual), cols.actual, 'right', 'decimal-pad')}
 
       {/* Variance */}
-      <View style={[styles.cell, { width: COL.variance }]}>
+      <View style={[styles.cell, { width: cols.variance }]}>
         <Text
           style={[
             styles.cellText,
@@ -204,7 +249,7 @@ function SpreadsheetRow({
 
       {/* Paid toggle */}
       <TouchableOpacity
-        style={[styles.cell, { width: COL.paid, alignItems: 'center' }]}
+        style={[styles.cell, { width: cols.paid, alignItems: 'center' }]}
         onPress={() => onTogglePaid(item)}
         activeOpacity={0.6}
         accessibilityRole="button"
@@ -218,7 +263,7 @@ function SpreadsheetRow({
       </TouchableOpacity>
 
       {/* Actions */}
-      <View style={[styles.cell, { width: COL.actions, flexDirection: 'row', gap: 8, justifyContent: 'center' }]}>
+      <View style={[styles.cell, { width: cols.actions, flexDirection: 'row', gap: 8, justifyContent: 'center' }]}>
         <TouchableOpacity onPress={() => onDelete(item)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button" accessibilityLabel={`Delete ${item.description}`}>
           <Trash2 color={Colors.status.error + '88'} size={14} />
@@ -263,25 +308,25 @@ function CategoryGroupHeader({
   );
 }
 
-function SubtotalRow({ label, estimated, actual }: { label: string; estimated: number; actual: number }) {
+function SubtotalRow({ label, estimated, actual, cols }: { label: string; estimated: number; actual: number; cols: Cols }) {
   const variance = estimated - actual;
   return (
     <View style={styles.subtotalRow}>
-      <View style={{ width: COL.rowNum + COL.description + COL.vendor }}>
+      <View style={{ width: cols.rowNum + cols.description + cols.vendor }}>
         <Text style={styles.subtotalLabel}>{label}</Text>
       </View>
-      <View style={{ width: COL.estimated, alignItems: 'flex-end', paddingRight: 12 }}>
+      <View style={{ width: cols.estimated, alignItems: 'flex-end', paddingRight: 12 }}>
         <Text style={styles.subtotalValue}>{formatCurrency(estimated)}</Text>
       </View>
-      <View style={{ width: COL.actual, alignItems: 'flex-end', paddingRight: 12 }}>
+      <View style={{ width: cols.actual, alignItems: 'flex-end', paddingRight: 12 }}>
         <Text style={styles.subtotalValue}>{formatCurrency(actual)}</Text>
       </View>
-      <View style={{ width: COL.variance, alignItems: 'flex-end', paddingRight: 12 }}>
+      <View style={{ width: cols.variance, alignItems: 'flex-end', paddingRight: 12 }}>
         <Text style={[styles.subtotalValue, { color: variance >= 0 ? Colors.status.active : Colors.status.error }]}>
           {variance >= 0 ? '+' : ''}{formatCurrency(variance)}
         </Text>
       </View>
-      <View style={{ width: COL.paid + COL.actions }} />
+      <View style={{ width: cols.paid + cols.actions }} />
     </View>
   );
 }
@@ -292,7 +337,23 @@ export default function BudgetSpreadsheetScreen() {
   const { activeProject, activeProjectId, updateBudgetItem, deleteBudgetItem } = useProjects();
   const budget = useProjectBudget(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentWidth } = useLayout();
+
+  /*
+   * Width comes from useLayout, the same source the other 28 screens use.
+   *
+   * An onLayout measurement was tried first and does not work here: RNW never
+   * fired it on the wrapper, and putting it on the horizontal ScrollView is
+   * worse than useless, because that reports its *content* width — which is
+   * set by the column widths, which would then be derived from it. The loop
+   * settles at the base width and the table silently never grows.
+   *
+   * contentWidth already accounts for the tablet sidebar and page padding and
+   * is capped at DESKTOP_CONTENT_MAX, so the table lines up with every other
+   * screen instead of inventing its own margins.
+   */
+  const cols = useMemo(() => columnsFor(contentWidth), [contentWidth]);
+  const gridTotal = useMemo(() => totalWidth(cols), [cols]);
 
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -379,7 +440,7 @@ export default function BudgetSpreadsheetScreen() {
   }, [updateBudgetItem]);
 
   const handleDelete = useCallback((item: BudgetItem) => {
-    Alert.alert('Delete Item', `Remove "${item.description}"?`, [
+    appAlert('Delete Item', `Remove "${item.description}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => deleteBudgetItem(item.id) },
     ]);
@@ -420,7 +481,7 @@ export default function BudgetSpreadsheetScreen() {
                   style={styles.viewToggle}
                   onPress={() => {
                     if (budget.length === 0) {
-                      Alert.alert('No Data', 'Add budget items before exporting.');
+                      appAlert('No Data', 'Add budget items before exporting.');
                       return;
                     }
                     exportBudgetToXlsx(budget, activeProject!.title);
@@ -476,18 +537,22 @@ export default function BudgetSpreadsheetScreen() {
           </View>
 
           {/* Scrollable grid */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={true} bounces={false}>
-            <View style={{ minWidth: TOTAL_WIDTH }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={true}
+            bounces={false}
+          >
+            <View style={{ minWidth: gridTotal }}>
               {/* Column headers */}
               <View style={styles.headerRow}>
-                <ColumnHeader label="#" width={COL.rowNum} align="center" />
-                <ColumnHeader label="Description" width={COL.description} />
-                <ColumnHeader label="Vendor" width={COL.vendor} />
-                <ColumnHeader label="Estimated" width={COL.estimated} align="right" />
-                <ColumnHeader label="Actual" width={COL.actual} align="right" />
-                <ColumnHeader label="Variance" width={COL.variance} align="right" />
-                <ColumnHeader label="Paid" width={COL.paid} align="center" />
-                <ColumnHeader label="" width={COL.actions} />
+                <ColumnHeader label="#" width={cols.rowNum} align="center" />
+                <ColumnHeader label="Description" width={cols.description} />
+                <ColumnHeader label="Vendor" width={cols.vendor} />
+                <ColumnHeader label="Estimated" width={cols.estimated} align="right" />
+                <ColumnHeader label="Actual" width={cols.actual} align="right" />
+                <ColumnHeader label="Variance" width={cols.variance} align="right" />
+                <ColumnHeader label="Paid" width={cols.paid} align="center" />
+                <ColumnHeader label="" width={cols.actions} />
               </View>
 
               {/* Body */}
@@ -520,6 +585,7 @@ export default function BudgetSpreadsheetScreen() {
                                 return (
                                   <SpreadsheetRow
                                     key={item.id}
+                                    cols={cols}
                                     item={item}
                                     rowIndex={idx}
                                     editingCell={editingCell}
@@ -534,6 +600,7 @@ export default function BudgetSpreadsheetScreen() {
                                 );
                               })}
                               <SubtotalRow
+                                cols={cols}
                                 label={`${CATEGORY_LABELS[group.category]} Subtotal`}
                                 estimated={group.subtotalEstimated}
                                 actual={group.subtotalActual}
@@ -546,6 +613,7 @@ export default function BudgetSpreadsheetScreen() {
 
                     {/* Grand total */}
                     <SubtotalRow
+                      cols={cols}
                       label="GRAND TOTAL"
                       estimated={totals.estimated}
                       actual={totals.actual}

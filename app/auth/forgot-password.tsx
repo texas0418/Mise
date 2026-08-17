@@ -6,17 +6,19 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { Mail } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function ForgotPasswordScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { resetPassword } = useAuth();
 
@@ -26,7 +28,7 @@ export default function ForgotPasswordScreen() {
 
   const handleReset = useCallback(async () => {
     if (!email.trim()) {
-      Alert.alert('Missing Email', 'Please enter your email address.');
+      appAlert('Missing Email', 'Please enter your email address.');
       return;
     }
 
@@ -35,7 +37,7 @@ export default function ForgotPasswordScreen() {
       await resetPassword(email.trim());
       setSent(true);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to send reset email.');
+      appAlert('Error', error.message || 'Failed to send reset email.');
     } finally {
       setLoading(false);
     }
@@ -69,7 +71,7 @@ export default function ForgotPasswordScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, formColumn]}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>Reset Password</Text>

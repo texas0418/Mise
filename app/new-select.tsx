@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Star } from 'lucide-react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -15,7 +16,7 @@ export default function NewSelectScreen() {
   const { activeProjectId, addSceneSelect, updateSceneSelect } = useProjects();
   const selects = useProjectSelects(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { isTablet, contentPadding, formColumn} = useLayout();
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id;
   const existingItem = editId ? selects.find(s => s.id === editId) : null;
@@ -50,7 +51,7 @@ export default function NewSelectScreen() {
 
   const handleSave = () => {
     if (!sceneNumber.trim() || !shotNumber.trim() || !takeNumber.trim()) {
-      Alert.alert('Required', 'Scene, shot, and take number are required.');
+      appAlert('Required', 'Scene, shot, and take number are required.');
       return;
     }
 
@@ -84,12 +85,11 @@ export default function NewSelectScreen() {
     <KeyboardAvoidingView style={styles.container} behavior={KEYBOARD_BEHAVIOR}>
       <Stack.Screen options={{ title: isEditing ? 'Edit Select' : 'New Select' }} />
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, {
-          paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 700 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
-        }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: contentPadding },
+          formColumn,
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {isEditing && (

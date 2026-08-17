@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
@@ -26,6 +28,7 @@ const STATUS_OPTIONS: { label: string; value: VFXShotStatus }[] = [
 ];
 
 export default function NewVFXScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addVFXShot, updateVFXShot, activeProjectId, activeProject } = useProjects();
   const vfxShots = useProjectVFX(activeProjectId);
@@ -63,11 +66,11 @@ export default function NewVFXScreen() {
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
-      Alert.alert('No Project', 'Select a project first.');
+      appAlert('No Project', 'Select a project first.');
       return;
     }
     if (!sceneNumber.trim() || !description.trim()) {
-      Alert.alert('Missing Info', 'Enter scene number and description.');
+      appAlert('Missing Info', 'Enter scene number and description.');
       return;
     }
 
@@ -101,7 +104,7 @@ export default function NewVFXScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit VFX Shot' : 'New VFX Shot' }} />
 
       <View style={styles.projectLabel}>

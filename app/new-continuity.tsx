@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Image, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Camera, X, Image as ImageIcon } from 'lucide-react-native';
@@ -11,6 +13,7 @@ import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewContinuityScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addContinuityNote, updateContinuityNote, activeProjectId, activeProject } = useProjects();
   const notes = useProjectContinuity(activeProjectId);
@@ -38,11 +41,11 @@ export default function NewContinuityScreen() {
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
-      Alert.alert('No Project', 'Select a project first.');
+      appAlert('No Project', 'Select a project first.');
       return;
     }
     if (!sceneNumber.trim() || !description.trim()) {
-      Alert.alert('Missing Info', 'Enter scene number and description.');
+      appAlert('Missing Info', 'Enter scene number and description.');
       return;
     }
 
@@ -83,7 +86,7 @@ export default function NewContinuityScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Continuity Note' : 'New Continuity Note' }} />
 
       <View style={styles.projectLabel}>

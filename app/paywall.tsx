@@ -7,9 +7,9 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Linking,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import {
   Crown,
   Upload,
@@ -348,7 +348,7 @@ export default function PaywallScreen() {
   // continue using Pro on this device immediately, or sign in so the device
   // can be linked to their account for sync and crew collaboration.
   const promptSignInAfterPurchase = (titleSuccess: string, bodySuccess: string) => {
-    Alert.alert(
+    appAlert(
       titleSuccess,
       `${bodySuccess}\n\nSign in to sync across your devices and invite your crew. You can also do this later from Settings.`,
       [
@@ -388,14 +388,14 @@ export default function PaywallScreen() {
           'This device is now licensed. All features are unlocked.',
         );
       } else {
-        Alert.alert(
+        appAlert(
           'Welcome to Pro!',
           'This device is now licensed. All features are unlocked.',
           [{ text: 'Continue', onPress: () => router.back() }],
         );
       }
     } else if (result.error) {
-      Alert.alert('Purchase Failed', result.error);
+      appAlert('Purchase Failed', result.error);
     }
     // If no error and no success = user cancelled, do nothing
   };
@@ -410,14 +410,14 @@ export default function PaywallScreen() {
           'Your subscription has been restored on this device.',
         );
       } else {
-        Alert.alert(
+        appAlert(
           'Restored!',
           'Your subscription and device license have been restored.',
           [{ text: 'Continue', onPress: () => router.back() }],
         );
       }
     } else {
-      Alert.alert(
+      appAlert(
         'Nothing to Restore',
         result.error ?? 'No active Pro subscription was found for this Apple ID.',
       );

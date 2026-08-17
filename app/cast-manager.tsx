@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Image } from 'expo-image';
 import { Plus, User, Phone, Mail, Film, Calendar, Star, Trash2, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
 import { useProjects, useProjectCast } from '@/contexts/ProjectContext';
@@ -43,7 +44,7 @@ function CastCard({ member, index, onEdit, onDelete, onStatusChange }: {
   const status = STATUS_CONFIG[member.status];
 
   const handleDelete = () => {
-    Alert.alert('Remove Cast', `Remove ${member.actorName || member.characterName}?`, [
+    appAlert('Remove Cast', `Remove ${member.actorName || member.characterName}?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Remove', style: 'destructive', onPress: onDelete },
     ]);
@@ -216,7 +217,7 @@ export default function CastManagerScreen() {
   const { activeProjectId, deleteCastMember, updateCastMember } = useProjects();
   const cast = useProjectCast(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [filter, setFilter] = useState<CastStatus | 'all'>('all');
 
   const filteredCast = filter === 'all' ? cast : cast.filter(c => c.status === filter);
@@ -256,9 +257,7 @@ export default function CastManagerScreen() {
         renderItem={renderCast}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={

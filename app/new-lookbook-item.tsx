@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Image } from 'expo-image';
 import { Camera } from 'lucide-react-native';
@@ -28,7 +29,7 @@ export default function NewLookbookItemScreen() {
   const { activeProjectId, addLookbookItem, updateLookbookItem } = useProjects();
   const existingItems = useProjectLookbook(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { isTablet, contentPadding, formColumn} = useLayout();
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id;
   const existingItem = editId ? existingItems.find(i => i.id === editId) : null;
@@ -60,7 +61,7 @@ export default function NewLookbookItemScreen() {
 
   const handleSave = () => {
     if (!title.trim()) {
-      Alert.alert('Required', 'Title is required.');
+      appAlert('Required', 'Title is required.');
       return;
     }
 
@@ -89,12 +90,11 @@ export default function NewLookbookItemScreen() {
     <KeyboardAvoidingView style={styles.container} behavior={KEYBOARD_BEHAVIOR}>
       <Stack.Screen options={{ title: isEditing ? 'Edit Lookbook Item' : 'New Lookbook Item' }} />
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, {
-          paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 700 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
-        }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: contentPadding },
+          formColumn,
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.sectionTitle}>Section</Text>

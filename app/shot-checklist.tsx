@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, SectionList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, SectionList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Camera, Check, CheckCheck, Circle, CircleDot, RotateCcw, ChevronDown, ChevronUp, Plus } from 'lucide-react-native';
 import { useProjects, useProjectShots } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
@@ -64,7 +65,7 @@ function ShotRow({ shot, onCycleStatus, onStepBack }: {
 export default function ShotChecklistScreen() {
   const { activeProjectId, updateShot, updateShots } = useProjects();
   const shots = useProjectShots(activeProjectId);
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const router = useGuardedRouter();
   const [collapsedScenes, setCollapsedScenes] = useState<Set<number>>(new Set());
 
@@ -82,7 +83,7 @@ export default function ShotChecklistScreen() {
   const stepBack = useCallback((shot: Shot) => {
     const previous = previousStatus(shot.status);
     if (!previous) return;
-    Alert.alert(
+    appAlert(
       `Move back to ${previous}?`,
       `Shot ${shot.sceneNumber}.${shot.shotNumber} is currently ${shot.status}.`,
       [
@@ -93,7 +94,7 @@ export default function ShotChecklistScreen() {
   }, [updateShot]);
 
   const resetAll = useCallback(() => {
-    Alert.alert('Reset All Shots', 'Mark all shots as "Planned"?', [
+    appAlert('Reset All Shots', 'Mark all shots as "Planned"?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Reset', style: 'destructive', onPress: () => {
@@ -176,9 +177,7 @@ export default function ShotChecklistScreen() {
         }}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}

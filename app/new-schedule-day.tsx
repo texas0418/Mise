@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -12,6 +14,7 @@ import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { DateField, TimeField } from '@/components/DateTimeField';
 
 export default function NewScheduleDayScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addScheduleDay, updateScheduleDay, activeProjectId, activeProject, schedule } = useProjects();
   const projectSchedule = useProjectSchedule(activeProjectId);
@@ -53,11 +56,11 @@ export default function NewScheduleDayScreen() {
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
-      Alert.alert('No Project', 'Please select a project first.');
+      appAlert('No Project', 'Please select a project first.');
       return;
     }
     if (!date.trim() || !location.trim()) {
-      Alert.alert('Missing Info', 'Please enter date and location.');
+      appAlert('Missing Info', 'Please enter date and location.');
       return;
     }
 
@@ -101,7 +104,7 @@ export default function NewScheduleDayScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Call Sheet' : 'New Shoot Day' }} />
 
       <View style={styles.projectLabel}>

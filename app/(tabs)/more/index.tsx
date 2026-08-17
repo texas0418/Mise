@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, Alert, ActivityIndicator, TextInput } from 'react-native';
-import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, Trash2, LogIn, UserCircle, Smartphone, Cloud, ScrollText, Lightbulb, Search, X } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, ActivityIndicator, TextInput, Platform} from 'react-native';
+import { appAlert } from '@/lib/appAlert';
+import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, Trash2, LogIn, UserCircle, Smartphone, Monitor, Cloud, ScrollText, Lightbulb, Search, X } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProjects } from '@/contexts/ProjectContext';
 import { SAMPLE_PROJECT_IDS, removeSampleData } from '@/lib/dataMigration';
@@ -18,6 +19,16 @@ interface ToolItem {
   route: string;
   color: string;
   badge?: string;
+  /**
+   * Needs the camera, the room, or a hand free — so it does not belong on a
+   * desktop browser. Hidden there rather than shipped broken or shipped
+   * pointless: a clapperboard on a laptop is not a clapperboard, and the lens
+   * calculator wants the lens in front of you.
+   *
+   * Hidden, and then said out loud — see the note under the grid. Silently
+   * dropping tools would read as a smaller app rather than a different one.
+   */
+  setOnly?: boolean;
 }
 
 const PRE_PROD_TOOLS: ToolItem[] = [
@@ -41,8 +52,8 @@ const PRE_PROD_TOOLS: ToolItem[] = [
 const ON_SET_TOOLS: ToolItem[] = [
   { icon: ListChecks, label: 'Shot Checklist', subtitle: 'Daily shot progress', route: '/shot-checklist', color: '#4ADE80' },
   { icon: Megaphone, label: 'Comms Hub', subtitle: 'Quick crew messages', route: '/comms-hub', color: '#F59E0B' },
-  { icon: Clapperboard, label: 'Digital Slate', subtitle: 'Clapperboard', route: '/digital-slate', color: '#F87171' },
-  { icon: BookOpen, label: 'Continuity', subtitle: 'Script supervisor notes', route: '/continuity', color: '#34D399' },
+  { icon: Clapperboard, label: 'Digital Slate', subtitle: 'Clapperboard', route: '/digital-slate', color: '#F87171', setOnly: true },
+  { icon: BookOpen, label: 'Continuity', subtitle: 'Script supervisor notes', route: '/continuity', color: '#34D399', setOnly: true },
   { icon: StickyNote, label: 'Notes', subtitle: 'Production notes', route: '/production-notes', color: '#FCD34D' },
   { icon: Clock, label: 'Time Tracker', subtitle: 'Hours & overtime', route: '/time-tracker', color: '#FB923C' },
 ];
@@ -55,9 +66,9 @@ const POST_TOOLS: ToolItem[] = [
 ];
 
 const REFERENCE_TOOLS: ToolItem[] = [
-  { icon: Aperture, label: 'Lens Calculator', subtitle: 'FOV & focal lengths', route: '/lens-calculator', color: '#06B6D4' },
+  { icon: Aperture, label: 'Lens Calculator', subtitle: 'FOV & focal lengths', route: '/lens-calculator', color: '#06B6D4', setOnly: true },
   { icon: User, label: 'Portfolio', subtitle: 'Your credits & reel', route: '/portfolio', color: Colors.accent.gold },
-  { icon: Layers, label: 'Frame Guides', subtitle: 'Aspect ratio previews', route: '/frame-guides', color: '#E879F9' },
+  { icon: Layers, label: 'Frame Guides', subtitle: 'Aspect ratio previews', route: '/frame-guides', color: '#E879F9', setOnly: true },
   { icon: Share2, label: 'Export & Share', subtitle: 'Share project data', route: '/export-share', color: '#94A3B8' },
 ];
 
@@ -184,8 +195,29 @@ function AuthedSettingsGroup({ hasProject }: { hasProject: boolean }) {
 
 function ProStatusCard({ isPro }: { isPro: boolean }) {
   const router = useGuardedRouter();
+
+  /*
+   * The status stays on the web; the doorway does not.
+   *
+   * Mise takes payment only through the App Store, which is what the desktop
+   * gate says on the way in. Opening a paywall here would contradict that and
+   * end at a purchase button that cannot transact, because the purchases SDK
+   * has no web implementation at all. Saying what the account is remains
+   * useful, so the card stays and stops being pressable.
+   */
+  const canPurchase = Platform.OS !== 'web';
+
+  const Card = canPurchase ? TouchableOpacity : View;
+  const cardProps = canPurchase
+    ? {
+        accessibilityRole: 'button' as const,
+        onPress: () => router.push('/paywall' as never),
+        activeOpacity: 0.7,
+      }
+    : {};
+
   return (
-    <TouchableOpacity accessibilityRole="button" style={styles.subscriptionCard} onPress={() => router.push('/paywall' as never)} activeOpacity={0.7}>
+    <Card style={styles.subscriptionCard} {...cardProps}>
       <View style={[styles.subIconWrap, isPro ? styles.subIconPro : styles.subIconFree]}>
         <Crown color={isPro ? Colors.accent.gold : Colors.text.tertiary} size={22} />
       </View>
@@ -213,7 +245,46 @@ function ProStatusCard({ isPro }: { isPro: boolean }) {
           <Text style={styles.proBadgeText}>PRO</Text>
         </View>
       )}
-    </TouchableOpacity>
+    </Card>
+  );
+}
+
+/**
+ * Tells a subscriber the website exists.
+ *
+ * Mise on a computer is included with a subscription and requires one, and
+ * nothing in the app said so — somebody paying for it had no way to discover
+ * there was anywhere to sign in. The App Store description reaches people who
+ * have not bought yet; this reaches the ones who have.
+ *
+ * Shown only to subscribers, because that is who it is true for: the gate
+ * turns everyone else away, and pointing a free user at a door that will not
+ * open is worse than saying nothing.
+ *
+ * Hidden on web for the obvious reason.
+ */
+function WebAppGroup() {
+  if (Platform.OS === 'web') return null;
+
+  return (
+    <View style={styles.settingsGroup}>
+      <TouchableOpacity accessibilityRole="button"
+        accessibilityLabel="Open Mise on your computer at mise.simonbuilds.app"
+        style={styles.settingsRowLast}
+        onPress={() => Linking.openURL('https://mise.simonbuilds.app')}
+        activeOpacity={0.7}
+      >
+        <Monitor color={Colors.accent.gold} size={18} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.settingsRowText}>Mise on your computer</Text>
+          <Text style={styles.webAppSubtitle}>
+            Included with your subscription. Sign in at mise.simonbuilds.app with this
+            same account.
+          </Text>
+        </View>
+        <ExternalLink color={Colors.text.tertiary} size={14} />
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -255,23 +326,33 @@ function RestorePrivacyGroup({
   isPurchasing: boolean;
   onRestore: () => void;
 }) {
+  /*
+   * Restore is an App Store operation. On the web there is no purchases SDK to
+   * ask, so the row could only ever fail — and offering it directly
+   * contradicts the gate the user just came through, which told them
+   * subscriptions live in the app on their phone or iPad.
+   */
+  const canPurchase = Platform.OS !== 'web';
+
   return (
     <View style={styles.settingsGroup}>
-      <TouchableOpacity accessibilityRole="button"
-        style={styles.settingsRow}
-        onPress={onRestore}
-        activeOpacity={0.7}
-        disabled={isPurchasing}
-      >
-        {isPurchasing ? (
-          <ActivityIndicator size="small" color={Colors.text.secondary} />
-        ) : (
-          <RotateCcw color={Colors.text.secondary} size={18} />
-        )}
-        <Text style={[styles.settingsRowText, isPurchasing && { opacity: 0.5 }]}>
-          {isPurchasing ? 'Restoring…' : 'Restore Purchases'}
-        </Text>
-      </TouchableOpacity>
+      {canPurchase && (
+        <TouchableOpacity accessibilityRole="button"
+          style={styles.settingsRow}
+          onPress={onRestore}
+          activeOpacity={0.7}
+          disabled={isPurchasing}
+        >
+          {isPurchasing ? (
+            <ActivityIndicator size="small" color={Colors.text.secondary} />
+          ) : (
+            <RotateCcw color={Colors.text.secondary} size={18} />
+          )}
+          <Text style={[styles.settingsRowText, isPurchasing && { opacity: 0.5 }]}>
+            {isPurchasing ? 'Restoring…' : 'Restore Purchases'}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity accessibilityRole="button"
         style={styles.settingsRowLast}
@@ -287,6 +368,7 @@ function RestorePrivacyGroup({
 }
 
 export default function MoreScreen() {
+  const { isDesktop } = useLayout();
   const { activeProject, projects } = useProjects();
   useSubscription(); // kept for RC SDK initialization
   const { isPro, restoreAndActivate, isPurchasing } = useDeviceLicense();
@@ -297,7 +379,7 @@ export default function MoreScreen() {
   const hasSampleData = projects.some(p => SAMPLE_PROJECT_IDS.includes(p.id));
 
   const handleRemoveSampleData = () => {
-    Alert.alert(
+    appAlert(
       'Remove Sample Data',
       'This deletes the demo projects that shipped with an earlier version, and everything attached to them. Your own projects are not affected.',
       [
@@ -317,13 +399,13 @@ export default function MoreScreen() {
   const handleRestore = async () => {
     const result = await restoreAndActivate();
     if (result.success) {
-      Alert.alert(
+      appAlert(
         'Restored!',
         'Your subscription and device license have been restored.',
         [{ text: 'Great', onPress: () => router.push('/paywall' as never) }]
       );
     } else {
-      Alert.alert(
+      appAlert(
         'Nothing to Restore',
         result.error ?? 'No active Pro subscription was found for this Apple ID.',
       );
@@ -332,10 +414,22 @@ export default function MoreScreen() {
 
   const [toolQuery, setToolQuery] = useState('');
   const searching = toolQuery.trim().length > 0;
+  /*
+   * On a desktop browser the set-only tools come out entirely. They are not
+   * degraded there, they are meaningless there — a clapperboard you cannot
+   * hold up to camera, a continuity camera with no camera. The count is kept
+   * so the grid can say so rather than just being quietly shorter.
+   */
+  const hideSetOnly = isDesktop;
+  const setOnlyCount = TOOL_SECTIONS.reduce(
+    (n, s) => n + s.tools.filter(t => t.setOnly).length, 0);
+
   const visibleSections = TOOL_SECTIONS
     .map(section => ({
       ...section,
-      tools: searching ? section.tools.filter(t => toolMatches(t, toolQuery)) : section.tools,
+      tools: section.tools
+        .filter(t => !(hideSetOnly && t.setOnly))
+        .filter(t => (searching ? toolMatches(t, toolQuery) : true)),
     }))
     .filter(section => section.tools.length > 0);
 
@@ -388,6 +482,13 @@ export default function MoreScreen() {
         <Text style={styles.searchEmpty}>No tool matches “{toolQuery.trim()}”.</Text>
       )}
 
+      {hideSetOnly && !searching && (
+        <Text style={styles.setOnlyNote}>
+          {setOnlyCount} on-set tools — the slate, continuity, frame guides and the
+          lens calculator — live on your phone and iPad, where the camera is.
+        </Text>
+      )}
+
       {/* Subscription & Settings Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>
@@ -397,6 +498,8 @@ export default function MoreScreen() {
         {isAuthenticated && <AuthedSettingsGroup hasProject={!!activeProject} />}
 
         <ProStatusCard isPro={isPro} />
+
+        {isPro && <WebAppGroup />}
 
         {isPro && <ManageSubscriptionGroup />}
 
@@ -422,6 +525,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   searchInput: { flex: 1, fontSize: 15, color: Colors.text.primary, paddingVertical: 10 },
+  setOnlyNote: {
+    fontSize: 13, color: Colors.text.tertiary, lineHeight: 19,
+    paddingHorizontal: 4, paddingBottom: 8, marginTop: -4,
+  },
   searchEmpty: { fontSize: 14, color: Colors.text.tertiary, textAlign: 'center', paddingVertical: 24 },
   sectionTitle: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, textTransform: 'uppercase' as const, letterSpacing: 1.2, marginBottom: 10, paddingHorizontal: 4 },
   toolGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -445,6 +552,7 @@ const styles = StyleSheet.create({
   settingsRowLast: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 14, gap: 12 },
   settingsRowDisabled: { opacity: 0.4 },
   settingsRowText: { flex: 1, fontSize: 14, color: Colors.text.primary },
+  webAppSubtitle: { fontSize: 12, lineHeight: 16, color: Colors.text.secondary, marginTop: 2 },
   settingsRowTextDisabled: { color: Colors.text.tertiary },
   settingsRowHint: { fontSize: 12, color: Colors.text.tertiary, fontStyle: 'italic' },
 });

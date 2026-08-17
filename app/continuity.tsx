@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, BookOpen, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2, Camera } from 'lucide-react-native';
 import { useProjects, useProjectContinuity } from '@/contexts/ProjectContext';
@@ -23,7 +24,7 @@ function ContinuityCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   const photoUrl = item.photoUrl;
 
   const handleDelete = () => {
-    Alert.alert('Delete Note', `Remove continuity note for Sc.${item.sceneNumber}/${item.shotNumber}?`, [
+    appAlert('Delete Note', `Remove continuity note for Sc.${item.sceneNumber}/${item.shotNumber}?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
@@ -93,7 +94,7 @@ export default function ContinuityScreen() {
   const { activeProject, activeProjectId, deleteContinuityNote } = useProjects();
   const notes = useProjectContinuity(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const sorted = useMemo(() => {
@@ -145,9 +146,7 @@ export default function ContinuityScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

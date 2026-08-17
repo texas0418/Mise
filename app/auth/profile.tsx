@@ -6,9 +6,10 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { User, Lock, LogOut, Trash2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,6 +18,7 @@ import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function ProfileScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { user, signOut, updateProfile, updatePassword } = useAuth();
 
@@ -34,9 +36,9 @@ export default function ProfileScreen() {
     try {
       await updateProfile({ displayName: displayName.trim() });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('Saved', 'Your profile has been updated.');
+      appAlert('Saved', 'Your profile has been updated.');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update profile.');
+      appAlert('Error', error.message || 'Failed to update profile.');
     } finally {
       setSavingProfile(false);
     }
@@ -44,11 +46,11 @@ export default function ProfileScreen() {
 
   const handleChangePassword = useCallback(async () => {
     if (newPassword.length < 6) {
-      Alert.alert('Weak Password', 'Password must be at least 6 characters.');
+      appAlert('Weak Password', 'Password must be at least 6 characters.');
       return;
     }
     if (newPassword !== confirmPassword) {
-      Alert.alert('Mismatch', 'Passwords do not match.');
+      appAlert('Mismatch', 'Passwords do not match.');
       return;
     }
 
@@ -58,16 +60,16 @@ export default function ProfileScreen() {
       setNewPassword('');
       setConfirmPassword('');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('Updated', 'Your password has been changed.');
+      appAlert('Updated', 'Your password has been changed.');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to change password.');
+      appAlert('Error', error.message || 'Failed to change password.');
     } finally {
       setSavingPassword(false);
     }
   }, [newPassword, confirmPassword, updatePassword]);
 
   const handleSignOut = useCallback(async () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+    appAlert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Sign Out',
@@ -77,7 +79,7 @@ export default function ProfileScreen() {
             await signOut();
             router.replace('/auth/sign-in');
           } catch (error: any) {
-            Alert.alert('Error', error.message);
+            appAlert('Error', error.message);
           }
         },
       },
@@ -85,7 +87,7 @@ export default function ProfileScreen() {
   }, [signOut, router]);
 
   const handleDeleteAccount = useCallback(async () => {
-    Alert.alert(
+    appAlert(
       'Delete Account',
       'This will permanently delete your account and all your production data from our servers. This cannot be undone.',
       [
@@ -94,7 +96,7 @@ export default function ProfileScreen() {
           text: 'Delete My Account',
           style: 'destructive',
           onPress: () => {
-            Alert.alert(
+            appAlert(
               'Are you sure?',
               'All your projects, shots, budgets, lighting diagrams, and other data will be permanently deleted. This action is irreversible.',
               [
@@ -131,7 +133,7 @@ export default function ProfileScreen() {
                       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                       router.replace('/auth/sign-in');
                     } catch (error: any) {
-                      Alert.alert('Error', error.message || 'Failed to delete account. Please contact support at hello@mise.app.');
+                      appAlert('Error', error.message || 'Failed to delete account. Please contact support at hello@mise.app.');
                     } finally {
                       setDeleting(false);
                     }
@@ -146,7 +148,7 @@ export default function ProfileScreen() {
   }, [user, signOut, router]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       {/* Account info */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, Stack } from 'expo-router';
@@ -24,7 +25,7 @@ export default function NewCastMemberScreen() {
   const { activeProjectId, addCastMember, updateCastMember } = useProjects();
   const cast = useProjectCast(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { isTablet, contentPadding, formColumn} = useLayout();
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id;
   const existingMember = editId ? cast.find(c => c.id === editId) : null;
@@ -74,7 +75,7 @@ export default function NewCastMemberScreen() {
 
   const handleSave = () => {
     if (!characterName.trim()) {
-      Alert.alert('Required', 'Character name is required.');
+      appAlert('Required', 'Character name is required.');
       return;
     }
 
@@ -111,12 +112,11 @@ export default function NewCastMemberScreen() {
     <KeyboardAvoidingView style={styles.container} behavior={KEYBOARD_BEHAVIOR}>
       <Stack.Screen options={{ title: isEditing ? 'Edit Cast Member' : 'New Cast Member' }} />
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, {
-          paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 700 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
-        }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: contentPadding },
+          formColumn,
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Headshot picker */}

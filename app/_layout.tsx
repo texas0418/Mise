@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState, useCallback } from "react";
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SyncProvider } from "@/contexts/SyncContext";
@@ -22,6 +22,9 @@ import { noteFirstLaunch } from "@/utils/reviewPrompt";
 import OnboardingFlow from "@/components/OnboardingFlow";
 import { useGuardedRouter } from "@/utils/useGuardedRouter";
 import { useTypography } from "@/utils/useTypography";
+import DesktopGate from "@/components/DesktopGate";
+import AlertHost from "@/components/AlertHost";
+import DesktopSidebar from "@/components/DesktopSidebar";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -118,6 +121,21 @@ export default function RootLayout() {
   const [checked, setChecked] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
+  /*
+   * Onboarding must not pre-empt the auth screens.
+   *
+   * It renders inside DesktopGate, so once auth routes were allowed past the
+   * gate the first-run carousel started answering for them: a new visitor
+   * pressed Sign in and got a five-slide product tour instead of the form.
+   * Recoverable by skipping, and still the wrong answer to what they asked
+   * for. Simon did not see it because his browser had already completed
+   * onboarding.
+   *
+   * Read here rather than beside the JSX: there is an early return below, and
+   * a hook after it is a hook that does not always run.
+   */
+  const onAuthRoute = usePathname().startsWith('/auth');
+
   useEffect(() => {
     (async () => {
       // Runs before the providers mount, so the stores read already-migrated
@@ -187,10 +205,25 @@ export default function RootLayout() {
             <SubscriptionProvider>
               <DeviceLicenseProvider>
               <PermissionProvider>
+              {/* Desktop requires a subscription; no-op on a device. See
+                  components/DesktopGate.web.tsx. Inside the providers because
+                  it reads auth and the licence, outside the navigator so no
+                  route can be reached around it. */}
+              <DesktopGate>
               <DynamicTypeBoundary>
-              {showOnboarding ? (
+              {showOnboarding && !onAuthRoute ? (
                 <OnboardingFlow onComplete={handleOnboardingComplete} />
               ) : (
+                /*
+                  The navigator sits beside the sidebar rather than inside the
+                  tab group, so opening a tool cannot unmount the navigation
+                  (#120). DesktopSidebar renders null on native and below the
+                  desktop breakpoint, where this row collapses to exactly what
+                  it was before: one flex child holding the Stack.
+                */
+                <View style={styles.shell}>
+                <DesktopSidebar />
+                <View style={styles.shellContent}>
                 <Stack
                   screenOptions={{
                     headerBackTitle: "Back",
@@ -558,8 +591,15 @@ export default function RootLayout() {
                     options={{ headerShown: false }}
                   />
                 </Stack>
+                </View>
+                </View>
               )}
               </DynamicTypeBoundary>
+              {/* Draws confirmations on web, where Alert.alert renders nothing
+                  (#119). Renders null on native, which uses the OS dialog.
+                  Last child so it paints above the navigator. */}
+              <AlertHost />
+              </DesktopGate>
               </PermissionProvider>
               </DeviceLicenseProvider>
             </SubscriptionProvider>
@@ -572,6 +612,11 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+  // A row so the sidebar can sit beside the navigator. With DesktopSidebar
+  // returning null everywhere else, this is a single flex child and behaves
+  // exactly as the bare <Stack> did.
+  shell: { flex: 1, flexDirection: 'row' },
+  shellContent: { flex: 1 },
   modalCancel: {
     fontSize: 17,
     color: Colors.accent.gold,

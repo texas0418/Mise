@@ -14,11 +14,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   ScrollView,
   Animated,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import {
   RefreshCw,
   Trash2,
@@ -281,7 +281,7 @@ export default function SyncSettingsScreen() {
   }, [syncNow]);
 
   const handleUpload = useCallback(async () => {
-    Alert.alert(
+    appAlert(
       'Upload Local Data',
       'Push all local data to the cloud. Existing cloud records will be updated only if your local version is newer.',
       [
@@ -292,9 +292,9 @@ export default function SyncSettingsScreen() {
             setUploading(true);
             try {
               const count = await doInitialUpload();
-              Alert.alert('Upload Complete', `Uploaded ${count} record${count !== 1 ? 's' : ''} to the cloud.`);
+              appAlert('Upload Complete', `Uploaded ${count} record${count !== 1 ? 's' : ''} to the cloud.`);
             } catch (e: any) {
-              Alert.alert('Upload Failed', e.message ?? 'An error occurred.');
+              appAlert('Upload Failed', e.message ?? 'An error occurred.');
             } finally {
               setUploading(false);
             }
@@ -305,7 +305,7 @@ export default function SyncSettingsScreen() {
   }, [doInitialUpload]);
 
   const handleForceResync = useCallback(() => {
-    Alert.alert(
+    appAlert(
       'Force Full Re-Sync',
       'This will clear your sync history and re-download all data from the cloud. Your local data will be merged — nothing will be deleted. This may take a moment.',
       [
@@ -317,9 +317,9 @@ export default function SyncSettingsScreen() {
             setResyncing(true);
             try {
               await doForceResync();
-              Alert.alert('Re-Sync Complete', 'All data has been refreshed from the cloud.');
+              appAlert('Re-Sync Complete', 'All data has been refreshed from the cloud.');
             } catch (e: any) {
-              Alert.alert('Re-Sync Failed', e.message ?? 'An error occurred.');
+              appAlert('Re-Sync Failed', e.message ?? 'An error occurred.');
             } finally {
               setResyncing(false);
             }
@@ -330,7 +330,7 @@ export default function SyncSettingsScreen() {
   }, [doForceResync]);
 
   const handleClear = useCallback(() => {
-    Alert.alert(
+    appAlert(
       'Clear Sync Data',
       'This clears the pending queue and disconnects real-time updates. Your local data is not affected. You can re-sync at any time.',
       [
@@ -340,7 +340,7 @@ export default function SyncSettingsScreen() {
           style: 'destructive',
           onPress: () => {
             resetSync();
-            Alert.alert('Cleared', 'Sync queue cleared and realtime disconnected.');
+            appAlert('Cleared', 'Sync queue cleared and realtime disconnected.');
           },
         },
       ]

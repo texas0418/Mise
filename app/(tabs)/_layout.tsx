@@ -19,7 +19,7 @@ export const unstable_settings = {
 };
 
 export default function TabLayout() {
-  const { isTablet } = useLayout();
+  const { isTablet, isDesktop } = useLayout();
 
   return (
     <Tabs
@@ -27,7 +27,19 @@ export default function TabLayout() {
         headerShown: false,
         tabBarActiveTintColor: Colors.accent.gold,
         tabBarInactiveTintColor: Colors.text.tertiary,
+        // The sidebar's selected row draws a filled pill behind the item, and
+        // with nothing set it takes the platform's own selection colour — a
+        // Material blue that belongs to no part of this app. Phones never show
+        // it (the bottom bar has no such fill), so it only ever appeared on the
+        // layout Mise is actually used on.
+        ...(isTablet ? { tabBarActiveBackgroundColor: Colors.accent.goldBg } : {}),
         tabBarStyle: {
+          /*
+            On a desk the navigation is DesktopSidebar, rendered beside the
+            Stack in app/_layout.tsx so that opening a tool cannot unmount it
+            (#120). This bar would be a second copy of the same six links.
+          */
+          ...(isDesktop ? { display: 'none' as const } : {}),
           backgroundColor: Colors.bg.secondary,
           borderTopColor: Colors.border.subtle,
           borderTopWidth: 0.5,

@@ -12,9 +12,15 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, ActivityIndicator, FlatList,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import {
   Upload, FileSpreadsheet, ArrowRight, ArrowLeft, Check, X, Download,
@@ -35,7 +41,7 @@ type Step = 'pick' | 'map' | 'confirm';
 export default function ImportDataScreen() {
   const router = useGuardedRouter();
   const params = useLocalSearchParams<{ entity?: string }>();
-  const { isTablet, contentPadding } = useLayout();
+  const { isTablet, contentPadding, contentColumn } = useLayout();
   const projects = useProjects();
 
   const entityKey = params.entity ?? '';
@@ -57,7 +63,7 @@ export default function ImportDataScreen() {
 
       if (!result.success) {
         if (result.error.type !== 'pick_cancelled') {
-          Alert.alert('Import Error', result.error.message);
+          appAlert('Import Error', result.error.message);
         }
         setLoading(false);
         return;
@@ -73,7 +79,7 @@ export default function ImportDataScreen() {
 
       setStep('map');
     } catch (err) {
-      Alert.alert('Error', 'Failed to read the file. Please try again.');
+      appAlert('Error', 'Failed to read the file. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -104,7 +110,7 @@ export default function ImportDataScreen() {
       const addFn = (projects as Record<string, unknown>)[entityConfig.addMethod] as ((item: Record<string, unknown>) => void) | undefined;
 
       if (!addFn) {
-        Alert.alert('Error', `Import method "${entityConfig.addMethod}" not found.`);
+        appAlert('Error', `Import method "${entityConfig.addMethod}" not found.`);
         setImporting(false);
         return;
       }
@@ -156,14 +162,14 @@ export default function ImportDataScreen() {
         fileName: parsedData?.fileName,
       });
 
-      Alert.alert(
+      appAlert(
         'Import Complete',
         `Successfully imported ${convertedRows.length} ${entityConfig.label.toLowerCase()}.`,
         [{ text: 'Done', onPress: () => router.dismiss() }]
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
-      Alert.alert('Import Failed', msg);
+      appAlert('Import Failed', msg);
     } finally {
       setImporting(false);
     }
@@ -219,6 +225,7 @@ export default function ImportDataScreen() {
           onNext={() => setStep('confirm')}
           isTablet={isTablet}
           contentPadding={contentPadding}
+          contentColumn={contentColumn}
         />
       )}
 
@@ -308,7 +315,7 @@ function PickStep({ entityConfig, loading, onPickFile }: {
         <TouchableOpacity accessibilityRole="button"
           style={styles.templateBtn}
           onPress={() => shareCSVTemplate(entityConfig.key).catch(e =>
-            Alert.alert('Error', e instanceof Error ? e.message : 'Could not share template')
+            appAlert('Error', e instanceof Error ? e.message : 'Could not share template')
           )}
           activeOpacity={0.7}
         >
@@ -347,7 +354,7 @@ function PickStep({ entityConfig, loading, onPickFile }: {
 
 // ─── Step 2: Map Columns ─────────────────────────────────────────
 
-function MapStep({ parsedData, mappingResult, entityConfig, expandedColumn, onExpandColumn, onUpdateMapping, onBack, onNext, isTablet, contentPadding }: {
+function MapStep({ parsedData, mappingResult, entityConfig, expandedColumn, onExpandColumn, onUpdateMapping, onBack, onNext, isTablet, contentPadding, contentColumn }: {
   parsedData: ParsedSpreadsheet;
   mappingResult: MappingResult;
   entityConfig: EntityConfig;
@@ -358,6 +365,7 @@ function MapStep({ parsedData, mappingResult, entityConfig, expandedColumn, onEx
   onNext: () => void;
   isTablet: boolean;
   contentPadding: number;
+  contentColumn: ReturnType<typeof import('@/utils/useLayout').useLayout>['contentColumn'];
 }) {
   const mappedCount = mappingResult.mappings.filter(m => m.mappedField !== null).length;
   const totalFields = entityConfig.fields.length;
@@ -389,9 +397,7 @@ function MapStep({ parsedData, mappingResult, entityConfig, expandedColumn, onEx
       {/* Column mapping list */}
       <ScrollView style={styles.flex1} contentContainerStyle={[styles.mapList, {
         paddingHorizontal: contentPadding,
-        maxWidth: isTablet ? 800 : undefined,
-        alignSelf: isTablet ? 'center' as const : undefined,
-        width: isTablet ? '100%' : undefined,
+        ...contentColumn,
       }]}>
         {mappingResult.mappings.map((mapping) => (
           <ColumnMappingCard

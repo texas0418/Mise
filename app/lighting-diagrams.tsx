@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2, Camera, Users, Zap } from 'lucide-react-native';
 import { useProjects, useProjectLightingDiagrams } from '@/contexts/ProjectContext';
@@ -30,7 +31,7 @@ function DiagramCard({ item, isExpanded, onPress, onEdit, onOpen, onDelete }: {
   const modifierCount = item.elements.filter(e => ['bounce', 'reflector', 'flag', 'diffusion', 'gel'].includes(e.type)).length;
 
   const handleDelete = () => {
-    Alert.alert('Delete Diagram', `Remove "${item.title}"?`, [
+    appAlert('Delete Diagram', `Remove "${item.title}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
@@ -131,7 +132,7 @@ export default function LightingDiagramsScreen() {
   const { activeProject, activeProjectId, deleteLightingDiagram } = useProjects();
   const diagrams = useProjectLightingDiagrams(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (!activeProject) {
@@ -169,9 +170,7 @@ export default function LightingDiagramsScreen() {
           )}
           contentContainerStyle={[styles.list, {
             paddingHorizontal: contentPadding,
-            maxWidth: isTablet ? 800 : undefined,
-            alignSelf: isTablet ? 'center' as const : undefined,
-            width: isTablet ? '100%' : undefined,
+            ...contentColumn,
           }]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
