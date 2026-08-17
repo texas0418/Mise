@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, ActivityIndicator, TextInput, Platform} from 'react-native';
 import { appAlert } from '@/lib/appAlert';
 import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, Trash2, LogIn, UserCircle, Smartphone, Cloud, ScrollText, Lightbulb, Search, X } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
@@ -195,8 +195,29 @@ function AuthedSettingsGroup({ hasProject }: { hasProject: boolean }) {
 
 function ProStatusCard({ isPro }: { isPro: boolean }) {
   const router = useGuardedRouter();
+
+  /*
+   * The status stays on the web; the doorway does not.
+   *
+   * Mise takes payment only through the App Store, which is what the desktop
+   * gate says on the way in. Opening a paywall here would contradict that and
+   * end at a purchase button that cannot transact, because the purchases SDK
+   * has no web implementation at all. Saying what the account is remains
+   * useful, so the card stays and stops being pressable.
+   */
+  const canPurchase = Platform.OS !== 'web';
+
+  const Card = canPurchase ? TouchableOpacity : View;
+  const cardProps = canPurchase
+    ? {
+        accessibilityRole: 'button' as const,
+        onPress: () => router.push('/paywall' as never),
+        activeOpacity: 0.7,
+      }
+    : {};
+
   return (
-    <TouchableOpacity accessibilityRole="button" style={styles.subscriptionCard} onPress={() => router.push('/paywall' as never)} activeOpacity={0.7}>
+    <Card style={styles.subscriptionCard} {...cardProps}>
       <View style={[styles.subIconWrap, isPro ? styles.subIconPro : styles.subIconFree]}>
         <Crown color={isPro ? Colors.accent.gold : Colors.text.tertiary} size={22} />
       </View>
@@ -224,7 +245,7 @@ function ProStatusCard({ isPro }: { isPro: boolean }) {
           <Text style={styles.proBadgeText}>PRO</Text>
         </View>
       )}
-    </TouchableOpacity>
+    </Card>
   );
 }
 
@@ -266,23 +287,33 @@ function RestorePrivacyGroup({
   isPurchasing: boolean;
   onRestore: () => void;
 }) {
+  /*
+   * Restore is an App Store operation. On the web there is no purchases SDK to
+   * ask, so the row could only ever fail — and offering it directly
+   * contradicts the gate the user just came through, which told them
+   * subscriptions live in the app on their phone or iPad.
+   */
+  const canPurchase = Platform.OS !== 'web';
+
   return (
     <View style={styles.settingsGroup}>
-      <TouchableOpacity accessibilityRole="button"
-        style={styles.settingsRow}
-        onPress={onRestore}
-        activeOpacity={0.7}
-        disabled={isPurchasing}
-      >
-        {isPurchasing ? (
-          <ActivityIndicator size="small" color={Colors.text.secondary} />
-        ) : (
-          <RotateCcw color={Colors.text.secondary} size={18} />
-        )}
-        <Text style={[styles.settingsRowText, isPurchasing && { opacity: 0.5 }]}>
-          {isPurchasing ? 'Restoring…' : 'Restore Purchases'}
-        </Text>
-      </TouchableOpacity>
+      {canPurchase && (
+        <TouchableOpacity accessibilityRole="button"
+          style={styles.settingsRow}
+          onPress={onRestore}
+          activeOpacity={0.7}
+          disabled={isPurchasing}
+        >
+          {isPurchasing ? (
+            <ActivityIndicator size="small" color={Colors.text.secondary} />
+          ) : (
+            <RotateCcw color={Colors.text.secondary} size={18} />
+          )}
+          <Text style={[styles.settingsRowText, isPurchasing && { opacity: 0.5 }]}>
+            {isPurchasing ? 'Restoring…' : 'Restore Purchases'}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity accessibilityRole="button"
         style={styles.settingsRowLast}

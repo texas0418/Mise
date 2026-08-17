@@ -35,15 +35,46 @@ import React, {
 import { Platform, AppState, AppStateStatus } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 
-// RevenueCat — dynamic import so app doesn't crash if SDK isn't installed
+/*
+ * RevenueCat — required lazily so the app does not crash when the SDK is absent.
+ *
+ * The web build maps `react-native-purchases` to `web-stubs/empty.js`
+ * (metro.config.js), and that stub sets `module.exports.default = {}`. So on
+ * web the require succeeds and `rc.default` is an empty object: **truthy, with
+ * no methods on it**. Every `if (!Purchases)` guard in this file passed, and
+ * the call after it hit a method that does not exist.
+ *
+ * Rather than test for a method at each of the six call sites — which leaves
+ * the trap armed for the seventh — "present but not functional" is resolved to
+ * absent here, once. `configure` is the probe because nothing else can happen
+ * without it.
+ */
 let Purchases: any = null;
 let LOG_LEVEL: any = null;
 try {
   const rc = require('react-native-purchases');
-  Purchases = rc.default || rc.Purchases;
+  const resolved = rc.default || rc.Purchases;
+  Purchases = typeof resolved?.configure === 'function' ? resolved : null;
   LOG_LEVEL = rc.LOG_LEVEL;
+  if (!Purchases) {
+    console.log('[Subscription] RevenueCat has no implementation on this platform — free mode');
+  }
 } catch (e) {
   console.log('[Subscription] RevenueCat SDK not installed — running in free mode');
+}
+
+/**
+ * Why a purchase action cannot run here.
+ *
+ * On web this is not a failure and should not read like one: Mise takes
+ * payment only through the App Store, which is exactly what the desktop gate
+ * told the user on the way in. Anywhere else, a missing SDK means a
+ * development build.
+ */
+function unavailableMessage(action: 'Purchase' | 'Restore'): string {
+  return Platform.OS === 'web'
+    ? 'Subscriptions are managed in the Mise app on iPhone and iPad, through the App Store.'
+    : `${action} not available in development mode`;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -157,15 +188,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
    * and losing it must never stop someone using something they paid for.
    */
   useEffect(() => {
-    /*
-     * `Purchases` is truthy on web and still cannot do anything: the web build
-     * maps react-native-purchases to web-stubs/empty.js (metro.config.js), so
-     * the module object exists with no methods on it. Checking the module
-     * alone threw "logOut is not a function" on every browser load — caught
-     * and swallowed, but it meant this effect was running a code path that
-     * cannot exist there. Check for the method, not the module.
-     */
-    if (typeof Purchases?.logIn !== 'function') return;
+    if (!Purchases) return;
     let cancelled = false;
     (async () => {
       try {
@@ -299,7 +322,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   const executePurchase = async (pkg: any | null, label: string): Promise<boolean> => {
     if (!Purchases) {
-      setState(prev => ({ ...prev, error: 'Purchase not available in development mode' }));
+      setState(prev => ({ ...prev, error: unavailableMessage('Purchase') }));
       return false;
     }
     if (!pkg) {
@@ -425,7 +448,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   const restorePurchases = useCallback(async (): Promise<boolean> => {
     if (!Purchases) {
-      setState(prev => ({ ...prev, error: 'Restore not available in development mode' }));
+      setState(prev => ({ ...prev, error: unavailableMessage('Restore') }));
       return false;
     }
 
