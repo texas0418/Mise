@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Sparkles, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectVFX } from '@/contexts/ProjectContext';
@@ -46,7 +47,7 @@ function VFXCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   const complexity = COMPLEXITY_CONFIG[item.complexity];
 
   const handleDelete = () => {
-    Alert.alert('Delete VFX Shot', `Remove Sc.${item.sceneNumber}/${item.shotNumber}?`, [
+    appAlert('Delete VFX Shot', `Remove Sc.${item.sceneNumber}/${item.shotNumber}?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);

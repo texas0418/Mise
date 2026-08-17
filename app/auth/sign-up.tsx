@@ -6,11 +6,11 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Mail, Lock, User } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,15 +29,15 @@ export default function SignUpScreen() {
 
   const handleSignUp = useCallback(async () => {
     if (!email.trim()) {
-      Alert.alert('Missing Email', 'Please enter your email address.');
+      appAlert('Missing Email', 'Please enter your email address.');
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Weak Password', 'Password must be at least 6 characters.');
+      appAlert('Weak Password', 'Password must be at least 6 characters.');
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Password Mismatch', 'Passwords do not match.');
+      appAlert('Password Mismatch', 'Passwords do not match.');
       return;
     }
 
@@ -45,14 +45,14 @@ export default function SignUpScreen() {
     try {
       await signUp(email.trim(), password, displayName.trim() || undefined);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert(
+      appAlert(
         'Check Your Email',
         'We sent you a confirmation link. Please verify your email to sign in.',
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert('Sign Up Failed', error.message || 'Please try again.');
+      appAlert('Sign Up Failed', error.message || 'Please try again.');
     } finally {
       setLoading(false);
     }

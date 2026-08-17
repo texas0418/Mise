@@ -11,8 +11,15 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView,
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { ShieldAlert, Truck, UtensilsCrossed, Send } from 'lucide-react-native';
@@ -171,7 +178,7 @@ export default function CallSheetDetailsScreen() {
   // whether the sheet in their hand is the current one, so it only moves when
   // a sheet is actually sent — not every time someone corrects a typo.
   const handleIssue = useCallback(() => {
-    Alert.alert(
+    appAlert(
       existing?.issuedAt ? 'Reissue call sheet' : 'Mark as issued',
       existing?.issuedAt
         ? `This becomes version ${(existing.version ?? 1) + 1}. Crew will see that the sheet has changed.`

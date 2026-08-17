@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Star } from 'lucide-react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -50,7 +51,7 @@ export default function NewSelectScreen() {
 
   const handleSave = () => {
     if (!sceneNumber.trim() || !shotNumber.trim() || !takeNumber.trim()) {
-      Alert.alert('Required', 'Scene, shot, and take number are required.');
+      appAlert('Required', 'Scene, shot, and take number are required.');
       return;
     }
 

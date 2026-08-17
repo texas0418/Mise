@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Palette, AlertCircle, Pencil, Trash2 } from 'lucide-react-native';
 import { Image } from 'expo-image';
@@ -19,7 +20,7 @@ function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
   onDelete: () => void;
 }) {
   const handleDelete = () => {
-    Alert.alert('Delete Item', `Remove "${item.label}"?`, [
+    appAlert('Delete Item', `Remove "${item.label}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);

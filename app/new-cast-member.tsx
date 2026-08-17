@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, Stack } from 'expo-router';
@@ -74,7 +75,7 @@ export default function NewCastMemberScreen() {
 
   const handleSave = () => {
     if (!characterName.trim()) {
-      Alert.alert('Required', 'Character name is required.');
+      appAlert('Required', 'Character name is required.');
       return;
     }
 

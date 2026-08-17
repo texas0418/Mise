@@ -1,8 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, TextInput, Alert, Platform,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  TextInput,
+  Platform,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import {
   Sun, Cloud, CloudRain, CloudLightning, CloudSnow, CloudFog,
@@ -463,7 +470,7 @@ export default function LocationWeatherScreen() {
     try {
       const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Location access is required to get weather for your current position.');
+        appAlert('Permission Denied', 'Location access is required to get weather for your current position.');
         setGpsLoading(false);
         return;
       }
@@ -489,7 +496,7 @@ export default function LocationWeatherScreen() {
         }, ...prev]);
       }
     } catch (e: any) {
-      Alert.alert('Location Error', e.message || 'Could not get current location');
+      appAlert('Location Error', e.message || 'Could not get current location');
     }
     setGpsLoading(false);
   };

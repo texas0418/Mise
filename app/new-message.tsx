@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Send, Zap } from 'lucide-react-native';
 import { useProjects } from '@/contexts/ProjectContext';
@@ -61,7 +62,7 @@ export default function NewMessageScreen() {
 
   const handleSend = () => {
     if (!subject.trim()) {
-      Alert.alert('Required', 'Subject is required.');
+      appAlert('Required', 'Subject is required.');
       return;
     }
 

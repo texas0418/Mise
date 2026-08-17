@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -53,11 +54,11 @@ export default function NewScheduleDayScreen() {
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
-      Alert.alert('No Project', 'Please select a project first.');
+      appAlert('No Project', 'Please select a project first.');
       return;
     }
     if (!date.trim() || !location.trim()) {
-      Alert.alert('Missing Info', 'Please enter date and location.');
+      appAlert('Missing Info', 'Please enter date and location.');
       return;
     }
 

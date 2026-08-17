@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -67,7 +68,7 @@ export default function NewWrapReportScreen() {
 
   // eslint-disable-next-line complexity -- tracked in #11
   const handleSave = () => {
-    if (!activeProjectId) { Alert.alert('No Project', 'Select a project first.'); return; }
+    if (!activeProjectId) { appAlert('No Project', 'Select a project first.'); return; }
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, Alert, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, ActivityIndicator, TextInput } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, Trash2, LogIn, UserCircle, Smartphone, Cloud, ScrollText, Lightbulb, Search, X } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProjects } from '@/contexts/ProjectContext';
@@ -308,7 +309,7 @@ export default function MoreScreen() {
   const hasSampleData = projects.some(p => SAMPLE_PROJECT_IDS.includes(p.id));
 
   const handleRemoveSampleData = () => {
-    Alert.alert(
+    appAlert(
       'Remove Sample Data',
       'This deletes the demo projects that shipped with an earlier version, and everything attached to them. Your own projects are not affected.',
       [
@@ -328,13 +329,13 @@ export default function MoreScreen() {
   const handleRestore = async () => {
     const result = await restoreAndActivate();
     if (result.success) {
-      Alert.alert(
+      appAlert(
         'Restored!',
         'Your subscription and device license have been restored.',
         [{ text: 'Great', onPress: () => router.push('/paywall' as never) }]
       );
     } else {
-      Alert.alert(
+      appAlert(
         'Nothing to Restore',
         result.error ?? 'No active Pro subscription was found for this Apple ID.',
       );

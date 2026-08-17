@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
@@ -38,7 +39,7 @@ export default function NewCrewScreen() {
 
   const handleSave = useCallback(() => {
     if (!name.trim() || !role.trim()) {
-      Alert.alert('Missing Info', 'Please enter name and role.');
+      appAlert('Missing Info', 'Please enter name and role.');
       return;
     }
 

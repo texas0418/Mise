@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router';
@@ -92,7 +93,7 @@ export default function NewScriptSideScreen() {
 
   const handleSave = () => {
     if (!sceneNumber.trim() || !sceneHeader.trim()) {
-      Alert.alert('Required', 'Scene number and header are required.');
+      appAlert('Required', 'Scene number and header are required.');
       return;
     }
 

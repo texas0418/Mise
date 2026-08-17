@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, Platform, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, Platform, TextInput } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Phone, Mail, Users, Plus, ChevronDown, ChevronUp, Pencil, Trash2, Search, ArrowUpDown } from 'lucide-react-native';
 import { useProjects, useProjectCrew } from '@/contexts/ProjectContext';
@@ -35,7 +36,7 @@ function CrewCard({ member, isExpanded, onPress, onEdit, onDelete }: {
   const initials = member.name.split(' ').map(n => n[0]).join('').slice(0, 2);
 
   const handleDelete = () => {
-    Alert.alert('Remove Crew Member', `Delete "${member.name}"?`, [
+    appAlert('Remove Crew Member', `Delete "${member.name}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);

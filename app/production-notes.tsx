@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, StickyNote, AlertCircle, Pin, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectNotes } from '@/contexts/ProjectContext';
@@ -39,7 +40,7 @@ function NoteCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   const handleDelete = () => {
-    Alert.alert('Delete Note', `Remove "${item.title}"?`, [
+    appAlert('Delete Note', `Remove "${item.title}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);

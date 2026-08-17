@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import {
@@ -57,7 +58,7 @@ export default function ProjectDetailScreen() {
 
   const handleDelete = () => {
     if (!project) return;
-    Alert.alert(
+    appAlert(
       'Delete Project',
       `Are you sure you want to delete "${project.title}"? This cannot be undone.`,
       [

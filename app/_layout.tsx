@@ -23,6 +23,7 @@ import OnboardingFlow from "@/components/OnboardingFlow";
 import { useGuardedRouter } from "@/utils/useGuardedRouter";
 import { useTypography } from "@/utils/useTypography";
 import DesktopGate from "@/components/DesktopGate";
+import AlertHost from "@/components/AlertHost";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -566,6 +567,10 @@ export default function RootLayout() {
                 </Stack>
               )}
               </DynamicTypeBoundary>
+              {/* Draws confirmations on web, where Alert.alert renders nothing
+                  (#119). Renders null on native, which uses the OS dialog.
+                  Last child so it paints above the navigator. */}
+              <AlertHost />
               </DesktopGate>
               </PermissionProvider>
               </DeviceLicenseProvider>

@@ -6,11 +6,11 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack } from 'expo-router';
 import {
@@ -379,7 +379,7 @@ export default function BudgetSpreadsheetScreen() {
   }, [updateBudgetItem]);
 
   const handleDelete = useCallback((item: BudgetItem) => {
-    Alert.alert('Delete Item', `Remove "${item.description}"?`, [
+    appAlert('Delete Item', `Remove "${item.description}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => deleteBudgetItem(item.id) },
     ]);
@@ -420,7 +420,7 @@ export default function BudgetSpreadsheetScreen() {
                   style={styles.viewToggle}
                   onPress={() => {
                     if (budget.length === 0) {
-                      Alert.alert('No Data', 'Add budget items before exporting.');
+                      appAlert('No Data', 'Add budget items before exporting.');
                       return;
                     }
                     exportBudgetToXlsx(budget, activeProject!.title);

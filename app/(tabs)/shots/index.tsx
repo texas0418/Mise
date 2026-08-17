@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SectionList, Alert, Animated as RNAnimated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SectionList, Animated as RNAnimated } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Plus, Camera, Check, Clock, Eye, AlertCircle, Trash2, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useProjects, useProjectShots, useProjectScenes, findScene } from '@/contexts/ProjectContext';
@@ -25,7 +26,7 @@ function ShotCard({ shot, onEdit, onDelete }: { shot: Shot; onEdit: () => void; 
   const StatusIcon = config.icon;
 
   const handleDelete = () => {
-    Alert.alert(
+    appAlert(
       'Delete Shot',
       `Delete shot ${shot.shotNumber} from Scene ${shot.sceneNumber}?`,
       [

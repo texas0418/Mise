@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Image } from 'expo-image';
 import { Camera } from 'lucide-react-native';
@@ -60,7 +61,7 @@ export default function NewLookbookItemScreen() {
 
   const handleSave = () => {
     if (!title.trim()) {
-      Alert.alert('Required', 'Title is required.');
+      appAlert('Required', 'Title is required.');
       return;
     }
 

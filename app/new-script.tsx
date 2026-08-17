@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TextInput,
-  TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView } from 'react-native';
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+} from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack } from 'expo-router';
 import { FileText, Upload, Check } from 'lucide-react-native';
@@ -59,15 +67,15 @@ export default function NewScriptScreen() {
   // ---------------------------------------------------------------------------
   const handleSave = async () => {
     if (!pickedPDF) {
-      Alert.alert('No PDF', 'Please select a PDF file first.');
+      appAlert('No PDF', 'Please select a PDF file first.');
       return;
     }
     if (!title.trim()) {
-      Alert.alert('Missing Title', 'Please enter a title for this script.');
+      appAlert('Missing Title', 'Please enter a title for this script.');
       return;
     }
     if (!activeProjectId || !user?.id) {
-      Alert.alert('Error', 'No active project or not signed in.');
+      appAlert('Error', 'No active project or not signed in.');
       return;
     }
 
@@ -108,7 +116,7 @@ export default function NewScriptScreen() {
     } catch (e: any) {
       setUploading(false);
       setUploadProgress('');
-      Alert.alert('Error', e.message || 'Failed to upload script.');
+      appAlert('Error', e.message || 'Failed to upload script.');
     }
   };
 

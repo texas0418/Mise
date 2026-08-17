@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Share, Linking } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Share, Linking } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Plus, Send, Clock, AlertTriangle, MessageCircle, Trash2, Share2, ChevronDown, ChevronUp, Megaphone } from 'lucide-react-native';
 import { useProjects, useProjectMessages, useProjectCrew } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
@@ -120,7 +121,7 @@ export default function CommsHubScreen() {
   }, [messages, filter]);
 
   const handleDelete = (msg: DirectorMessage) => {
-    Alert.alert('Delete Message', `Delete "${msg.subject}"?`, [
+    appAlert('Delete Message', `Delete "${msg.subject}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => deleteMessage(msg.id) },
     ]);
@@ -143,14 +144,14 @@ export default function CommsHubScreen() {
     const reachable = channel === 'text' ? audience.withPhone : audience.withEmail;
 
     if (audience.unknownLabels.length > 0) {
-      Alert.alert(
+      appAlert(
         'Unknown recipients',
         `This message is addressed to ${audience.unknownLabels.join(', ')}, which matches no department. Edit the message or add crew to a department first.`);
       return;
     }
 
     if (reachable.length === 0) {
-      Alert.alert('Nobody to send to', describeAudience(audience, channel));
+      appAlert('Nobody to send to', describeAudience(audience, channel));
       return;
     }
 
@@ -161,7 +162,7 @@ export default function CommsHubScreen() {
         ).map(p => p.name).join(', ')}`
       : '';
 
-    Alert.alert(
+    appAlert(
       channel === 'text' ? 'Send as a text?' : 'Send as an email?',
       `${describeAudience(audience, channel)}${warning}`,
       [
@@ -182,7 +183,7 @@ export default function CommsHubScreen() {
     try {
       if (channel === 'text') {
         if (!(await SMS.isAvailableAsync())) {
-          Alert.alert('Texting unavailable', 'This device cannot send text messages.');
+          appAlert('Texting unavailable', 'This device cannot send text messages.');
           return;
         }
         await SMS.sendSMSAsync(phoneNumbers(audience), body);
@@ -197,10 +198,10 @@ export default function CommsHubScreen() {
       /* No mail account configured — mailto still reaches whatever handles it. */
       const url = mailtoUrl(addresses, msg.subject, body);
       if (await Linking.canOpenURL(url)) await Linking.openURL(url);
-      else Alert.alert('Email unavailable', 'No mail app is set up on this device.');
+      else appAlert('Email unavailable', 'No mail app is set up on this device.');
     } catch (e) {
       console.warn('[comms-hub] send failed:', e);
-      Alert.alert('Could not send', 'The composer did not open. Please try again.');
+      appAlert('Could not send', 'The composer did not open. Please try again.');
     }
   };
 

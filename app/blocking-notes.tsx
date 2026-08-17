@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Move, AlertCircle, Camera, Users, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectBlockingNotes } from '@/contexts/ProjectContext';
@@ -18,7 +19,7 @@ function BlockingCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   onDelete: () => void;
 }) {
   const handleDelete = () => {
-    Alert.alert('Delete Blocking Note', `Remove "${item.title}"?`, [
+    appAlert('Delete Blocking Note', `Remove "${item.title}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);

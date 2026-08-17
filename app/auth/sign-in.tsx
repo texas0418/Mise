@@ -6,11 +6,11 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Mail, Lock, Clapperboard } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,11 +31,11 @@ export default function SignInScreen() {
   // -----------------------------------------------------------------------
   const handleSignIn = useCallback(async () => {
     if (!email.trim()) {
-      Alert.alert('Missing Email', 'Please enter your email address.');
+      appAlert('Missing Email', 'Please enter your email address.');
       return;
     }
     if (!password.trim()) {
-      Alert.alert('Missing Password', 'Please enter your password.');
+      appAlert('Missing Password', 'Please enter your password.');
       return;
     }
 
@@ -46,7 +46,7 @@ export default function SignInScreen() {
       router.replace('/(tabs)' as never);
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert('Sign In Failed', error.message || 'Please check your credentials.');
+      appAlert('Sign In Failed', error.message || 'Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -57,7 +57,7 @@ export default function SignInScreen() {
   // -----------------------------------------------------------------------
   const handleMagicLink = useCallback(async () => {
     if (!email.trim()) {
-      Alert.alert('Missing Email', 'Please enter your email to receive a magic link.');
+      appAlert('Missing Email', 'Please enter your email to receive a magic link.');
       return;
     }
 
@@ -66,9 +66,9 @@ export default function SignInScreen() {
       await signInWithMagicLink(email.trim());
       setMagicLinkSent(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('Check Your Email', 'We sent you a magic link. Tap it to sign in.');
+      appAlert('Check Your Email', 'We sent you a magic link. Tap it to sign in.');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to send magic link.');
+      appAlert('Error', error.message || 'Failed to send magic link.');
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export default function SignInScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert('Apple Sign In Failed', error.message || 'Please try again.');
+      appAlert('Apple Sign In Failed', error.message || 'Please try again.');
     } finally {
       setLoading(false);
     }

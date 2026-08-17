@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, FileText, MapPin, Clock, Users, Package, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectScenes } from '@/contexts/ProjectContext';
@@ -42,7 +43,7 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   const timeColor = TIME_COLORS[timeOfDay] ?? Colors.text.tertiary;
 
   const handleDelete = () => {
-    Alert.alert('Delete Scene', `Remove Scene ${item.number}?`, [
+    appAlert('Delete Scene', `Remove Scene ${item.number}?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);

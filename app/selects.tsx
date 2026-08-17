@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, SectionList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, SectionList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Plus, Star, Circle, CircleDot, Trash2, Clock, MessageSquare, Camera, AlertTriangle, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
 import { useProjects, useProjectSelects } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
@@ -25,7 +26,7 @@ function SelectCard({ select, onEdit, onDelete }: {
   const [expanded, setExpanded] = useState(false);
 
   const handleDelete = () => {
-    Alert.alert('Remove Select', `Remove Sc.${select.sceneNumber} / ${select.shotNumber} Tk.${select.takeNumber}?`, [
+    appAlert('Remove Select', `Remove Sc.${select.sceneNumber} / ${select.shotNumber} Tk.${select.takeNumber}?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Remove', style: 'destructive', onPress: onDelete },
     ]);

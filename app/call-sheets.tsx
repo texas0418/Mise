@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { ClipboardList, MapPin, Clock, Users, Drama, ShieldAlert, AlertCircle, Plus, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import {
@@ -216,7 +217,7 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
   const dateFull = dateWith(day.date, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
   const handleDelete = () => {
-    Alert.alert('Delete Call Sheet', `Remove Day ${day.dayNumber} call sheet?\n\nThis will also delete the schedule day.`, [
+    appAlert('Delete Call Sheet', `Remove Day ${day.dayNumber} call sheet?\n\nThis will also delete the schedule day.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);

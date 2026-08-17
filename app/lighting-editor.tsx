@@ -1,9 +1,19 @@
 import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert,
-  PanResponder, GestureResponderEvent, PanResponderGestureState,
-  ScrollView, TextInput, Modal, SafeAreaView, StatusBar,
-} from 'react-native';
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  PanResponder,
+  GestureResponderEvent,
+  PanResponderGestureState,
+  ScrollView,
+  TextInput,
+  Modal,
+  SafeAreaView,
+  StatusBar, Alert,} from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft, Plus, RotateCw, Trash2, Save, Lightbulb, Camera, User,
@@ -304,7 +314,7 @@ export default function LightingEditorScreen() {
 
   const deleteSelected = useCallback(() => {
     if (!selectedId) return;
-    Alert.alert('Remove Element', `Delete "${selectedElement?.label}"?`, [
+    appAlert('Remove Element', `Delete "${selectedElement?.label}"?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive', onPress: () => {
@@ -366,7 +376,7 @@ export default function LightingEditorScreen() {
 
   const handleSaveAsTemplate = useCallback(() => {
     if (!diagram || elements.length === 0) {
-      Alert.alert('No Elements', 'Add some elements before saving as a template.');
+      appAlert('No Elements', 'Add some elements before saving as a template.');
       return;
     }
     Alert.prompt(
@@ -387,7 +397,7 @@ export default function LightingEditorScreen() {
               createdAt: new Date().toISOString(),
             });
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Alert.alert('Saved', `"${name.trim()}" is now available as a template when creating new diagrams.`);
+            appAlert('Saved', `"${name.trim()}" is now available as a template when creating new diagrams.`);
           },
         },
       ],
@@ -398,7 +408,7 @@ export default function LightingEditorScreen() {
 
   const handleBack = useCallback(() => {
     if (hasChanges) {
-      Alert.alert('Unsaved Changes', 'Save before leaving?', [
+      appAlert('Unsaved Changes', 'Save before leaving?', [
         { text: 'Discard', style: 'destructive', onPress: () => router.back() },
         { text: 'Save & Exit', onPress: () => { handleSave(); router.back(); } },
         { text: 'Cancel', style: 'cancel' },

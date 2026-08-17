@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, DollarSign, AlertCircle, Check, Clock, ChevronDown, ChevronUp, Pencil, Trash2, Search, ArrowUpDown, LayoutGrid, FileText } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -52,7 +53,7 @@ function BudgetCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   const variance = item.estimated - item.actual;
 
   const handleDelete = () => {
-    Alert.alert('Delete Budget Item', `Remove "${item.description}"?`, [
+    appAlert('Delete Budget Item', `Remove "${item.description}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
@@ -160,7 +161,7 @@ export default function BudgetScreen() {
 
   const handleLoadTemplate = useCallback(() => {
     if (!activeProjectId) return;
-    Alert.alert(
+    appAlert(
       'Load Budget Template',
       `This will add ${TEMPLATE_LINE_COUNT} industry-standard line items to your budget. Existing items won't be affected.`,
       [

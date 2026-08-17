@@ -6,11 +6,11 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Mail } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import Colors from '@/constants/colors';
@@ -26,7 +26,7 @@ export default function ForgotPasswordScreen() {
 
   const handleReset = useCallback(async () => {
     if (!email.trim()) {
-      Alert.alert('Missing Email', 'Please enter your email address.');
+      appAlert('Missing Email', 'Please enter your email address.');
       return;
     }
 
@@ -35,7 +35,7 @@ export default function ForgotPasswordScreen() {
       await resetPassword(email.trim());
       setSent(true);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to send reset email.');
+      appAlert('Error', error.message || 'Failed to send reset email.');
     } finally {
       setLoading(false);
     }

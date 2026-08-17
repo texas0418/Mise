@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
@@ -51,7 +52,7 @@ export default function NewProjectScreen() {
 
   const handleSave = useCallback(() => {
     if (!title.trim()) {
-      Alert.alert('Missing Title', 'Please enter a project title.');
+      appAlert('Missing Title', 'Please enter a project title.');
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

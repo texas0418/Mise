@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, SectionList, TouchableOpacity, Animated, Alert, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, SectionList, TouchableOpacity, Animated, TextInput, Platform } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Image } from 'expo-image';
 import { Plus, Trash2, Film, Palette, Eye, Camera, Music, Shirt, Globe, Sparkles, PenLine, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
 import { useProjects, useProjectLookbook, useProjectDirectorStatement } from '@/contexts/ProjectContext';
@@ -26,7 +27,7 @@ function LookbookCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: LookbookItem; isExpanded: boolean; onPress: () => void; onEdit: () => void; onDelete: () => void;
 }) {
   const handleDelete = () => {
-    Alert.alert('Remove', `Delete "${item.title}"?`, [
+    appAlert('Remove', `Delete "${item.title}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);

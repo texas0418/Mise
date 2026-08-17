@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useEffect, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Image } from 'expo-image';
 import { Plus, Film, ChevronRight, Trash2, Check, Archive, ArchiveRestore } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -175,7 +176,7 @@ export default function ProjectsScreen() {
   // shot, day and take behind. Now the delete really does take them, so the
   // warning names what goes and offers archiving as the way out (#46).
   const handleDeleteProject = useCallback((project: Project) => {
-    Alert.alert(
+    appAlert(
       `Delete "${project.title}"?`,
       'This deletes the film and everything in it — shots, shoot days, takes, '
       + 'scenes, cast, budget, notes and documents. It cannot be undone.\n\n'

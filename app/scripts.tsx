@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import {
   Plus, FileText, AlertCircle, ChevronDown, ChevronUp,
@@ -56,7 +57,7 @@ function ScriptCard({
     : '';
 
   const handleDelete = () => {
-    Alert.alert('Delete Script', `Remove "${item.title}"? This will also delete all annotations.`, [
+    appAlert('Delete Script', `Remove "${item.title}"? This will also delete all annotations.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);

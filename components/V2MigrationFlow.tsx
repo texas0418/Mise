@@ -7,8 +7,13 @@
 
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Cloud, CloudOff, ArrowRight, Upload, LogIn } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/contexts/AuthContext';
@@ -54,7 +59,7 @@ export default function V2MigrationFlow({ onComplete }: Props) {
       setUploadCount(count);
       setStep('done');
     } catch (e: any) {
-      Alert.alert('Upload Error', e.message || 'Failed to upload data. You can try again later from Sync Settings.');
+      appAlert('Upload Error', e.message || 'Failed to upload data. You can try again later from Sync Settings.');
       setStep('done');
     }
   }, [doInitialUpload]);

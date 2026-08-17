@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Lightbulb, Check, Star, Trash2 } from 'lucide-react-native';
@@ -34,7 +35,7 @@ export default function NewLightingDiagramScreen() {
   }, []);
 
   const handleDeleteCustomTemplate = useCallback((tmpl: CustomTemplate) => {
-    Alert.alert('Delete Template', `Remove "${tmpl.label}"?`, [
+    appAlert('Delete Template', `Remove "${tmpl.label}"?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive', onPress: async () => {
@@ -62,11 +63,11 @@ export default function NewLightingDiagramScreen() {
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
-      Alert.alert('No Project', 'Select a project first.');
+      appAlert('No Project', 'Select a project first.');
       return;
     }
     if (!title.trim()) {
-      Alert.alert('Missing Title', 'Give your lighting diagram a name.');
+      appAlert('Missing Title', 'Give your lighting diagram a name.');
       return;
     }
 

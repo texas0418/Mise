@@ -10,10 +10,20 @@
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Alert, Dimensions, SafeAreaView, StatusBar, Modal, TextInput,
-  KeyboardAvoidingView, Platform,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Dimensions,
+  SafeAreaView,
+  StatusBar,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams } from 'expo-router';
 import {
@@ -659,7 +669,7 @@ function useAnnotationTools({
 
   const handleNoteDelete = useCallback(() => {
     if (editingNoteId) {
-      Alert.alert('Delete Note', 'Remove this note?', [
+      appAlert('Delete Note', 'Remove this note?', [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',

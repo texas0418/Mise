@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Plus, FileText, Clock, MessageSquare, Camera, Users, ChevronDown, ChevronUp, Tag, Trash2, Eye, Pencil } from 'lucide-react-native';
 import { useProjects, useProjectScriptSides, useProjectShots } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
@@ -68,7 +69,7 @@ function SideCard({ side, index, isExpanded, onPress, onEdit, onDelete, linkedSh
   const shootDate = dateWith(side.shootDate, { weekday: 'short', month: 'short', day: 'numeric' });
 
   const handleDelete = () => {
-    Alert.alert('Delete Scene', `Remove Sc. ${side.sceneNumber} from sides?`, [
+    appAlert('Delete Scene', `Remove Sc. ${side.sceneNumber} from sides?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
