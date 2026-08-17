@@ -111,10 +111,11 @@ async function logDelivery(
   supabase: Supabase,
   event: RevenueCatEvent | undefined,
   decision: Decision
-): Promise<void> {
+): Promise<string> {
+  const eventId = event?.id ?? crypto.randomUUID();
   const { error } = await supabase.from('revenuecat_events').upsert(
     {
-      event_id: event?.id ?? crypto.randomUUID(),
+      event_id: eventId,
       event_type: event?.type ?? null,
       app_user_id: event?.app_user_id ?? null,
       user_id: decision.action === 'apply' ? decision.userId : null,
@@ -125,12 +126,37 @@ async function logDelivery(
     { onConflict: 'event_id' }
   );
   if (error) console.warn('[revenuecat-webhook] event log failed:', error.message);
+  return eventId;
+}
+
+/**
+ * Correct the logged outcome once the write is attempted.
+ *
+ * The delivery is logged *before* the write, so nothing is lost if this
+ * function dies mid-request — but that means the row initially says `apply`
+ * for events that then get superseded by a newer one or fail to write. Left
+ * uncorrected, the log would claim a stale EXPIRATION revoked someone's
+ * subscription when it correctly did not, which is precisely the question the
+ * log exists to answer.
+ */
+async function markOutcome(
+  supabase: Supabase,
+  eventId: string,
+  outcome: string,
+  reason: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('revenuecat_events')
+    .update({ outcome, reason })
+    .eq('event_id', eventId);
+  if (error) console.warn('[revenuecat-webhook] outcome update failed:', error.message);
 }
 
 /** Write the decided entitlement, unless a newer event already superseded it. */
 async function applyDecision(
   supabase: Supabase,
-  decision: Extract<Decision, { action: 'apply' }>
+  decision: Extract<Decision, { action: 'apply' }>,
+  eventId: string
 ): Promise<Response> {
   // Out-of-order delivery guard. RevenueCat retries failures, so a stale
   // EXPIRATION can land after the RENEWAL that superseded it.
@@ -142,12 +168,15 @@ async function applyDecision(
 
   if (existing.error) {
     console.error('[revenuecat-webhook] read failed:', existing.error.message);
+    await markOutcome(supabase, eventId, 'failed', `read failed: ${existing.error.message}`);
     return json(500, { error: 'could not read current entitlement' });
   }
 
   const appliedAt = (existing.data as { last_event_at?: string } | null)?.last_event_at;
   if (isStale(appliedAt, decision.eventAt)) {
     console.log(`[revenuecat-webhook] stale event: ${decision.eventAt} <= ${appliedAt}`);
+    await markOutcome(supabase, eventId, 'superseded',
+      `a newer event (${appliedAt}) had already been applied`);
     return json(200, { ok: true, applied: false, reason: 'superseded by a newer event' });
   }
 
@@ -167,6 +196,7 @@ async function applyDecision(
     // 500 so RevenueCat retries. A dropped grant is a customer who paid and
     // cannot get in.
     console.error('[revenuecat-webhook] upsert failed:', error.message);
+    await markOutcome(supabase, eventId, 'failed', `write failed: ${error.message}`);
     return json(500, { error: 'could not write entitlement' });
   }
 
@@ -192,12 +222,12 @@ Deno.serve(async (req: Request) => {
 
   const supabase = serviceClient();
 
-  await logDelivery(supabase, event, decision);
+  const eventId = await logDelivery(supabase, event, decision);
 
   if (decision.action === 'ignore') {
     console.log(`[revenuecat-webhook] ignored (${event?.type ?? 'no type'}): ${decision.reason}`);
     return json(200, { ok: true, applied: false, reason: decision.reason });
   }
 
-  return applyDecision(supabase, decision);
+  return applyDecision(supabase, decision, eventId);
 });
