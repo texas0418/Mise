@@ -49,3 +49,55 @@ export async function readMirroredEntitlement(
     return false;
   }
 }
+
+/**
+ * Whether this account may use Mise on a desktop.
+ *
+ * Simon's rule (2026-08-12): the desktop build is included with a
+ * subscription, and requires one — "usable only if the user has paid a
+ * subscription for at least one device".
+ *
+ * Two sources, because one of them is empty today:
+ *
+ * - **`devices.is_licensed`** is the live record of paid devices and has rows
+ *   right now, so an existing subscriber is recognised the moment they sign in
+ *   on a laptop. This is the one that makes the rule work on day one.
+ * - **`entitlements.is_pro`** is the mirror from #112. It only gains rows once
+ *   a build carrying the mirror has run on a device, and that build is on
+ *   `dev`, not in the shipped 1.1.0 — so on its own it would lock out every
+ *   paying customer until they updated their phone and opened it once.
+ *
+ * Either one is enough. Both are read under owner-only RLS, so a signed-out
+ * visitor gets nothing.
+ *
+ * ## This is a soft gate, and should not be mistaken for a hard one
+ *
+ * RLS lets a user write **their own** rows in both tables — `devices` is a
+ * blanket owner policy and `entitlements` has an owner INSERT/UPDATE check.
+ * So a determined person with their own access token can set either flag and
+ * let themselves in. That stops casual sharing, not deliberate bypass.
+ *
+ * Making it authoritative means the client never writing entitlement at all:
+ * a RevenueCat webhook into an edge function that writes with the service
+ * role, and client INSERT/UPDATE revoked. That also backfills every existing
+ * subscriber, since RevenueCat already knows who they are. Worth doing before
+ * the desktop build is public rather than after.
+ */
+export async function readDesktopEntitlement(
+  userId: string | null | undefined
+): Promise<boolean> {
+  if (!userId) return false;
+  try {
+    const { count, error: devError } = await supabase
+      .from('devices')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_licensed', true)
+      .is('deleted_at', null);
+    if (!devError && (count ?? 0) > 0) return true;
+    if (devError) console.warn('[entitlement] device read failed:', devError.message);
+  } catch (e) {
+    console.warn('[entitlement] device read threw:', e);
+  }
+  return readMirroredEntitlement(userId);
+}

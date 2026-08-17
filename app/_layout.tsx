@@ -22,6 +22,7 @@ import { noteFirstLaunch } from "@/utils/reviewPrompt";
 import OnboardingFlow from "@/components/OnboardingFlow";
 import { useGuardedRouter } from "@/utils/useGuardedRouter";
 import { useTypography } from "@/utils/useTypography";
+import DesktopGate from "@/components/DesktopGate";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -187,6 +188,11 @@ export default function RootLayout() {
             <SubscriptionProvider>
               <DeviceLicenseProvider>
               <PermissionProvider>
+              {/* Desktop requires a subscription; no-op on a device. See
+                  components/DesktopGate.web.tsx. Inside the providers because
+                  it reads auth and the licence, outside the navigator so no
+                  route can be reached around it. */}
+              <DesktopGate>
               <DynamicTypeBoundary>
               {showOnboarding ? (
                 <OnboardingFlow onComplete={handleOnboardingComplete} />
@@ -560,6 +566,7 @@ export default function RootLayout() {
                 </Stack>
               )}
               </DynamicTypeBoundary>
+              </DesktopGate>
               </PermissionProvider>
               </DeviceLicenseProvider>
             </SubscriptionProvider>

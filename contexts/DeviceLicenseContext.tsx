@@ -40,7 +40,7 @@ import {
   type DeviceRecord,
 } from '@/lib/deviceManager';
 import { setProEntitled } from '@/lib/entitlement';
-import { readMirroredEntitlement } from '@/lib/entitlementMirror';
+import { readDesktopEntitlement } from '@/lib/entitlementMirror';
 
 // ----------------------------------------------------------------------------
 // Result type returned by purchase functions
@@ -387,7 +387,7 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
     if (Platform.OS !== 'web') return;
     if (!userId) { setMirroredPro(false); return; }
     let cancelled = false;
-    readMirroredEntitlement(userId).then(pro => {
+    readDesktopEntitlement(userId).then(pro => {
       if (!cancelled) setMirroredPro(pro);
     });
     return () => { cancelled = true; };
