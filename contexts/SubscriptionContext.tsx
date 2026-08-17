@@ -157,7 +157,15 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
    * and losing it must never stop someone using something they paid for.
    */
   useEffect(() => {
-    if (!Purchases) return;
+    /*
+     * `Purchases` is truthy on web and still cannot do anything: the web build
+     * maps react-native-purchases to web-stubs/empty.js (metro.config.js), so
+     * the module object exists with no methods on it. Checking the module
+     * alone threw "logOut is not a function" on every browser load — caught
+     * and swallowed, but it meant this effect was running a code path that
+     * cannot exist there. Check for the method, not the module.
+     */
+    if (typeof Purchases?.logIn !== 'function') return;
     let cancelled = false;
     (async () => {
       try {
