@@ -37,12 +37,38 @@
  *
  *   supabase functions deploy sync-entitlement
  *
- * `REVENUECAT_API_KEY` is optional and defaults to the iOS SDK key, which is
- * public by nature — it ships inside the app — and is accepted by
- * `/v1/subscribers`. Setting a secret key narrows what a leak of this
- * function's environment would expose:
+ * ## The RevenueCat key is deliberately the public one
  *
- *   supabase secrets set REVENUECAT_API_KEY=sk_…
+ * `REVENUECAT_API_KEY` is optional and defaults to the iOS SDK key. **Leave it
+ * unset.** Setting a secret key here makes this function less safe, not more,
+ * and an earlier version of this comment said the opposite.
+ *
+ * This function needs exactly one capability: read one subscriber. The public
+ * SDK key does that, and it is not a secret in the first place — it ships
+ * inside the app binary, so anyone who wants it already has it. If this
+ * function's environment leaked, the marginal exposure is nothing.
+ *
+ * A secret key (`sk_…`) carries the whole REST v1 surface: granting and
+ * revoking promotional entitlements, deleting subscribers, refunds. Putting one
+ * here would widen what a leak costs, to buy read access that is already
+ * available. Least privilege points the other way.
+ *
+ * The override stays because RevenueCat could change what `/v1/subscribers`
+ * accepts. If it is ever set, re-run the check below, because `||` protects
+ * against the variable being *absent* and not against it being *wrong* — a bad
+ * key overrides the working default, `fetchSubscriber` returns null, every call
+ * 502s, and `lib/syncEntitlement.ts` swallows it by design:
+ *
+ *   curl -s -X POST "$SUPABASE_URL/functions/v1/sync-entitlement" \
+ *     -H "apikey: $ANON_KEY" -H "Authorization: Bearer $USER_JWT"
+ *
+ * A 200 naming the entitlement means RevenueCat was reached. A 502 means the
+ * key is wrong.
+ *
+ * Note also that `REVENUECAT_WEBHOOK_SECRET` (RevenueCat authenticating *to*
+ * the webhook) is a different variable from this one (this function calling
+ * *out* to RevenueCat). They are easy to conflate and setting one does nothing
+ * for the other.
  */
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import {
@@ -52,7 +78,14 @@ import {
   type RevenueCatSubscriber,
 } from './entitlementFromSubscriber.ts';
 
-/** The public iOS SDK key from contexts/SubscriptionContext.tsx. */
+/**
+ * The public iOS SDK key from contexts/SubscriptionContext.tsx.
+ *
+ * Hard-coding it is fine and is not a leak: it is already in the app binary.
+ * It is also the *right* key for this job rather than a fallback we tolerate —
+ * see the note on least privilege at the top of the file before replacing it
+ * with a secret key.
+ */
 const DEFAULT_REVENUECAT_KEY = 'appl_hDSIJdgEdYkPSIavpEfPgjEImCA';
 
 function json(status: number, body: Record<string, unknown>): Response {
