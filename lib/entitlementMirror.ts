@@ -51,37 +51,48 @@ export async function readMirroredEntitlement(
 }
 
 /**
- * Whether this account may use Mise on a desktop.
+ * Whether this account may use Mise in a browser.
  *
- * Simon's rule (2026-08-12): the desktop build is included with a
- * subscription, and requires one — "usable only if the user has paid a
- * subscription for at least one device".
+ * Simon's rule (2026-08-12): the web build is included with a subscription,
+ * and requires one — "usable only if the user has paid a subscription for at
+ * least one device".
  *
- * Two sources, because one of them is empty today:
+ * Two sources, because each covers what the other cannot:
  *
  * - **`devices.is_licensed`** is the live record of paid devices and has rows
  *   right now, so an existing subscriber is recognised the moment they sign in
  *   on a laptop. This is the one that makes the rule work on day one.
- * - **`entitlements.is_pro`** is the mirror from #112. It only gains rows once
- *   a build carrying the mirror has run on a device, and that build is on
- *   `dev`, not in the shipped 1.1.0 — so on its own it would lock out every
- *   paying customer until they updated their phone and opened it once.
+ * - **`entitlements.is_pro`** is written only by the `revenuecat-webhook` edge
+ *   function. It is empty until a build carrying `Purchases.logIn` has run on
+ *   someone's device and RevenueCat has sent an event for them, so on its own
+ *   it would today admit nobody at all.
  *
  * Either one is enough. Both are read under owner-only RLS, so a signed-out
  * visitor gets nothing.
  *
- * ## This is a soft gate, and should not be mistaken for a hard one
+ * ## Both sources are now server-written
  *
- * RLS lets a user write **their own** rows in both tables — `devices` is a
- * blanket owner policy and `entitlements` has an owner INSERT/UPDATE check.
- * So a determined person with their own access token can set either flag and
- * let themselves in. That stops casual sharing, not deliberate bypass.
+ * This used to be a soft gate: owner RLS let a user write their own rows in
+ * both tables, so anyone with their own access token — which every signed-in
+ * user has, in plain text, on their own machine — could set either flag and
+ * let themselves in.
  *
- * Making it authoritative means the client never writing entitlement at all:
- * a RevenueCat webhook into an edge function that writes with the service
- * role, and client INSERT/UPDATE revoked. That also backfills every existing
- * subscriber, since RevenueCat already knows who they are. Worth doing before
- * the desktop build is public rather than after.
+ * Neither is client-writable any more.
+ *
+ * - `entitlements` lost its client INSERT/UPDATE policies; only the webhook
+ *   writes it, with the service role.
+ * - `devices.is_licensed` (and `license_tier`) are pinned by the
+ *   `devices_lock_license` trigger. Clients still register devices and rename
+ *   them; the licensing columns simply do not move for them. A plain column
+ *   REVOKE was rejected for this — the app inserts `is_licensed: false`
+ *   explicitly on every launch, and a revoke forbids naming the column at all,
+ *   which would have broken registration for every live user.
+ *
+ * The consequence worth knowing: nothing client-side can grant a licence any
+ * more, including the purchase flow. `activateDevice` still returns success
+ * and the flag no longer moves. Until server-side activation exists, a new
+ * subscriber gets Pro on their phone through RevenueCat and reaches the web
+ * build once the webhook has written their entitlement row.
  */
 export async function readDesktopEntitlement(
   userId: string | null | undefined
