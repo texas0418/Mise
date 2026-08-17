@@ -1,9 +1,15 @@
 // app/project/invite.tsx — Invite a member to the current project
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TextInput, TouchableOpacity,
-  ScrollView, Alert, ActivityIndicator,
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Mail, ChevronDown, Send } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,11 +34,11 @@ export default function InviteScreen() {
 
   const handleInvite = useCallback(async () => {
     if (!email.trim()) {
-      Alert.alert('Missing Email', 'Enter the email of the person to invite.');
+      appAlert('Missing Email', 'Enter the email of the person to invite.');
       return;
     }
     if (!activeProjectId || !user?.id) {
-      Alert.alert('Error', 'No active project or not signed in.');
+      appAlert('Error', 'No active project or not signed in.');
       return;
     }
 
@@ -48,7 +54,7 @@ export default function InviteScreen() {
         .maybeSingle();
 
       if (existing) {
-        Alert.alert('Already Invited', 'This person is already a member of this project.');
+        appAlert('Already Invited', 'This person is already a member of this project.');
         setSending(false);
         return;
       }
@@ -68,13 +74,13 @@ export default function InviteScreen() {
       if (error) throw error;
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert(
+      appAlert(
         'Invitation Sent',
         `Invited ${email.trim()} as ${ROLE_LABELS[selectedRole]}`,
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to send invitation.');
+      appAlert('Error', e.message || 'Failed to send invitation.');
     } finally {
       setSending(false);
     }

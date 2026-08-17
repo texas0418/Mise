@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
@@ -20,6 +22,7 @@ const STATUS_OPTIONS: { label: string; value: FestivalStatus }[] = [
 ];
 
 export default function NewFestivalScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addFestival, updateFestival, activeProjectId, activeProject } = useProjects();
   const festivals = useProjectFestivals(activeProjectId);
@@ -52,8 +55,8 @@ export default function NewFestivalScreen() {
   }, [existingItem?.id]);
 
   const handleSave = useCallback(() => {
-    if (!activeProjectId) { Alert.alert('No Project', 'Select a project first.'); return; }
-    if (!festivalName.trim()) { Alert.alert('Missing Info', 'Enter the festival name.'); return; }
+    if (!activeProjectId) { appAlert('No Project', 'Select a project first.'); return; }
+    if (!festivalName.trim()) { appAlert('Missing Info', 'Enter the festival name.'); return; }
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
@@ -80,7 +83,7 @@ export default function NewFestivalScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Festival' : 'New Festival' }} />
       <View style={styles.projectLabel}>
         <Text style={styles.projectLabelText}>{isEditing ? `Editing: ${existingItem!.festivalName}` : `Festival for: ${activeProject.title}`}</Text>

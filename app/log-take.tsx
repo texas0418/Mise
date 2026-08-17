@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { CircleCheck, CircleX, Trash2 } from 'lucide-react-native';
@@ -79,6 +81,7 @@ function TakeStatusRow({ isCircled, isNG, onToggleCircle, onToggleNG }: {
 }
 
 export default function LogTakeScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addTake, updateTake, deleteTake, activeProjectId, activeProject } = useProjects();
   const takes = useProjectTakes(activeProjectId);
@@ -112,11 +115,11 @@ export default function LogTakeScreen() {
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
-      Alert.alert('No Project', 'Please select a project first.');
+      appAlert('No Project', 'Please select a project first.');
       return;
     }
     if (!sceneNumber.trim() || !shotNumber.trim() || !takeNumber.trim()) {
-      Alert.alert('Missing Info', 'Please enter scene, shot, and take numbers.');
+      appAlert('Missing Info', 'Please enter scene, shot, and take numbers.');
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -148,7 +151,7 @@ export default function LogTakeScreen() {
 
   const handleDelete = useCallback(() => {
     if (!existingItem) return;
-    Alert.alert(
+    appAlert(
       'Delete Take',
       `Delete take ${existingItem.takeNumber} of Sc.${existingItem.sceneNumber}/${existingItem.shotNumber}?`,
       [
@@ -179,7 +182,7 @@ export default function LogTakeScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Take' : 'Log Take' }} />
 
       <View style={styles.projectLabel}>

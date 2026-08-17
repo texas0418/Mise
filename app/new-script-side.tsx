@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router';
@@ -35,7 +36,7 @@ export default function NewScriptSideScreen() {
   const { activeProjectId, addScriptSide, updateScriptSide } = useProjects();
   const sides = useProjectScriptSides(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { isTablet, contentPadding, formColumn} = useLayout();
   const params = useLocalSearchParams<{ id?: string }>();
   const editId = params.id;
   const existingSide = editId ? sides.find(s => s.id === editId) : null;
@@ -92,7 +93,7 @@ export default function NewScriptSideScreen() {
 
   const handleSave = () => {
     if (!sceneNumber.trim() || !sceneHeader.trim()) {
-      Alert.alert('Required', 'Scene number and header are required.');
+      appAlert('Required', 'Scene number and header are required.');
       return;
     }
 
@@ -128,12 +129,11 @@ export default function NewScriptSideScreen() {
     <KeyboardAvoidingView style={styles.container} behavior={KEYBOARD_BEHAVIOR}>
       <Stack.Screen options={{ title: isEditing ? 'Edit Side' : 'New Side' }} />
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, {
-          paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 700 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
-        }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: contentPadding },
+          formColumn,
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.sectionTitle}>Scene Info</Text>

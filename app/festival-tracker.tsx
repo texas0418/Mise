@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Trophy, AlertCircle, Calendar, DollarSign, ChevronDown, ChevronUp, Pencil, Trash2, ExternalLink } from 'lucide-react-native';
 import { useProjects, useProjectFestivals } from '@/contexts/ProjectContext';
@@ -24,7 +25,7 @@ function FestivalCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }) {
   const status = STATUS_CONFIG[item.status];
   const handleDelete = () => {
-    Alert.alert('Delete Festival', `Remove "${item.festivalName}"?`, [
+    appAlert('Delete Festival', `Remove "${item.festivalName}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
@@ -102,7 +103,7 @@ export default function FestivalTrackerScreen() {
   const { activeProject, activeProjectId, deleteFestival } = useProjects();
   const festivals = useProjectFestivals(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<FestivalStatus | null>(null);
 
@@ -123,14 +124,14 @@ export default function FestivalTrackerScreen() {
     <PermissionGate resource="festivals">
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Festival Tracker' }} />
-      <View style={styles.statsRow}>
+      <View style={[styles.statsRow, contentColumn, { paddingHorizontal: contentPadding }]}>
         <View style={styles.statBox}><Text style={styles.statValue}>{stats.total}</Text><Text style={styles.statLabel}>Tracked</Text></View>
         <View style={styles.statBox}><Text style={[styles.statValue, { color: Colors.status.info }]}>{stats.submitted}</Text><Text style={styles.statLabel}>Submitted</Text></View>
         <View style={styles.statBox}><Text style={[styles.statValue, { color: Colors.status.active }]}>{stats.accepted}</Text><Text style={styles.statLabel}>Accepted</Text></View>
         <View style={styles.statBox}><Text style={[styles.statValue, { color: Colors.accent.gold }]}>${stats.totalFees}</Text><Text style={styles.statLabel}>Fees</Text></View>
       </View>
 
-      <View style={styles.filterRow}>
+      <View style={[styles.filterRow, contentColumn, { paddingHorizontal: contentPadding }]}>
         {[{ label: 'All', value: null as FestivalStatus | null }, ...Object.entries(STATUS_CONFIG).map(([v, c]) => ({ label: c.label, value: v as FestivalStatus }))].map(f => {
           const isActive = filterStatus === f.value;
           const color = f.value ? STATUS_CONFIG[f.value].color : Colors.accent.gold;
@@ -151,7 +152,7 @@ export default function FestivalTrackerScreen() {
             onEdit={() => router.push(`/new-festival?id=${item.id}` as never)}
             onDelete={() => { deleteFestival(item.id); setExpandedId(null); }} />
         )}
-        contentContainerStyle={[styles.list, { paddingHorizontal: contentPadding, maxWidth: isTablet ? 800 : undefined, alignSelf: isTablet ? 'center' as const : undefined, width: isTablet ? '100%' : undefined }]}
+        contentContainerStyle={[styles.list, { paddingHorizontal: contentPadding, ...contentColumn }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={<View style={styles.emptyInner}><Trophy color={Colors.text.tertiary} size={48} /><Text style={styles.emptyTitle}>No festivals tracked</Text><Text style={styles.emptySubtitle}>Track your festival submission strategy</Text></View>}
       />

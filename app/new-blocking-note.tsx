@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useProjects, useProjectBlockingNotes } from '@/contexts/ProjectContext';
@@ -7,6 +8,7 @@ import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewBlockingNoteScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { activeProjectId, addBlockingNote, updateBlockingNote } = useProjects();
   const blockingNotes = useProjectBlockingNotes(activeProjectId);
@@ -63,7 +65,7 @@ export default function NewBlockingNoteScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Blocking Note' : 'New Blocking Note' }} />
 
       {isEditing && (

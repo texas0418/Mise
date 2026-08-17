@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Image } from 'expo-image';
@@ -19,6 +21,7 @@ const TYPE_OPTIONS: { label: string; value: MoodBoardItemType }[] = [
 ];
 
 export default function NewMoodItemScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addMoodBoardItem, updateMoodBoardItem, activeProjectId, activeProject } = useProjects();
   const moodItems = useProjectMoodBoard(activeProjectId);
@@ -49,11 +52,11 @@ export default function NewMoodItemScreen() {
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
-      Alert.alert('No Project', 'Select a project first.');
+      appAlert('No Project', 'Select a project first.');
       return;
     }
     if (!label.trim()) {
-      Alert.alert('Missing Label', 'Enter a label for this item.');
+      appAlert('Missing Label', 'Enter a label for this item.');
       return;
     }
 
@@ -84,7 +87,7 @@ export default function NewMoodItemScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Mood Board Item' : 'New Mood Board Item' }} />
 
       <View style={styles.projectLabel}>

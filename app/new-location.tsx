@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Image } from 'expo-image';
@@ -12,6 +14,7 @@ import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewLocationScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addLocation, updateLocation, activeProjectId, activeProject } = useProjects();
   const locations = useProjectLocations(activeProjectId);
@@ -63,11 +66,11 @@ export default function NewLocationScreen() {
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
-      Alert.alert('No Project', 'Select a project first.');
+      appAlert('No Project', 'Select a project first.');
       return;
     }
     if (!name.trim()) {
-      Alert.alert('Missing Info', 'Enter a location name.');
+      appAlert('Missing Info', 'Enter a location name.');
       return;
     }
 
@@ -108,7 +111,7 @@ export default function NewLocationScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Location' : 'New Location' }} />
 
       <View style={styles.projectLabel}>

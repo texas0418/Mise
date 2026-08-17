@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, TextInput, Keyboard, TouchableWithoutFeedback, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated, TextInput, Keyboard, TouchableWithoutFeedback, Platform } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Plus, CircleDot, CircleCheck, CircleX, AlertCircle, ChevronDown, ChevronUp, Trash2, Maximize2 } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
@@ -309,7 +310,7 @@ export default function OnSetScreen() {
   }, [setTakeValue]);
 
   const handleDeleteTake = useCallback((t: Take) => {
-    Alert.alert(
+    appAlert(
       'Delete Take',
       `Delete take ${t.takeNumber} of Sc.${t.sceneNumber}/${t.shotNumber}?`,
       [

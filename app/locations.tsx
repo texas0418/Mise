@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { Plus, MapPin, Star, Zap, Phone, AlertCircle, Shield, ChevronDown, ChevronUp, Pencil, Trash2, Car, ImageIcon } from 'lucide-react-native';
@@ -23,7 +24,7 @@ function LocationCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   const stars = Array.from({ length: 5 }, (_, i) => i < item.rating);
 
   const handleDelete = () => {
-    Alert.alert('Delete Location', `Remove "${item.name}"?`, [
+    appAlert('Delete Location', `Remove "${item.name}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
@@ -158,7 +159,7 @@ export default function LocationsScreen() {
   const { activeProject, activeProjectId, deleteLocation } = useProjects();
   const locations = useProjectLocations(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (!activeProject) {
@@ -196,9 +197,7 @@ export default function LocationsScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

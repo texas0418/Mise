@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
@@ -11,6 +13,7 @@ import { BUDGET_CATEGORIES } from '@/constants/filmData';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewBudgetItemScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addBudgetItem, updateBudgetItem, activeProjectId, activeProject } = useProjects();
   const budgetItems = useProjectBudget(activeProjectId);
@@ -43,11 +46,11 @@ export default function NewBudgetItemScreen() {
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
-      Alert.alert('No Project', 'Select a project first.');
+      appAlert('No Project', 'Select a project first.');
       return;
     }
     if (!description.trim() || !estimated.trim()) {
-      Alert.alert('Missing Info', 'Enter description and estimated amount.');
+      appAlert('Missing Info', 'Enter description and estimated amount.');
       return;
     }
 
@@ -83,7 +86,7 @@ export default function NewBudgetItemScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Budget Item' : 'New Budget Item' }} />
 
       <View style={styles.projectLabel}>

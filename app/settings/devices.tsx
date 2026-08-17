@@ -1,6 +1,7 @@
 // app/settings/devices.tsx — Manage registered devices
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Smartphone, Tablet, Monitor, Trash2, ShieldCheck, ShieldOff } from 'lucide-react-native';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
 import Colors from '@/constants/colors';
@@ -19,14 +20,14 @@ export default function DevicesScreen() {
   } = useDeviceLicense();
 
   const handleDeactivate = useCallback((deviceId: string, name: string) => {
-    Alert.alert('Deactivate Device', `Remove Pro access from "${name}"? You can reactivate later.`, [
+    appAlert('Deactivate Device', `Remove Pro access from "${name}"? You can reactivate later.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Deactivate', style: 'destructive', onPress: () => deactivateDeviceById(deviceId) },
     ]);
   }, [deactivateDeviceById]);
 
   const handleRemove = useCallback((deviceId: string, name: string) => {
-    Alert.alert('Remove Device', `Remove "${name}" from your account? This cannot be undone.`, [
+    appAlert('Remove Device', `Remove "${name}" from your account? This cannot be undone.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Remove', style: 'destructive', onPress: () => removeDeviceById(deviceId) },
     ]);

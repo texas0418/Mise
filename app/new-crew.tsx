@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
@@ -11,6 +13,7 @@ import { DEPARTMENTS } from '@/constants/filmData';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewCrewScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { addCrewMember, updateCrewMember, crew, addCrewAssignment, activeProjectId } = useProjects();
   const params = useLocalSearchParams<{ id?: string }>();
@@ -38,7 +41,7 @@ export default function NewCrewScreen() {
 
   const handleSave = useCallback(() => {
     if (!name.trim() || !role.trim()) {
-      Alert.alert('Missing Info', 'Please enter name and role.');
+      appAlert('Missing Info', 'Please enter name and role.');
       return;
     }
 
@@ -73,7 +76,7 @@ export default function NewCrewScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Crew Member' : 'New Crew Member' }} />
 
       {isEditing && (

@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Switch, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { ChevronDown } from 'lucide-react-native';
@@ -12,6 +14,7 @@ import { generateBudgetTemplate, TEMPLATE_LINE_COUNT } from '@/utils/budgetTempl
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewProjectScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { projects, addProject, updateProject, addBudgetItemBulk } = useProjects();
 
@@ -51,7 +54,7 @@ export default function NewProjectScreen() {
 
   const handleSave = useCallback(() => {
     if (!title.trim()) {
-      Alert.alert('Missing Title', 'Please enter a project title.');
+      appAlert('Missing Title', 'Please enter a project title.');
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -91,7 +94,7 @@ export default function NewProjectScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Project' : 'New Project' }} />
 
       <View style={styles.field}>

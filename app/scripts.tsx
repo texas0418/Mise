@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import {
   Plus, FileText, AlertCircle, ChevronDown, ChevronUp,
@@ -56,7 +57,7 @@ function ScriptCard({
     : '';
 
   const handleDelete = () => {
-    Alert.alert('Delete Script', `Remove "${item.title}"? This will also delete all annotations.`, [
+    appAlert('Delete Script', `Remove "${item.title}"? This will also delete all annotations.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
@@ -164,7 +165,7 @@ export default function ScriptsScreen() {
   const { activeProject, activeProjectId, deleteScriptPDF } = useProjects();
   const scripts = useProjectScriptPDFs(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (!activeProject) {
@@ -205,9 +206,7 @@ export default function ScriptsScreen() {
             styles.list,
             {
               paddingHorizontal: contentPadding,
-              maxWidth: isTablet ? 800 : undefined,
-              alignSelf: isTablet ? ('center' as const) : undefined,
-              width: isTablet ? '100%' : undefined,
+              ...contentColumn,
             },
           ]}
           showsVerticalScrollIndicator={false}

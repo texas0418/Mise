@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { ClipboardList, MapPin, Clock, Users, Drama, ShieldAlert, AlertCircle, Plus, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import {
@@ -216,7 +217,7 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
   const dateFull = dateWith(day.date, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
   const handleDelete = () => {
-    Alert.alert('Delete Call Sheet', `Remove Day ${day.dayNumber} call sheet?\n\nThis will also delete the schedule day.`, [
+    appAlert('Delete Call Sheet', `Remove Day ${day.dayNumber} call sheet?\n\nThis will also delete the schedule day.`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
@@ -387,7 +388,7 @@ export default function CallSheetsScreen() {
   }, [crewAssignments, updateCrewAssignment]);
   const schedule = useProjectSchedule(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (!activeProject) {
@@ -405,10 +406,18 @@ export default function CallSheetsScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Call Sheets' }} />
 
+      {/*
+        The bar keeps the full width — it is a rule across the top of the page
+        and looks wrong stopping short of the edges. Its contents move into the
+        same column as the list below, so the count on the left and the crew
+        figure on the right stop sitting a metre apart on a wide window (#120).
+      */}
       <View style={styles.statsBar}>
-        <ClipboardList color={Colors.accent.gold} size={16} />
-        <Text style={styles.statsText}>{schedule.length} call sheet{schedule.length !== 1 ? 's' : ''}</Text>
-        <Text style={styles.statsDetail}>{crew.length} crew</Text>
+        <View style={[styles.statsBarInner, contentColumn]}>
+          <ClipboardList color={Colors.accent.gold} size={16} />
+          <Text style={styles.statsText}>{schedule.length} call sheet{schedule.length !== 1 ? 's' : ''}</Text>
+          <Text style={styles.statsDetail}>{crew.length} crew</Text>
+        </View>
       </View>
 
       <FlatList
@@ -432,9 +441,7 @@ export default function CallSheetsScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
@@ -460,7 +467,10 @@ export default function CallSheetsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg.primary },
-  statsBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12, backgroundColor: Colors.bg.secondary, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle, gap: 8 },
+  statsBarInner: { flexDirection: 'row', alignItems: 'center', gap: 8, width: '100%' },
+  // justifyContent, not the inner view's alignSelf: this bar is a row, so
+  // alignSelf there controls the cross axis and does nothing horizontally.
+  statsBar: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 12, backgroundColor: Colors.bg.secondary, borderBottomWidth: 0.5, borderBottomColor: Colors.border.subtle, gap: 8 },
   statsText: { flex: 1, fontSize: 14, fontWeight: '600' as const, color: Colors.text.primary },
   statsDetail: { fontSize: 12, color: Colors.text.tertiary },
   list: { padding: 16, paddingBottom: 100 },

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { useLayout } from '@/utils/useLayout';
+import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Lightbulb, Check, Star, Trash2 } from 'lucide-react-native';
@@ -11,6 +13,7 @@ import { LIGHTING_TEMPLATES, getTemplate, loadCustomTemplates, deleteCustomTempl
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 export default function NewLightingDiagramScreen() {
+  const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { activeProjectId, activeProject, addLightingDiagram, updateLightingDiagram } = useProjects();
   const diagrams = useProjectLightingDiagrams(activeProjectId);
@@ -34,7 +37,7 @@ export default function NewLightingDiagramScreen() {
   }, []);
 
   const handleDeleteCustomTemplate = useCallback((tmpl: CustomTemplate) => {
-    Alert.alert('Delete Template', `Remove "${tmpl.label}"?`, [
+    appAlert('Delete Template', `Remove "${tmpl.label}"?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive', onPress: async () => {
@@ -62,11 +65,11 @@ export default function NewLightingDiagramScreen() {
 
   const handleSave = useCallback(() => {
     if (!activeProjectId) {
-      Alert.alert('No Project', 'Select a project first.');
+      appAlert('No Project', 'Select a project first.');
       return;
     }
     if (!title.trim()) {
-      Alert.alert('Missing Title', 'Give your lighting diagram a name.');
+      appAlert('Missing Title', 'Give your lighting diagram a name.');
       return;
     }
 
@@ -130,7 +133,7 @@ export default function NewLightingDiagramScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={KEYBOARD_BEHAVIOR}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: isEditing ? 'Edit Diagram Info' : 'New Lighting Diagram' }} />
 
       {isEditing && (

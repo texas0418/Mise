@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Clock, AlertCircle, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { useProjects, useProjectTimeEntries } from '@/contexts/ProjectContext';
@@ -34,7 +35,7 @@ function TimeCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   const dateStr = dateWith(item.date, { month: 'short', day: 'numeric' });
 
   const handleDelete = () => {
-    Alert.alert('Delete Entry', `Remove time entry for ${dateStr}?`, [
+    appAlert('Delete Entry', `Remove time entry for ${dateStr}?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
@@ -124,7 +125,7 @@ export default function TimeTrackerScreen() {
   const { activeProject, activeProjectId, deleteTimeEntry } = useProjects();
   const entries = useProjectTimeEntries(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const summary = useMemo(() => {
@@ -174,9 +175,7 @@ export default function TimeTrackerScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

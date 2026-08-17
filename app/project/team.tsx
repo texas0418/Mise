@@ -1,9 +1,14 @@
 // app/project/team.tsx — View & manage project team members
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, ActivityIndicator,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { UserPlus, Crown, Shield, ChevronDown, Trash2, User } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProjects } from '@/contexts/ProjectContext';
@@ -91,7 +96,7 @@ export default function TeamScreen() {
   const handleChangeRole = useCallback((memberId: string, memberName: string, currentRole: Role) => {
     const assignableRoles = ALL_ROLES.filter(r => r !== 'owner'); // Can't assign owner
 
-    Alert.alert(
+    appAlert(
       `Change Role — ${memberName}`,
       `Current: ${ROLE_LABELS[currentRole]}`,
       [
@@ -107,7 +112,7 @@ export default function TeamScreen() {
               if (error) throw error;
               await fetchMembers();
             } catch (e: any) {
-              Alert.alert('Error', e.message);
+              appAlert('Error', e.message);
             } finally {
               setChangingRole(null);
             }
@@ -119,7 +124,7 @@ export default function TeamScreen() {
   }, [fetchMembers]);
 
   const handleRemoveMember = useCallback((memberId: string, memberName: string) => {
-    Alert.alert('Remove Member', `Remove ${memberName} from this project?`, [
+    appAlert('Remove Member', `Remove ${memberName} from this project?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Remove', style: 'destructive',
@@ -132,7 +137,7 @@ export default function TeamScreen() {
             if (error) throw error;
             await fetchMembers();
           } catch (e: any) {
-            Alert.alert('Error', e.message);
+            appAlert('Error', e.message);
           }
         },
       },

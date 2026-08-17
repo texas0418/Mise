@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Image as ImageIcon, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { Image } from 'expo-image';
@@ -19,7 +20,7 @@ function ReferenceCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   onDelete: () => void;
 }) {
   const handleDelete = () => {
-    Alert.alert('Delete Reference', `Remove "${item.title}"?`, [
+    appAlert('Delete Reference', `Remove "${item.title}"?`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: onDelete },
     ]);
@@ -118,7 +119,7 @@ export default function ShotReferencesScreen() {
   const { activeProject, activeProjectId, deleteShotReference } = useProjects();
   const references = useProjectShotReferences(activeProjectId);
   const router = useGuardedRouter();
-  const { isTablet, contentPadding } = useLayout();
+  const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (!activeProject) {
@@ -150,9 +151,7 @@ export default function ShotReferencesScreen() {
         )}
         contentContainerStyle={[styles.list, {
           paddingHorizontal: contentPadding,
-          maxWidth: isTablet ? 800 : undefined,
-          alignSelf: isTablet ? 'center' as const : undefined,
-          width: isTablet ? '100%' : undefined,
+          ...contentColumn,
         }]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={

@@ -7,9 +7,14 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, Switch, TouchableOpacity, Alert,
+  View,
+  Text,
+  StyleSheet,
+  Switch,
+  TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { appAlert } from '@/lib/appAlert';
 import { Bell, BellOff, Clock, Moon, ChevronDown, ChevronUp } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import {
@@ -69,7 +74,7 @@ export default function NotificationSettings({ onPrefsChanged }: Props) {
     if (enabled && !permitted) {
       const granted = await requestPermissions();
       if (!granted) {
-        Alert.alert(
+        appAlert(
           'Notifications Disabled',
           'Enable notifications in your device Settings to receive call time reminders.',
         );
