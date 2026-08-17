@@ -33,6 +33,7 @@ import React, {
   useRef,
 } from 'react';
 import { Platform, AppState, AppStateStatus } from 'react-native';
+import { useAuth } from '@/contexts/AuthContext';
 
 // RevenueCat — dynamic import so app doesn't crash if SDK isn't installed
 let Purchases: any = null;
@@ -131,10 +132,45 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   });
 
   const appState = useRef(AppState.currentState);
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
 
   useEffect(() => {
     initializeRevenueCat();
   }, []);
+
+  /*
+   * Tell RevenueCat who this is.
+   *
+   * Without this, `Purchases.configure` assigns an anonymous per-install id
+   * ($RCAnonymousID:…) and RevenueCat never learns the Supabase user. That is
+   * survivable while entitlement is read on-device — but it makes a webhook
+   * impossible, because the event arrives attributed to an id no server can
+   * map to an account. Identifying here is the precondition for entitlement
+   * being authoritative rather than self-attested.
+   *
+   * logIn also aliases the anonymous id to this one, so a subscription bought
+   * before signing in follows the person into their account rather than being
+   * stranded on the install.
+   *
+   * Failures are logged and swallowed: identity is for the server's benefit,
+   * and losing it must never stop someone using something they paid for.
+   */
+  useEffect(() => {
+    if (!Purchases) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        if (userId) await Purchases.logIn(userId);
+        else await Purchases.logOut();
+        if (!cancelled) await checkSubscriptionStatus();
+      } catch (e: any) {
+        // logOut throws when already anonymous; that is not a problem.
+        console.log('[Subscription] identity:', e?.message || e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', handleAppStateChange);
