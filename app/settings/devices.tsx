@@ -19,6 +19,23 @@ export default function DevicesScreen() {
     deactivateDeviceById, removeDeviceById, refreshDevices, isLoading,
   } = useDeviceLicense();
 
+  /*
+   * The web build registers itself as a device (platform 'web') so session
+   * bookkeeping works the same everywhere. It is not a licensed seat and can
+   * never become one: `devices.is_licensed` is pinned by a trigger, and
+   * getLicensedDeviceCount counts only licensed rows.
+   *
+   * Showing it here was actively misleading rather than merely untidy. Mise is
+   * priced per device, so a row the customer never added, sitting in the exact
+   * list whose length they pay for, reads as a $2.99/mo charge (#128).
+   *
+   * The exception is the web build itself, where that row IS the device you are
+   * looking at — hiding it there would be the lie instead.
+   */
+  const visibleDevices = devices.filter(
+    d => d.platform !== 'web' || d.deviceUuid === currentDeviceUuid
+  );
+
   const handleDeactivate = useCallback((deviceId: string, name: string) => {
     appAlert('Deactivate Device', `Remove Pro access from "${name}"? You can reactivate later.`, [
       { text: 'Cancel', style: 'cancel' },
@@ -50,7 +67,7 @@ export default function DevicesScreen() {
       {/* Summary card */}
       <View style={s.card}>
         <Text style={s.cardTitle}>Your Devices</Text>
-        <Text style={s.cardStat}>{licensedCount} licensed of {devices.length} registered</Text>
+        <Text style={s.cardStat}>{licensedCount} licensed of {visibleDevices.length} registered</Text>
         <View style={s.priceRow}>
           <Text style={s.priceLabel}>Monthly total</Text>
           <Text style={s.priceValue}>${monthlyPrice.toFixed(2)}/mo</Text>
@@ -61,7 +78,7 @@ export default function DevicesScreen() {
       </View>
 
       {/* Device list */}
-      {devices.map((device) => {
+      {visibleDevices.map((device) => {
         const isCurrent = device.deviceUuid === currentDeviceUuid;
         return (
           <View key={device.id} style={[s.deviceCard, isCurrent && s.deviceCardCurrent]}>
@@ -100,7 +117,12 @@ export default function DevicesScreen() {
         );
       })}
 
-      {devices.length === 0 && (
+      {/*
+        * visibleDevices, not devices: an account whose only row is a hidden web
+        * device would otherwise render neither a list nor this message, leaving
+        * a blank screen.
+        */}
+      {visibleDevices.length === 0 && (
         <Text style={s.emptyText}>No devices registered yet. Sign in to register this device.</Text>
       )}
     </ScrollView>
