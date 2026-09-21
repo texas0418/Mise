@@ -81,7 +81,7 @@ function unavailableMessage(action: 'Purchase' | 'Restore'): string {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const REVENUECAT_IOS_KEY = 'appl_hDSIJdgEdYkPSIavpEfPgjEImCA';
-const REVENUECAT_ANDROID_KEY = '';
+const REVENUECAT_ANDROID_KEY = 'goog_BDEFvTtjaxyWwmoJfQVRFfXETml';
 
 const ENTITLEMENT_ID = 'Mise Film Director Suite Pro';
 
