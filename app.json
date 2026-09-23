@@ -36,7 +36,7 @@
         "backgroundColor": "#0A0A0A"
       },
       "package": "com.mise.film_director_suite",
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
