@@ -1,27 +1,27 @@
 /**
  * contexts/SubscriptionContext.tsx
  *
- * RevenueCat Subscription Provider — v2 Device Licensing Model
+ * RevenueCat Subscription Provider — v3 Device Tier Model
  *
- * Products (4 total — must match App Store Connect exactly):
- *   com.mise.film_director_suite.pro_monthly                  → $4.99/mo  (base, 1st device)
- *   com.mise.film_director_suite.pro_yearly                   → $49.99/yr (base annual)
- *   com.mise.film_director_suite.additional_device_monthly    → $2.99/mo  (extra device)
- *   com.mise.film_director_suite.additional_device_annual     → $29.99/yr (extra device annual)
+ * One subscription per tier, monthly + annual base plans, all tiers in one
+ * subscription group per store so upgrades and proration are native. The
+ * ladder itself (names, limits, product ids) lives in lib/tiers.ts.
  *
- * Entitlement: "Mise Film Director Suite Pro"
+ * Solo is the original Mise Pro product, so existing subscribers are
+ * already on a tier. The old per-device add-on products are never sold
+ * here again but are still honoured when active (grandfathering).
+ *
+ * Entitlement: "Mise Film Director Suite Pro" — attached to every tier.
  *
  * Flow:
- *   - purchaseBase() / purchaseBaseAnnual()                          → first device
- *   - purchaseAdditionalDevice() / purchaseAdditionalDeviceAnnual()  → extra device
- *   - restorePurchases()                                              → restores any active RC subscription
+ *   - purchaseTier(tierId, period)  → buy or change tier
+ *   - restorePurchases()            → restores any active RC subscription
  *   - After any successful purchase, DeviceLicenseContext calls activateCurrentDevice()
  *
- * NOTE: This context exposes ONLY the RevenueCat entitlement signal (state.isPro).
- * For feature gating, components should use useDeviceLicense().isPro instead,
- * which is the combined truth: (isDeviceLicensed || isRevenueCatPro).
- * The previous requiresPro() method was removed because it could desync from
- * the device license and lock Pro users out of features.
+ * NOTE: This context exposes ONLY the RevenueCat signals (state.isPro,
+ * state.activeTierId). For feature gating, components should use
+ * useDeviceLicense().isPro instead, which is the combined truth:
+ * (isDeviceLicensed || isRevenueCatPro).
  */
 
 import React, {
@@ -35,6 +35,14 @@ import React, {
 import { Platform, AppState, AppStateStatus } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { syncEntitlement } from '@/lib/syncEntitlement';
+import {
+  TIERS,
+  TIERS_OFFERING_ID,
+  getTier,
+  resolveTierState,
+  type TierId,
+  type BillingPeriod,
+} from '@/lib/tiers';
 
 /*
  * RevenueCat — required lazily so the app does not crash when the SDK is absent.
@@ -45,8 +53,8 @@ import { syncEntitlement } from '@/lib/syncEntitlement';
  * no methods on it**. Every `if (!Purchases)` guard in this file passed, and
  * the call after it hit a method that does not exist.
  *
- * Rather than test for a method at each of the six call sites — which leaves
- * the trap armed for the seventh — "present but not functional" is resolved to
+ * Rather than test for a method at each call site — which leaves the trap
+ * armed for the next one — "present but not functional" is resolved to
  * absent here, once. `configure` is the probe because nothing else can happen
  * without it.
  */
@@ -85,61 +93,36 @@ const REVENUECAT_ANDROID_KEY = 'goog_BDEFvTtjaxyWwmoJfQVRFfXETml';
 
 const ENTITLEMENT_ID = 'Mise Film Director Suite Pro';
 
-// Product identifiers — must match App Store Connect exactly
-export const PRODUCT_IDS = {
-  /** Base subscription monthly — $4.99/month, required for first device */
-  base: 'com.mise.film_director_suite.pro_monthly',
-  /** Base subscription annual — $49.99/year (saves 17%) */
-  baseAnnual: 'com.mise.film_director_suite.pro_yearly',
-  /** Add-on subscription monthly — $2.99/month per additional device */
-  additionalDevice: 'com.mise.film_director_suite.additional_device_monthly',
-  /** Add-on subscription annual — $29.99/year per additional device (saves 17%) */
-  additionalDeviceAnnual: 'com.mise.film_director_suite.additional_device_annual',
-} as const;
-
-// RevenueCat package identifiers set in the Offerings dashboard
-// '$rc_monthly' / '$rc_annual' are RevenueCat's built-in identifiers
-export const PACKAGE_IDS = {
-  base: '$rc_monthly',
-  baseAnnual: '$rc_annual',
-  additionalDevice: 'additional_device_monthly',
-  additionalDeviceAnnual: 'additional_device_annual',
-} as const;
-
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+/** Key into tierPackages: `${tierId}_${period}`. */
+export function tierPackageKey(tierId: TierId, period: BillingPeriod): string {
+  return `${tierId}_${period}`;
+}
 
 interface SubscriptionState {
   isInitialized: boolean;
   isPro: boolean;
   isLoading: boolean;
-  /** All available packages from the current RC Offering */
-  packages: any[];
-  /** The base $4.99/mo package, if available */
-  basePackage: any | null;
-  /** The base $49.99/yr package, if available */
-  baseAnnualPackage: any | null;
-  /** The additional device $2.99/mo package, if available */
-  additionalDevicePackage: any | null;
-  /** The additional device $29.99/yr package, if available */
-  additionalDeviceAnnualPackage: any | null;
+  /** The tier whose subscription is currently active, or null when free. */
+  activeTierId: TierId | null;
+  /** A grandfathered per-device add-on is still renewing (+1 device). */
+  legacyAddonActive: boolean;
+  /** Devices the active subscription licenses (0 when free). */
+  deviceLimit: number;
+  /** RC packages from the `tiers` offering, keyed by tierPackageKey(). */
+  tierPackages: Record<string, any>;
   error: string | null;
 }
 
 interface SubscriptionContextValue extends SubscriptionState {
-  /** Purchase the base Pro monthly subscription ($4.99/mo, first device) */
-  purchaseBase: () => Promise<boolean>;
-  /** Purchase the base Pro annual subscription ($49.99/yr, first device) */
-  purchaseBaseAnnual: () => Promise<boolean>;
-  /** Purchase an additional device monthly slot ($2.99/mo) */
-  purchaseAdditionalDevice: () => Promise<boolean>;
-  /** Purchase an additional device annual slot ($29.99/yr) */
-  purchaseAdditionalDeviceAnnual: () => Promise<boolean>;
-  /** Restore any previous purchases from the App Store */
+  /** Purchase (or change to) the given tier. The stores handle proration
+   * natively because every tier shares one subscription group. */
+  purchaseTier: (tierId: TierId, period: BillingPeriod) => Promise<boolean>;
+  /** Restore any previous purchases from the store */
   restorePurchases: () => Promise<boolean>;
   /** Refresh subscription status (call after device activation) */
   refreshStatus: () => Promise<void>;
-  /** @deprecated Use purchaseBase() instead */
-  purchasePro: () => Promise<boolean>;
 }
 
 export const FREE_PROJECT_LIMIT = 2;
@@ -155,11 +138,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     isInitialized: false,
     isPro: false,
     isLoading: false,
-    packages: [],
-    basePackage: null,
-    baseAnnualPackage: null,
-    additionalDevicePackage: null,
-    additionalDeviceAnnualPackage: null,
+    activeTierId: null,
+    legacyAddonActive: false,
+    deviceLimit: 0,
+    tierPackages: {},
     error: null,
   });
 
@@ -262,13 +244,28 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   // ─── Status check ───────────────────────────────────────────────────────────
 
+  /*
+   * One read answers both questions: is the entitlement active, and which
+   * tier product carries it. `activeSubscriptions` is RC's list of active
+   * product ids; resolveTierState maps them through the ladder and prices
+   * the grandfathered add-on in as +1 device.
+   */
   const checkSubscriptionStatus = async () => {
     if (!Purchases) return;
     try {
       const customerInfo = await Purchases.getCustomerInfo();
       const isPro = customerInfo?.entitlements?.active?.[ENTITLEMENT_ID] !== undefined;
-      setState(prev => ({ ...prev, isPro, error: null }));
-      console.log('[Subscription] Pro status:', isPro);
+      const activeIds: string[] = customerInfo?.activeSubscriptions ?? [];
+      const { tier, legacyAddonActive, deviceLimit } = resolveTierState(activeIds);
+      setState(prev => ({
+        ...prev,
+        isPro,
+        activeTierId: tier?.id ?? null,
+        legacyAddonActive,
+        deviceLimit,
+        error: null,
+      }));
+      console.log('[Subscription] Pro:', isPro, '| tier:', tier?.id ?? 'none');
     } catch (error: any) {
       console.warn('[Subscription] Status check error:', error?.message || error);
     }
@@ -276,185 +273,139 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   // ─── Offerings ──────────────────────────────────────────────────────────────
 
-  // eslint-disable-next-line complexity -- tracked in #21
+  /*
+   * The tier paywall reads the `tiers` offering, NOT `current`. Shipped 1.1.x
+   * builds match packages in the current offering by packageType, so adding
+   * a second MONTHLY package there would make old paywalls sell the wrong
+   * product. The default offering stays frozen for them; this build asks for
+   * the tier offering by id.
+   */
   const fetchOfferings = async () => {
     if (!Purchases) return;
     try {
       const offerings = await Purchases.getOfferings();
-      const current = offerings?.current;
-      const allPackages: any[] = current?.availablePackages ?? [];
+      const tiersOffering = offerings?.all?.[TIERS_OFFERING_ID] ?? null;
+      const allPackages: any[] = tiersOffering?.availablePackages ?? [];
 
-      // Find each of the 4 packages by identifier (with type fallback for monthly/annual)
-      const basePackage =
-        allPackages.find((p: any) =>
-          p.identifier === PACKAGE_IDS.base ||
-          p.packageType === 'MONTHLY'
-        ) ?? null;
+      const tierPackages: Record<string, any> = {};
+      for (const tier of TIERS) {
+        for (const pkg of allPackages) {
+          if (pkg.identifier === tier.packageMonthly) {
+            tierPackages[tierPackageKey(tier.id, 'monthly')] = pkg;
+          } else if (tier.packageAnnual && pkg.identifier === tier.packageAnnual) {
+            tierPackages[tierPackageKey(tier.id, 'annual')] = pkg;
+          }
+        }
+      }
 
-      const baseAnnualPackage =
-        allPackages.find((p: any) =>
-          p.identifier === PACKAGE_IDS.baseAnnual ||
-          p.packageType === 'ANNUAL'
-        ) ?? null;
-
-      const additionalDevicePackage =
-        allPackages.find((p: any) =>
-          p.identifier === PACKAGE_IDS.additionalDevice ||
-          p.product?.productIdentifier === PRODUCT_IDS.additionalDevice
-        ) ?? null;
-
-      const additionalDeviceAnnualPackage =
-        allPackages.find((p: any) =>
-          p.identifier === PACKAGE_IDS.additionalDeviceAnnual ||
-          p.product?.productIdentifier === PRODUCT_IDS.additionalDeviceAnnual
-        ) ?? null;
-
-      setState(prev => ({
-        ...prev,
-        packages: allPackages,
-        basePackage,
-        baseAnnualPackage,
-        additionalDevicePackage,
-        additionalDeviceAnnualPackage,
-      }));
-
+      setState(prev => ({ ...prev, tierPackages }));
       console.log(
-        '[Subscription] Offerings loaded —',
-        'base:', basePackage?.identifier ?? 'none',
-        '| baseAnnual:', baseAnnualPackage?.identifier ?? 'none',
-        '| addDevice:', additionalDevicePackage?.identifier ?? 'none',
-        '| addDeviceAnnual:', additionalDeviceAnnualPackage?.identifier ?? 'none'
+        '[Subscription] Tier offering loaded —',
+        Object.keys(tierPackages).length, 'of',
+        TIERS.reduce((n, t) => n + (t.packageAnnual ? 2 : 1), 0),
+        'packages'
       );
     } catch (error: any) {
       console.warn('[Subscription] Offerings error:', error?.message || error);
     }
   };
 
-  // ─── Purchase helpers ───────────────────────────────────────────────────────
+  // ─── Purchase ───────────────────────────────────────────────────────────────
 
-  const executePurchase = async (pkg: any | null, label: string): Promise<boolean> => {
-    if (!Purchases) {
-      setState(prev => ({ ...prev, error: unavailableMessage('Purchase') }));
-      return false;
-    }
-    if (!pkg) {
-      setState(prev => ({
-        ...prev,
-        error: `${label} package not available. Please try again later.`,
-      }));
-      return false;
-    }
-
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-    try {
-      const { customerInfo } = await Purchases.purchasePackage(pkg);
-      const isPro = customerInfo?.entitlements?.active?.[ENTITLEMENT_ID] !== undefined;
-      setState(prev => ({
-        ...prev,
-        isPro,
-        isLoading: false,
-        error: isPro ? null : 'Purchase completed but entitlement not found',
-      }));
-      return isPro;
-    } catch (error: any) {
-      const userCancelled = error?.userCancelled || error?.code === '1';
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: userCancelled ? null : error?.message || 'Purchase failed',
-      }));
-      return false;
-    }
+  /*
+   * Fold a CustomerInfo into state. Purchase and restore both end here so the
+   * entitlement flag and the resolved tier can never disagree between the two
+   * paths. `missingError` is what to surface when the store transaction went
+   * through but the entitlement did not arrive.
+   */
+  const applyCustomerInfo = (customerInfo: any, missingError: string): boolean => {
+    const isPro = customerInfo?.entitlements?.active?.[ENTITLEMENT_ID] !== undefined;
+    const activeIds: string[] = customerInfo?.activeSubscriptions ?? [];
+    const resolved = resolveTierState(activeIds);
+    setState(prev => ({
+      ...prev,
+      isPro,
+      activeTierId: resolved.tier?.id ?? null,
+      legacyAddonActive: resolved.legacyAddonActive,
+      deviceLimit: resolved.deviceLimit,
+      isLoading: false,
+      error: isPro ? null : missingError,
+    }));
+    return isPro;
   };
 
-  // Helper: fetch a fresh package by identifier directly from RC if state is stale
-  const fetchPackageByIdentifier = async (
-    packageId: string,
-    productId: string,
-    packageTypeFallback?: 'MONTHLY' | 'ANNUAL'
+  /*
+   * On iOS a tier change inside the subscription group is handled entirely by
+   * StoreKit. On Android, Play needs to be told which subscription is being
+   * replaced or it opens a second, parallel one — that is the old two-
+   * subscription trap wearing a new hat. RC carries that as
+   * googleProductChangeInfo (third argument; the second is the deprecated
+   * UpgradeInfo slot).
+   */
+  const purchaseTier = useCallback(
+    async (tierId: TierId, period: BillingPeriod): Promise<boolean> => {
+      if (!Purchases) {
+        setState(prev => ({ ...prev, error: unavailableMessage('Purchase') }));
+        return false;
+      }
+
+      const tier = getTier(tierId);
+      let pkg = state.tierPackages[tierPackageKey(tierId, period)] ?? null;
+      if (!pkg) {
+        await fetchOfferings();
+        pkg = await fetchTierPackage(tierId, period);
+      }
+      if (!pkg) {
+        setState(prev => ({
+          ...prev,
+          error: `${tier.name} plan not available. Please try again later.`,
+        }));
+        return false;
+      }
+
+      const changingFromTier =
+        Platform.OS === 'android' && state.activeTierId && state.activeTierId !== tierId
+          ? getTier(state.activeTierId)
+          : null;
+      const googleChange = changingFromTier
+        ? { oldProductIdentifier: changingFromTier.playSubscription }
+        : null;
+
+      setState(prev => ({ ...prev, isLoading: true, error: null }));
+      try {
+        const { customerInfo } = await Purchases.purchasePackage(pkg, null, googleChange);
+        return applyCustomerInfo(customerInfo, 'Purchase completed but entitlement not found');
+      } catch (error: any) {
+        const userCancelled = error?.userCancelled || error?.code === '1';
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: userCancelled ? null : error?.message || 'Purchase failed',
+        }));
+        return false;
+      }
+    },
+    [state.tierPackages, state.activeTierId]
+  );
+
+  // Helper: fetch a fresh package straight from RC if state is stale
+  const fetchTierPackage = async (
+    tierId: TierId,
+    period: BillingPeriod
   ): Promise<any | null> => {
     if (!Purchases) return null;
     try {
+      const tier = getTier(tierId);
+      const packageId = period === 'annual' ? tier.packageAnnual : tier.packageMonthly;
+      if (!packageId) return null;
       const offerings = await Purchases.getOfferings();
-      const allPkgs: any[] = offerings?.current?.availablePackages ?? [];
-      return (
-        allPkgs.find((p: any) =>
-          p.identifier === packageId ||
-          p.product?.productIdentifier === productId ||
-          (packageTypeFallback && p.packageType === packageTypeFallback)
-        ) ?? null
-      );
+      const allPkgs: any[] =
+        offerings?.all?.[TIERS_OFFERING_ID]?.availablePackages ?? [];
+      return allPkgs.find((p: any) => p.identifier === packageId) ?? null;
     } catch {
       return null;
     }
   };
-
-  // ─── Public purchase functions ──────────────────────────────────────────────
-
-  /**
-   * Purchase the base Pro monthly subscription ($4.99/mo).
-   * Should be called when the user has 0 licensed devices.
-   * After success, call DeviceLicenseContext.activateCurrentDevice().
-   */
-  const purchaseBase = useCallback(async (): Promise<boolean> => {
-    let pkg = state.basePackage;
-    if (!pkg && Purchases) {
-      await fetchOfferings();
-      pkg = await fetchPackageByIdentifier(PACKAGE_IDS.base, PRODUCT_IDS.base, 'MONTHLY');
-    }
-    return executePurchase(pkg, 'Base Pro');
-  }, [state.basePackage]);
-
-  /**
-   * Purchase the base Pro annual subscription ($49.99/yr).
-   * Should be called when the user has 0 licensed devices.
-   */
-  const purchaseBaseAnnual = useCallback(async (): Promise<boolean> => {
-    let pkg = state.baseAnnualPackage;
-    if (!pkg && Purchases) {
-      await fetchOfferings();
-      pkg = await fetchPackageByIdentifier(
-        PACKAGE_IDS.baseAnnual,
-        PRODUCT_IDS.baseAnnual,
-        'ANNUAL'
-      );
-    }
-    return executePurchase(pkg, 'Base Pro Annual');
-  }, [state.baseAnnualPackage]);
-
-  /**
-   * Purchase an additional device monthly slot ($2.99/mo).
-   * Should be called when the user already has at least 1 licensed device.
-   */
-  const purchaseAdditionalDevice = useCallback(async (): Promise<boolean> => {
-    let pkg = state.additionalDevicePackage;
-    if (!pkg && Purchases) {
-      await fetchOfferings();
-      pkg = await fetchPackageByIdentifier(
-        PACKAGE_IDS.additionalDevice,
-        PRODUCT_IDS.additionalDevice
-      );
-    }
-    return executePurchase(pkg, 'Additional Device');
-  }, [state.additionalDevicePackage]);
-
-  /**
-   * Purchase an additional device annual slot ($29.99/yr).
-   */
-  const purchaseAdditionalDeviceAnnual = useCallback(async (): Promise<boolean> => {
-    let pkg = state.additionalDeviceAnnualPackage;
-    if (!pkg && Purchases) {
-      await fetchOfferings();
-      pkg = await fetchPackageByIdentifier(
-        PACKAGE_IDS.additionalDeviceAnnual,
-        PRODUCT_IDS.additionalDeviceAnnual
-      );
-    }
-    return executePurchase(pkg, 'Additional Device Annual');
-  }, [state.additionalDeviceAnnualPackage]);
-
-  /** @deprecated Use purchaseBase() */
-  const purchasePro = useCallback(() => purchaseBase(), [purchaseBase]);
 
   // ─── Restore ────────────────────────────────────────────────────────────────
 
@@ -467,14 +418,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
       const customerInfo = await Purchases.restorePurchases();
-      const isPro = customerInfo?.entitlements?.active?.[ENTITLEMENT_ID] !== undefined;
-      setState(prev => ({
-        ...prev,
-        isPro,
-        isLoading: false,
-        error: isPro ? null : 'No active subscription found',
-      }));
-      return isPro;
+      return applyCustomerInfo(customerInfo, 'No active subscription found');
     } catch (error: any) {
       setState(prev => ({
         ...prev,
@@ -493,11 +437,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   const value: SubscriptionContextValue = {
     ...state,
-    purchaseBase,
-    purchaseBaseAnnual,
-    purchaseAdditionalDevice,
-    purchaseAdditionalDeviceAnnual,
-    purchasePro,
+    purchaseTier,
     restorePurchases,
     refreshStatus,
   };

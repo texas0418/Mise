@@ -3,22 +3,27 @@
 //
 // Combines RevenueCat (payment) with Supabase devices table (license tracking).
 //
-// Four purchase flows:
-//   purchaseBaseAndActivate()                    → $4.99/mo, for first device
-//   purchaseBaseAnnualAndActivate()              → $49.99/yr, for first device
-//   purchaseAdditionalAndActivate()              → $2.99/mo, for extra devices
-//   purchaseAdditionalAnnualAndActivate()        → $29.99/yr, for extra devices
+// One purchase flow:
+//   purchaseTierAndActivate(tierId, period)  → buy or change tier, then
+//                                              license this device
 //
-// Each function:
-//   1. Triggers the RevenueCat purchase (App Store transaction)
+// The tier ladder (Solo 1 / Crew 5 / Production 15 / Studio 40 / Slate 250)
+// lives in lib/tiers.ts. The subscription's tier sets deviceLimit; this
+// context compares it with licensedCount so screens can say "4 of 5 devices"
+// and route an over-limit device to a tier upgrade instead of offering the
+// old per-device add-on purchase, which could never complete past 2 devices.
+//
+// Each purchase:
+//   1. Triggers the RevenueCat purchase (store transaction)
 //   2. If signed in with a registered device, marks the device as licensed in Supabase
 //   3. If anonymous (not signed in), the entitlement lives only on the Apple ID via RC.
 //      When the user later signs in, the existing legacy-RC bridge below auto-activates
 //      the device row that gets created on first sign-in.
 //   4. Updates all local state atomically
 //
-// Legacy RevenueCat subscribers are auto-grandfathered on first load.
-// The same mechanism handles "bought anonymously, then signed in" with no extra code.
+// Legacy RevenueCat subscribers are auto-grandfathered on first load: the old
+// Mise Pro products ARE the Solo tier, and a still-renewing per-device add-on
+// counts as one extra device on top of whatever tier is active.
 // ----------------------------------------------------------------------------
 
 import { useEffect, useState, useCallback } from 'react';
@@ -35,10 +40,9 @@ import {
   removeDevice,
   getLicensedDeviceCount,
   getCurrentDeviceUuid,
-  calculateMonthlyPrice,
-  PRICING,
   type DeviceRecord,
 } from '@/lib/deviceManager';
+import { getTier, type TierId, type BillingPeriod } from '@/lib/tiers';
 import { setProEntitled } from '@/lib/entitlement';
 import { readDesktopEntitlement } from '@/lib/entitlementMirror';
 
@@ -58,10 +62,10 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
   const { user, isAuthenticated } = useAuth();
   const {
     isPro: isRevenueCatPro,
-    purchaseBase,
-    purchaseBaseAnnual,
-    purchaseAdditionalDevice,
-    purchaseAdditionalDeviceAnnual,
+    activeTierId,
+    legacyAddonActive,
+    deviceLimit,
+    purchaseTier,
     restorePurchases: rcRestorePurchases,
   } = useSubscription();
 
@@ -205,7 +209,7 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
   }, [currentDevice, userId]);
 
   // ----------------------------------------------------------------------------
-  // Internal: shared purchase wrapper (RC purchase + optional Supabase activation)
+  // PUBLIC: Purchase (or change to) a tier + activate this device
   //
   // Purchase ALWAYS proceeds, regardless of auth state. RevenueCat captures the
   // entitlement on the Apple ID. If the user is signed in with a registered
@@ -213,16 +217,16 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
   // only on the Apple ID via RC, and isPro stays true via the OR with
   // isRevenueCatPro. The caller is told via needsSignIn=true so they can prompt.
   // ----------------------------------------------------------------------------
-  const purchaseAndActivate = useCallback(async (
-    rcPurchaseFn: () => Promise<boolean>,
-    label: string
+  const purchaseTierAndActivate = useCallback(async (
+    tierId: TierId,
+    period: BillingPeriod
   ): Promise<PurchaseResult> => {
     setIsPurchasing(true);
     setPurchaseError(null);
 
     try {
-      // Step 1: RevenueCat purchase (App Store transaction). No auth required.
-      const rcSuccess = await rcPurchaseFn();
+      // Step 1: RevenueCat purchase (store transaction). No auth required.
+      const rcSuccess = await purchaseTier(tierId, period);
       if (!rcSuccess) {
         // User cancelled, package missing, or RC error — RC has already set its
         // own error state. Don't surface a Mise-side error for cancellations.
@@ -233,13 +237,15 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
       // Step 2: If signed in with a registered device, link the entitlement to
       // the device row in Supabase. If not, the purchase is still successful.
       if (userId && currentDevice) {
-        const activated = await activateCurrentDevice();
-        if (!activated) {
-          // RC purchase went through, but Supabase write failed. Pro is still
-          // active on this device via the RC entitlement, so don't treat this
-          // as a hard failure — log it and let the legacy-RC bridge retry on
-          // next foreground.
-          console.warn(`[DeviceLicense] ${label} purchase OK but device activation failed — will retry on foreground`);
+        if (!currentDevice.isLicensed) {
+          const activated = await activateCurrentDevice();
+          if (!activated) {
+            // RC purchase went through, but Supabase write failed. Pro is still
+            // active on this device via the RC entitlement, so don't treat this
+            // as a hard failure — log it and let the legacy-RC bridge retry on
+            // next foreground.
+            console.warn(`[DeviceLicense] ${getTier(tierId).name} purchase OK but device activation failed — will retry on foreground`);
+          }
         }
         setIsPurchasing(false);
         return { success: true };
@@ -247,7 +253,7 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
 
       // Anonymous purchase path: success, but the user should sign in so
       // multi-device, sync, and crew invites work.
-      console.log(`[DeviceLicense] ${label} purchase complete (anonymous) — sign-in required for device linking`);
+      console.log(`[DeviceLicense] ${getTier(tierId).name} purchase complete (anonymous) — sign-in required for device linking`);
       setIsPurchasing(false);
       return { success: true, needsSignIn: true };
     } catch (e: any) {
@@ -256,37 +262,7 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
       setIsPurchasing(false);
       return { success: false, error: err };
     }
-  }, [userId, currentDevice, activateCurrentDevice]);
-
-  // ----------------------------------------------------------------------------
-  // PUBLIC: Purchase base subscription + activate this device
-  //
-  // Call these when licensedCount === 0 (first device)
-  // ----------------------------------------------------------------------------
-  const purchaseBaseAndActivate = useCallback(
-    () => purchaseAndActivate(purchaseBase, 'Base'),
-    [purchaseAndActivate, purchaseBase]
-  );
-
-  const purchaseBaseAnnualAndActivate = useCallback(
-    () => purchaseAndActivate(purchaseBaseAnnual, 'Base Annual'),
-    [purchaseAndActivate, purchaseBaseAnnual]
-  );
-
-  // ----------------------------------------------------------------------------
-  // PUBLIC: Purchase additional device subscription + activate this device
-  //
-  // Call these when licensedCount >= 1 (extra device)
-  // ----------------------------------------------------------------------------
-  const purchaseAdditionalAndActivate = useCallback(
-    () => purchaseAndActivate(purchaseAdditionalDevice, 'Additional device'),
-    [purchaseAndActivate, purchaseAdditionalDevice]
-  );
-
-  const purchaseAdditionalAnnualAndActivate = useCallback(
-    () => purchaseAndActivate(purchaseAdditionalDeviceAnnual, 'Additional device annual'),
-    [purchaseAndActivate, purchaseAdditionalDeviceAnnual]
-  );
+  }, [userId, currentDevice, purchaseTier, activateCurrentDevice]);
 
   // ----------------------------------------------------------------------------
   // PUBLIC: Restore purchases + activate if entitled
@@ -406,16 +382,11 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
     setProEntitled(isPro);
   }, [isPro]);
 
-  // Which purchase function to call — smart picker for the paywall
-  const isFirstDevice = licensedCount === 0;
-
-  // Monthly total across all licensed devices
-  const monthlyPrice = calculateMonthlyPrice(licensedCount);
-
-  // Price for the NEXT device (what the paywall should show)
-  const nextDevicePrice = isFirstDevice
-    ? PRICING.baseMonthly
-    : PRICING.additionalDeviceMonthly;
+  // Whether the active tier has room to license one more device. False for
+  // free accounts (limit 0); the paywall sells them a tier first. When the
+  // account is at its limit, the paywall offers the next tier up instead of
+  // a purchase that cannot complete.
+  const hasDeviceRoom = licensedCount < deviceLimit;
 
   // ----------------------------------------------------------------------------
   // Return
@@ -425,23 +396,20 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
     isPro,
     isDeviceLicensed,
     isLegacySubscriber,
-    isFirstDevice,
+    activeTierId,
+    legacyAddonActive,
+    deviceLimit,
+    hasDeviceRoom,
     currentDevice,
     currentDeviceUuid,
     devices,
     licensedCount,
-    monthlyPrice,
-    nextDevicePrice,
     isLoading,
     isPurchasing,
     purchaseError,
-    pricing: PRICING,
 
     // Purchase actions (RC + Supabase in one call)
-    purchaseBaseAndActivate,
-    purchaseBaseAnnualAndActivate,
-    purchaseAdditionalAndActivate,
-    purchaseAdditionalAnnualAndActivate,
+    purchaseTierAndActivate,
     restoreAndActivate,
 
     // Device management
