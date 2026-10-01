@@ -2,7 +2,7 @@
   "expo": {
     "name": "Mise Film Director Suite",
     "slug": "mise-film-director-suite",
-    "version": "1.1.2",
+    "version": "1.2.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "mise-app",
@@ -28,7 +28,7 @@
         ],
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "5"
+      "buildNumber": "6"
     },
     "android": {
       "adaptiveIcon": {
@@ -36,7 +36,7 @@
         "backgroundColor": "#0A0A0A"
       },
       "package": "com.mise.film_director_suite",
-      "versionCode": 4
+      "versionCode": 5
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -46,6 +46,12 @@
         "expo-router",
         {
           "origin": "https://page4films.com/mise"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "microphonePermission": false
         }
       ],
       "expo-font",

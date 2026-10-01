@@ -1,9 +1,8 @@
 // ----------------------------------------------------------------------------
 // lib/deviceManager.ts — Device registration & license management
 //
-// Pricing model:
-//   Base: $4.99/mo or $49.99/yr → 1 device
-//   Each additional device: $2.99/mo or $29.99/yr
+// Pricing lives in lib/tiers.ts: one subscription per tier, each licensing
+// up to its deviceLimit devices.
 //
 // Supabase `devices` table columns:
 //   id, user_id, device_uuid, platform, device_name, model,
@@ -216,23 +215,6 @@ export async function getLicensedDeviceCount(userId: string): Promise<number> {
 
   if (error) return 0;
   return count ?? 0;
-}
-
-// ----------------------------------------------------------------------------
-// Pricing helpers
-// ----------------------------------------------------------------------------
-export const PRICING = {
-  baseMonthly: 4.99,
-  baseAnnual: 49.99,
-  additionalDeviceMonthly: 2.99,
-  additionalDeviceAnnual: 29.99,
-  baseDevices: 1,
-};
-
-export function calculateMonthlyPrice(licensedDeviceCount: number): number {
-  if (licensedDeviceCount <= PRICING.baseDevices) return PRICING.baseMonthly;
-  const additionalDevices = licensedDeviceCount - PRICING.baseDevices;
-  return PRICING.baseMonthly + additionalDevices * PRICING.additionalDeviceMonthly;
 }
 
 // ----------------------------------------------------------------------------

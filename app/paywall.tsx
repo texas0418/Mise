@@ -1,4 +1,10 @@
-// app/paywall.tsx
+// app/paywall.tsx — tier picker
+//
+// One screen for both jobs: a free account subscribes here, and a subscribed
+// account changes tier here (that is the only route to more devices — the
+// per-device add-on purchase is gone because it could never complete past
+// two devices). The ladder lives in lib/tiers.ts; live store prices come
+// from the RevenueCat `tiers` offering with the table as display fallback.
 import React, { useState } from 'react';
 import {
   View,
@@ -20,10 +26,17 @@ import {
   RotateCcw,
   Smartphone,
   Monitor,
-  Plus,
+  Check,
 } from 'lucide-react-native';
-import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useSubscription, tierPackageKey } from '@/contexts/SubscriptionContext';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
+import {
+  TIERS,
+  getTier,
+  type DeviceTier,
+  type TierId,
+  type BillingPeriod,
+} from '@/lib/tiers';
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
@@ -52,104 +65,58 @@ const PRO_FEATURES = [
   },
 ];
 
-type BillingPeriod = 'monthly' | 'annual';
-
-type PricingTiers = {
-  baseMonthly: number;
-  baseAnnual: number;
-  additionalDeviceMonthly: number;
-  additionalDeviceAnnual: number;
-};
-
 // ─── Pricing math ─────────────────────────────────────────────────────────────
 
-// Pure derivation of the display strings/values for the selected billing period
-// and device slot. Kept out of the component so the screen stays under the
+// Pure derivations, kept out of the components so the screen stays under the
 // complexity limit and this stays unit-testable.
-function computePricing(
-  isFirstDevice: boolean,
-  billingPeriod: BillingPeriod,
-  pricing: PricingTiers,
-) {
-  const isAnnual = billingPeriod === 'annual';
-  const displayPrice = isFirstDevice
-    ? (isAnnual ? pricing.baseAnnual : pricing.baseMonthly)
-    : (isAnnual ? pricing.additionalDeviceAnnual : pricing.additionalDeviceMonthly);
-  const displayPeriodLabel = isAnnual ? 'per year' : 'per month';
-  const displayDeviceLabel = isFirstDevice ? '1 device' : 'this device';
-  const annualAsMonthly = isFirstDevice
-    ? pricing.baseAnnual / 12
-    : pricing.additionalDeviceAnnual / 12;
-  const priceSuffix = isAnnual ? 'yr' : 'mo';
-  const buttonLabel = isFirstDevice
-    ? `Subscribe — $${displayPrice.toFixed(2)}/${priceSuffix}`
-    : `Add Device — $${displayPrice.toFixed(2)}/${priceSuffix}`;
-  const ButtonIcon = isFirstDevice ? Crown : Plus;
-  return {
-    displayPrice, displayPeriodLabel, displayDeviceLabel,
-    annualAsMonthly, buttonLabel, ButtonIcon,
-  };
+
+/** The billing period a tier can actually be bought at. Studio and Slate are
+ * monthly-only, so an annual toggle quietly falls back for them. */
+function effectivePeriod(tier: DeviceTier, period: BillingPeriod): BillingPeriod {
+  return period === 'annual' && tier.annualPrice !== null ? 'annual' : 'monthly';
+}
+
+/** Display price for a tier at a period: the live store string when the RC
+ * package is loaded, the ladder's fallback number otherwise. */
+function tierPriceLabel(
+  tier: DeviceTier,
+  period: BillingPeriod,
+  tierPackages: Record<string, any>
+): string {
+  const p = effectivePeriod(tier, period);
+  const pkg = tierPackages[tierPackageKey(tier.id, p)];
+  const live = pkg?.product?.priceString;
+  const fallback = p === 'annual' && tier.annualPrice !== null
+    ? tier.annualPrice
+    : tier.monthlyPrice;
+  const amount = live ?? `$${fallback.toFixed(2)}`;
+  return `${amount}/${p === 'annual' ? 'yr' : 'mo'}`;
+}
+
+function deviceCountLabel(tier: DeviceTier): string {
+  return tier.deviceLimit === 1 ? '1 device' : `Up to ${tier.deviceLimit} devices`;
+}
+
+/** What the big button should say and whether it can do anything. */
+function buttonState(
+  selected: DeviceTier,
+  activeTierId: TierId | null,
+  priceLabel: string
+): { label: string; disabled: boolean } {
+  if (!activeTierId) {
+    return { label: `Subscribe — ${priceLabel}`, disabled: false };
+  }
+  if (activeTierId === selected.id) {
+    return { label: 'Current Plan', disabled: true };
+  }
+  const active = getTier(activeTierId);
+  const verb = selected.deviceLimit > active.deviceLimit ? 'Upgrade to' : 'Switch to';
+  return { label: `${verb} ${selected.name} — ${priceLabel}`, disabled: false };
 }
 
 // ─── Presentational sub-components ────────────────────────────────────────────
 // State/handlers live in PaywallScreen; these are pure views over props and
 // share the `styles` object defined below.
-
-function PaywallSuccess({
-  isLegacySubscriber, licensedCount, monthlyPrice, onClose, onContinue, onManageDevices,
-}: {
-  isLegacySubscriber: boolean;
-  licensedCount: number;
-  monthlyPrice: number;
-  onClose: () => void;
-  onContinue: () => void;
-  onManageDevices: () => void;
-}) {
-  return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.closeButton}
-        onPress={onClose}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel="Close"
-      >
-        <X color={Colors.text.secondary} size={24} />
-      </TouchableOpacity>
-
-      <View style={styles.successContainer}>
-        <View style={styles.successIconWrap}>
-          <Crown color={Colors.accent.gold} size={48} />
-        </View>
-
-        <Text style={styles.successTitle}>You&apos;re a Pro!</Text>
-
-        <Text style={styles.successSubtitle}>
-          {isLegacySubscriber
-            ? 'Your existing subscription has been applied to this device.'
-            : `${licensedCount} device${licensedCount !== 1 ? 's' : ''} licensed · $${monthlyPrice.toFixed(2)}/mo`}
-        </Text>
-
-        <TouchableOpacity accessibilityRole="button"
-          style={styles.primaryButton}
-          onPress={onContinue}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.primaryButtonText}>Continue</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity accessibilityRole="button"
-          style={styles.manageButton}
-          onPress={onManageDevices}
-          activeOpacity={0.7}
-        >
-          <Smartphone color={Colors.text.secondary} size={14} />
-          <Text style={styles.manageButtonText}>Manage Devices</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
 
 function FeatureList() {
   return (
@@ -172,22 +139,35 @@ function FeatureList() {
   );
 }
 
-function AddDeviceCard({
-  licensedCount, pricing,
+function CurrentPlanCard({
+  activeTier, legacyAddonActive, licensedCount, deviceLimit, onManageDevices,
 }: {
+  activeTier: DeviceTier;
+  legacyAddonActive: boolean;
   licensedCount: number;
-  pricing: PricingTiers;
+  deviceLimit: number;
+  onManageDevices: () => void;
 }) {
   return (
-    <View style={styles.addDeviceCard}>
-      <Smartphone color={Colors.accent.gold} size={32} style={{ marginBottom: 12 }} />
-      <Text style={styles.addDeviceTitle}>
-        {licensedCount} device{licensedCount !== 1 ? 's' : ''} already licensed
+    <View style={styles.currentPlanCard}>
+      <Crown color={Colors.accent.gold} size={28} style={{ marginBottom: 8 }} />
+      <Text style={styles.currentPlanTitle}>
+        You&apos;re on {activeTier.name}
       </Text>
-      <Text style={styles.addDeviceDesc}>
-        Your account has an active Mise Pro subscription. Add this device for an
-        additional ${pricing.additionalDeviceMonthly.toFixed(2)}/month or ${pricing.additionalDeviceAnnual.toFixed(2)}/year.
+      <Text style={styles.currentPlanDesc}>
+        {licensedCount} of {deviceLimit} device{deviceLimit !== 1 ? 's' : ''} licensed
+        {legacyAddonActive ? ' (includes your additional-device subscription)' : ''}.
+        Pick a bigger plan below to license more devices — the store prorates
+        the change automatically.
       </Text>
+      <TouchableOpacity accessibilityRole="button"
+        style={styles.manageButton}
+        onPress={onManageDevices}
+        activeOpacity={0.7}
+      >
+        <Smartphone color={Colors.text.secondary} size={14} />
+        <Text style={styles.manageButtonText}>Manage Devices</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -243,42 +223,44 @@ function BillingToggle({
   );
 }
 
-function PricingCard({
-  displayPrice, displayPeriodLabel, displayDeviceLabel,
-  billingPeriod, isFirstDevice, annualAsMonthly, pricing,
+function TierCard({
+  tier, selected, isCurrent, billingPeriod, tierPackages, onSelect,
 }: {
-  displayPrice: number;
-  displayPeriodLabel: string;
-  displayDeviceLabel: string;
+  tier: DeviceTier;
+  selected: boolean;
+  isCurrent: boolean;
   billingPeriod: BillingPeriod;
-  isFirstDevice: boolean;
-  annualAsMonthly: number;
-  pricing: PricingTiers;
+  tierPackages: Record<string, any>;
+  onSelect: (id: TierId) => void;
 }) {
+  const monthlyOnly = billingPeriod === 'annual' && tier.annualPrice === null;
   return (
-    <View style={styles.pricingCard}>
-      <Text style={styles.priceAmount}>${displayPrice.toFixed(2)}</Text>
-      <Text style={styles.pricePeriod}>{displayPeriodLabel} · {displayDeviceLabel}</Text>
-
-      {billingPeriod === 'annual' && (
-        <Text style={styles.priceEquivalent}>
-          Just ${annualAsMonthly.toFixed(2)}/mo, billed annually
+    <TouchableOpacity accessibilityRole="button"
+      style={[styles.tierCard, selected && styles.tierCardSelected]}
+      onPress={() => onSelect(tier.id)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.tierRadio}>
+        {selected && <Check color={Colors.accent.gold} size={16} />}
+      </View>
+      <View style={styles.tierInfo}>
+        <View style={styles.tierNameRow}>
+          <Text style={styles.tierName}>{tier.name}</Text>
+          {isCurrent && (
+            <View style={styles.currentBadge}>
+              <Text style={styles.currentBadgeText}>Current</Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.tierDevices}>{deviceCountLabel(tier)}</Text>
+      </View>
+      <View style={styles.tierPriceWrap}>
+        <Text style={styles.tierPrice}>
+          {tierPriceLabel(tier, billingPeriod, tierPackages)}
         </Text>
-      )}
-
-      {isFirstDevice && (
-        <>
-          <View style={styles.priceDivider} />
-          <Text style={styles.priceAdditional}>
-            +${billingPeriod === 'annual'
-              ? pricing.additionalDeviceAnnual.toFixed(2) + '/yr'
-              : pricing.additionalDeviceMonthly.toFixed(2) + '/mo'} per additional device
-          </Text>
-        </>
-      )}
-
-      <Text style={styles.priceNote}>Cancel anytime. No long-term commitment.</Text>
-    </View>
+        {monthlyOnly && <Text style={styles.tierPriceNote}>Monthly only</Text>}
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -316,31 +298,27 @@ function LegalFooter({
 export default function PaywallScreen() {
   const router = useGuardedRouter();
 
-  const { isLoading: rcLoading } = useSubscription();
+  const { isLoading: rcLoading, tierPackages } = useSubscription();
 
   const {
     isPro,
-    isDeviceLicensed,
-    isFirstDevice,
-    isLegacySubscriber,
+    activeTierId,
+    legacyAddonActive,
     licensedCount,
-    monthlyPrice,
-    nextDevicePrice,
-    pricing,
-    currentDevice,
+    deviceLimit,
     isLoading: deviceLoading,
     isPurchasing,
     purchaseError,
-    purchaseBaseAndActivate,
-    purchaseBaseAnnualAndActivate,
-    purchaseAdditionalAndActivate,
-    purchaseAdditionalAnnualAndActivate,
+    purchaseTierAndActivate,
     restoreAndActivate,
   } = useDeviceLicense();
 
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
+  const [selectedTierId, setSelectedTierId] = useState<TierId>(activeTierId ?? 'solo');
 
   const isLoading = rcLoading || deviceLoading;
+  const selectedTier = getTier(selectedTierId);
+  const activeTier = activeTierId ? getTier(activeTierId) : null;
 
   // ─── Handlers ────────────────────────────────────────────────────────────
 
@@ -369,28 +347,19 @@ export default function PaywallScreen() {
   };
 
   const handlePurchase = async () => {
-    // Route to the correct product based on device count + billing period
-    let result;
-    if (isFirstDevice) {
-      result = billingPeriod === 'annual'
-        ? await purchaseBaseAnnualAndActivate()
-        : await purchaseBaseAndActivate();
-    } else {
-      result = billingPeriod === 'annual'
-        ? await purchaseAdditionalAnnualAndActivate()
-        : await purchaseAdditionalAndActivate();
-    }
+    const period = effectivePeriod(selectedTier, billingPeriod);
+    const result = await purchaseTierAndActivate(selectedTierId, period);
 
     if (result.success) {
+      const body = activeTier
+        ? `Your plan is now ${selectedTier.name} — up to ${selectedTier.deviceLimit} device${selectedTier.deviceLimit !== 1 ? 's' : ''}.`
+        : 'This device is now licensed. All features are unlocked.';
       if (result.needsSignIn) {
-        promptSignInAfterPurchase(
-          'Welcome to Pro!',
-          'This device is now licensed. All features are unlocked.',
-        );
+        promptSignInAfterPurchase('Welcome to Pro!', body);
       } else {
         appAlert(
-          'Welcome to Pro!',
-          'This device is now licensed. All features are unlocked.',
+          activeTier ? 'Plan Changed' : 'Welcome to Pro!',
+          body,
           [{ text: 'Continue', onPress: () => router.back() }],
         );
       }
@@ -429,30 +398,14 @@ export default function PaywallScreen() {
   const openPrivacy = () =>
     Linking.openURL('https://page4films.com/mise/privacy.html');
 
-  // ─── Already Pro — success state ─────────────────────────────────────────
+  // ─── Render ──────────────────────────────────────────────────────────────
 
-  if (isPro) {
-    return (
-      <PaywallSuccess
-        isLegacySubscriber={isLegacySubscriber}
-        licensedCount={licensedCount}
-        monthlyPrice={monthlyPrice}
-        onClose={() => router.back()}
-        onContinue={() => router.back()}
-        onManageDevices={() => {
-          router.back();
-          router.push('/settings/devices');
-        }}
-      />
-    );
-  }
-
-  // ─── Purchase flow ───────────────────────────────────────────────────────
-
-  const {
-    displayPrice, displayPeriodLabel, displayDeviceLabel,
-    annualAsMonthly, buttonLabel, ButtonIcon,
-  } = computePricing(isFirstDevice, billingPeriod, pricing);
+  const priceLabel = tierPriceLabel(selectedTier, billingPeriod, tierPackages);
+  const { label: purchaseLabel, disabled: purchaseDisabled } = buttonState(
+    selectedTier,
+    activeTierId,
+    priceLabel
+  );
 
   const isBusy = isLoading || isPurchasing;
 
@@ -480,33 +433,47 @@ export default function PaywallScreen() {
           </View>
           <Text style={styles.title}>Mise Pro</Text>
           <Text style={styles.subtitle}>
-            {isFirstDevice
-              ? 'Unlock the full power of your director\'s toolkit'
-              : 'Add this device to your Pro subscription'}
+            {isPro
+              ? 'Change your plan to license more devices'
+              : 'Unlock the full power of your director\'s toolkit'}
           </Text>
         </View>
 
-        {/* ── Feature list (only show on first device) ── */}
-        {isFirstDevice && <FeatureList />}
-
-        {/* ── Additional device context card ── */}
-        {!isFirstDevice && (
-          <AddDeviceCard licensedCount={licensedCount} pricing={pricing} />
+        {/* ── Current plan context (subscribed) or feature list (free) ── */}
+        {activeTier ? (
+          <CurrentPlanCard
+            activeTier={activeTier}
+            legacyAddonActive={legacyAddonActive}
+            licensedCount={licensedCount}
+            deviceLimit={deviceLimit}
+            onManageDevices={() => {
+              router.back();
+              router.push('/settings/devices');
+            }}
+          />
+        ) : (
+          <FeatureList />
         )}
 
         {/* ── Billing period toggle ── */}
         <BillingToggle billingPeriod={billingPeriod} onSelect={setBillingPeriod} />
 
-        {/* ── Pricing card ── */}
-        <PricingCard
-          displayPrice={displayPrice}
-          displayPeriodLabel={displayPeriodLabel}
-          displayDeviceLabel={displayDeviceLabel}
-          billingPeriod={billingPeriod}
-          isFirstDevice={isFirstDevice}
-          annualAsMonthly={annualAsMonthly}
-          pricing={pricing}
-        />
+        {/* ── Tier ladder ── */}
+        <View style={styles.tierList}>
+          {TIERS.map(tier => (
+            <TierCard
+              key={tier.id}
+              tier={tier}
+              selected={tier.id === selectedTierId}
+              isCurrent={tier.id === activeTierId}
+              billingPeriod={billingPeriod}
+              tierPackages={tierPackages}
+              onSelect={setSelectedTierId}
+            />
+          ))}
+        </View>
+
+        <Text style={styles.priceNote}>Cancel anytime. No long-term commitment.</Text>
 
         {/* ── Error message ── */}
         {purchaseError ? (
@@ -517,17 +484,17 @@ export default function PaywallScreen() {
 
         {/* ── Purchase button ── */}
         <TouchableOpacity accessibilityRole="button"
-          style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
+          style={[styles.primaryButton, (isBusy || purchaseDisabled) && styles.buttonDisabled]}
           onPress={handlePurchase}
           activeOpacity={0.8}
-          disabled={isBusy}
+          disabled={isBusy || purchaseDisabled}
         >
           {isBusy ? (
             <ActivityIndicator color={Colors.text.inverse} size="small" />
           ) : (
             <>
-              <ButtonIcon color={Colors.text.inverse} size={18} />
-              <Text style={styles.primaryButtonText}>{buttonLabel}</Text>
+              <Crown color={Colors.text.inverse} size={18} />
+              <Text style={styles.primaryButtonText}>{purchaseLabel}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -582,7 +549,7 @@ const styles = StyleSheet.create({
   },
 
   // Header
-  header: { alignItems: 'center', marginBottom: 32 },
+  header: { alignItems: 'center', marginBottom: 28 },
   crownContainer: {
     width: 80,
     height: 80,
@@ -608,7 +575,7 @@ const styles = StyleSheet.create({
   },
 
   // Feature list
-  featureList: { marginBottom: 28 },
+  featureList: { marginBottom: 24 },
   featureRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -635,8 +602,8 @@ const styles = StyleSheet.create({
   },
   featureDesc: { fontSize: 13, color: Colors.text.secondary, lineHeight: 18 },
 
-  // Additional device card
-  addDeviceCard: {
+  // Current plan card
+  currentPlanCard: {
     backgroundColor: Colors.bg.card,
     borderRadius: 16,
     padding: 24,
@@ -645,19 +612,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.accent.gold + '30',
   },
-  addDeviceTitle: {
+  currentPlanTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: Colors.text.primary,
     marginBottom: 8,
     textAlign: 'center',
   },
-  addDeviceDesc: {
+  currentPlanDesc: {
     fontSize: 13,
     color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 20,
   },
+  manageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 14,
+  },
+  manageButtonText: { fontSize: 14, color: Colors.text.secondary },
 
   // Billing period toggle
   toggleContainer: {
@@ -665,7 +640,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg.tertiary,
     borderRadius: 12,
     padding: 4,
-    marginBottom: 20,
+    marginBottom: 16,
     gap: 4,
   },
   toggleOption: {
@@ -709,32 +684,52 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // Pricing card
-  pricingCard: {
+  // Tier cards
+  tierList: { marginBottom: 12, gap: 10 },
+  tierCard: {
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.bg.card,
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
+    borderRadius: 14,
+    padding: 16,
     borderWidth: 1,
-    borderColor: Colors.accent.gold + '30',
+    borderColor: Colors.border.subtle,
+    gap: 12,
   },
-  priceAmount: { fontSize: 36, fontWeight: '700', color: Colors.accent.gold },
-  pricePeriod: { fontSize: 14, color: Colors.text.secondary, marginTop: 2 },
-  priceEquivalent: {
-    fontSize: 12,
-    color: Colors.accent.goldLight,
-    marginTop: 6,
-    fontStyle: 'italic',
+  tierCardSelected: {
+    borderColor: Colors.accent.gold,
+    backgroundColor: Colors.accent.goldBg,
   },
-  priceDivider: {
-    width: 40,
-    height: 1,
-    backgroundColor: Colors.border.subtle,
-    marginVertical: 16,
+  tierRadio: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: Colors.border.subtle,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  priceAdditional: { fontSize: 13, color: Colors.accent.goldLight, marginBottom: 8 },
-  priceNote: { fontSize: 13, color: Colors.text.tertiary, marginTop: 8 },
+  tierInfo: { flex: 1 },
+  tierNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  tierName: { fontSize: 16, fontWeight: '700', color: Colors.text.primary },
+  currentBadge: {
+    backgroundColor: Colors.accent.gold,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  currentBadgeText: { fontSize: 12, fontWeight: '700', color: Colors.text.inverse },
+  tierDevices: { fontSize: 13, color: Colors.text.secondary, marginTop: 2 },
+  tierPriceWrap: { alignItems: 'flex-end' },
+  tierPrice: { fontSize: 15, fontWeight: '700', color: Colors.accent.gold },
+  tierPriceNote: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2 },
+
+  priceNote: {
+    fontSize: 13,
+    color: Colors.text.tertiary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
 
   // Error
   errorBanner: {
@@ -792,42 +787,4 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   legalDot: { color: Colors.text.tertiary, fontSize: 12 },
-
-  // Success state
-  successContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  successIconWrap: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: Colors.accent.goldBg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  successTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: Colors.accent.gold,
-    marginBottom: 8,
-  },
-  successSubtitle: {
-    fontSize: 15,
-    color: Colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 32,
-  },
-  manageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 16,
-  },
-  manageButtonText: { fontSize: 14, color: Colors.text.secondary },
 });
