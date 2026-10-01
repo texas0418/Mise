@@ -2,10 +2,12 @@
 import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { appAlert } from '@/lib/appAlert';
-import { Smartphone, Tablet, Monitor, Trash2, ShieldCheck, ShieldOff } from 'lucide-react-native';
+import { Smartphone, Tablet, Monitor, Trash2, ShieldCheck, ShieldOff, ArrowUpCircle } from 'lucide-react-native';
 import { useDeviceLicense } from '@/contexts/DeviceLicenseContext';
+import { getTier } from '@/lib/tiers';
 import Colors from '@/constants/colors';
 import { dateWith } from '@/utils/formatRecord';
+import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 function DeviceIcon({ platform, size = 20 }: { platform: string; size?: number }) {
   if (platform === 'ios') return <Smartphone color={Colors.text.secondary} size={size} />;
@@ -14,8 +16,9 @@ function DeviceIcon({ platform, size = 20 }: { platform: string; size?: number }
 }
 
 export default function DevicesScreen() {
+  const router = useGuardedRouter();
   const {
-    devices, currentDeviceUuid, licensedCount, monthlyPrice, pricing,
+    devices, currentDeviceUuid, licensedCount, activeTierId, legacyAddonActive, deviceLimit,
     deactivateDeviceById, removeDeviceById, refreshDevices, isLoading,
   } = useDeviceLicense();
 
@@ -68,13 +71,30 @@ export default function DevicesScreen() {
       <View style={s.card}>
         <Text style={s.cardTitle}>Your Devices</Text>
         <Text style={s.cardStat}>{licensedCount} licensed of {visibleDevices.length} registered</Text>
-        <View style={s.priceRow}>
-          <Text style={s.priceLabel}>Monthly total</Text>
-          <Text style={s.priceValue}>${monthlyPrice.toFixed(2)}/mo</Text>
-        </View>
-        <Text style={s.priceNote}>
-          Base: ${pricing.baseMonthly}/mo (1 device) + ${pricing.additionalDeviceMonthly}/mo each additional
-        </Text>
+        {activeTierId ? (
+          <>
+            <View style={s.priceRow}>
+              <Text style={s.priceLabel}>{getTier(activeTierId).name} plan</Text>
+              <Text style={s.priceValue}>{licensedCount} of {deviceLimit} devices</Text>
+            </View>
+            {legacyAddonActive && (
+              <Text style={s.priceNote}>
+                Includes 1 extra device from your additional-device subscription.
+              </Text>
+            )}
+            {licensedCount >= deviceLimit && (
+              <TouchableOpacity accessibilityRole="button" style={s.upgradeBtn}
+                onPress={() => router.push('/paywall')} activeOpacity={0.7}>
+                <ArrowUpCircle color={Colors.accent.gold} size={16} />
+                <Text style={s.upgradeBtnText}>Plan full — upgrade for more devices</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        ) : (
+          <Text style={s.priceNote}>
+            Subscribe to license devices. Plans cover 1 to 250 devices.
+          </Text>
+        )}
       </View>
 
       {/* Device list */}
@@ -140,6 +160,8 @@ const s = StyleSheet.create({
   priceLabel: { fontSize: 13, color: Colors.text.secondary },
   priceValue: { fontSize: 15, fontWeight: '700', color: Colors.accent.gold },
   priceNote: { fontSize: 12, color: Colors.text.tertiary, marginTop: 8 },
+  upgradeBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
+  upgradeBtnText: { fontSize: 13, fontWeight: '600', color: Colors.accent.gold },
   deviceCard: { backgroundColor: Colors.bg.card, borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 0.5, borderColor: Colors.border.subtle },
   deviceCardCurrent: { borderColor: Colors.accent.gold + '40' },
   deviceHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
