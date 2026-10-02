@@ -48,3 +48,10 @@ alter table public.revenuecat_events enable row level security;
 -- Nothing client-side reads this table, so take the grant away as well and
 -- the table stops being discoverable at all.
 revoke all on public.revenuecat_events from anon, authenticated;
+
+-- From 2026-10-30 Supabase stops auto-granting Data API roles on new tables,
+-- so a fresh environment (supabase db reset, preview branch) would leave even
+-- the service role without access and the webhook writes would fail. This
+-- table is service-role-only by design (see the revoke above); say so
+-- explicitly instead of relying on the old auto-grant.
+grant select, insert, update, delete on public.revenuecat_events to service_role;
