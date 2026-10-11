@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Linking, ActivityIndicator, TextInput, Platform} from 'react-native';
 import { appAlert } from '@/lib/appAlert';
+import MoreApps from '@/components/MoreApps';
 import { FileText, Users2, MapPin, DollarSign, Clapperboard, BookOpen, BookOpenCheck, Aperture, Sparkles, Trophy, Palette, StickyNote, ClipboardList, User, Users, Layers, Image, CloudSun, Share2, Move, Paintbrush, Clock, Drama, ListChecks, BookHeart, Star as StarIcon, Megaphone, Crown, Shield, ExternalLink, RotateCcw, Trash2, LogIn, UserCircle, Smartphone, Monitor, Cloud, ScrollText, Lightbulb, Search, X } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProjects } from '@/contexts/ProjectContext';
@@ -507,7 +508,8 @@ export default function MoreScreen() {
 
         <RestorePrivacyGroup isPurchasing={isPurchasing} onRestore={handleRestore} />
       </View>
-    </ScrollView>
+      <MoreApps />
+      </ScrollView>
   );
 }
 
