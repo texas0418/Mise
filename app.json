@@ -2,7 +2,7 @@
   "expo": {
     "name": "Mise Film Director Suite",
     "slug": "mise-film-director-suite",
-    "version": "1.3.0",
+    "version": "1.3.1",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "mise-app",
@@ -28,7 +28,7 @@
         ],
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "7"
+      "buildNumber": "8"
     },
     "android": {
       "adaptiveIcon": {
