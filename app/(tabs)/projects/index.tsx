@@ -150,6 +150,7 @@ export default function ProjectsScreen() {
   const {
     projects, activeProjectId, selectProject, deleteProject,
     archiveProject, restoreProject, isLoading, takes, wrapReports,
+    scenes, shots, castMembers, crew, locations,
   } = useProjects();
   const [showArchived, setShowArchived] = useState(false);
   const router = useGuardedRouter();
@@ -163,6 +164,15 @@ export default function ProjectsScreen() {
     ? Math.min(gridColumns, 3)
     : isTablet ? Math.min(gridColumns, 2) : 1;
 
+  /*
+   * Pre-production rows, summed across projects. Mise is a planning tool for
+   * most of its life, so this is the signal that catches someone who broke a
+   * script down properly and has not reached a set yet — the case the other
+   * three signals all missed.
+   */
+  const plannedItems = scenes.length + shots.length
+    + castMembers.length + crew.length + locations.length;
+
   // Asked here rather than on set: this screen is where someone lands between
   // shoots, not mid-take. Silent unless the use has earned the ask.
   useEffect(() => {
@@ -171,8 +181,9 @@ export default function ProjectsScreen() {
       wrapReports: wrapReports.length,
       takes: takes.length,
       projects: projects.length,
+      plannedItems,
     });
-  }, [isLoading, wrapReports.length, takes.length, projects.length]);
+  }, [isLoading, wrapReports.length, takes.length, projects.length, plannedItems]);
 
   const handleProjectPress = useCallback((project: Project) => {
     selectProject(project.id);
