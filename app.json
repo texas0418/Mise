@@ -59,7 +59,8 @@
       "expo-apple-authentication",
       "@react-native-community/datetimepicker",
       "expo-mail-composer",
-      "./plugins/withReleaseSigning.js"
+      "./plugins/withReleaseSigning.js",
+      "./plugins/withPodDeploymentTarget.js"
     ],
     "experiments": {
       "typedRoutes": true
