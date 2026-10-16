@@ -78,6 +78,7 @@ const COVERED = [
   'app/crew-directory.tsx',
   'app/digital-slate.tsx',
   'app/export-share.tsx',
+  'app/browse-festivals.tsx',
   'app/festival-tracker.tsx',
   'app/frame-guides.tsx',
   'app/import-data.tsx',
