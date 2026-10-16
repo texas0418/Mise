@@ -1,9 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
-import { Plus, Trophy, AlertCircle, Calendar, DollarSign, ChevronDown, ChevronUp, Pencil, Trash2, ExternalLink } from 'lucide-react-native';
+import { Plus, Trophy, AlertCircle, Calendar, DollarSign, ChevronDown, ChevronUp, Pencil, Trash2, ExternalLink, Search, ChevronRight } from 'lucide-react-native';
 import { useProjects, useProjectFestivals } from '@/contexts/ProjectContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { closingWithin } from '@/utils/festivalDeadlinePolicy';
+import { rescheduleAllDeadlines } from '@/utils/festivalDeadlines';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import ImportButton from '@/components/ImportButton';
@@ -106,6 +109,18 @@ export default function FestivalTrackerScreen() {
   const { contentPadding, contentColumn } = useLayout();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<FestivalStatus | null>(null);
+  const { isPro } = useSubscription();
+
+  /* Deadlines inside a week, so the screen opens on the thing that is about
+   * to cost money rather than on a list sorted by when it was added. */
+  const closingSoon = useMemo(() => closingWithin(festivals, 7), [festivals]);
+
+  /* Alerts are Pro, by Simon's decision: browsing is free, being reminded is
+   * not. Rescheduling on every change keeps a lapsed subscriber from going on
+   * receiving them, and a new one from waiting for the next app launch. */
+  useEffect(() => {
+    void rescheduleAllDeadlines(festivals, isPro);
+  }, [festivals, isPro]);
 
   const filtered = useMemo(() => filterStatus ? festivals.filter(f => f.status === filterStatus) : festivals, [festivals, filterStatus]);
 
@@ -124,6 +139,43 @@ export default function FestivalTrackerScreen() {
     <PermissionGate resource="festivals">
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Festival Tracker' }} />
+      <View style={[contentColumn, { paddingHorizontal: contentPadding }]}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Browse the festival calendar"
+          style={styles.browseBtn}
+          onPress={() => router.push('/browse-festivals' as never)}
+          activeOpacity={0.8}
+        >
+          <Search color={Colors.accent.gold} size={18} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.browseTitle}>Browse festivals</Text>
+            <Text style={styles.browseSub}>Search the full calendar and track one in a tap</Text>
+          </View>
+          <ChevronRight color={Colors.text.tertiary} size={18} />
+        </TouchableOpacity>
+
+        {closingSoon.length > 0 ? (
+          <View style={styles.deadlineBar}>
+            <Text style={styles.deadlineText}>
+              {closingSoon.length === 1
+                ? `${closingSoon[0].festivalName} closes ${closingSoon[0].deadline}`
+                : `${closingSoon.length} deadlines in the next 7 days`}
+            </Text>
+            {!isPro ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="See Pro, which adds festival deadline reminders"
+                onPress={() => router.push('/paywall' as never)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.deadlineCta}>Get reminders</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+
       <View style={[styles.statsRow, contentColumn, { paddingHorizontal: contentPadding }]}>
         <View style={styles.statBox}><Text style={styles.statValue}>{stats.total}</Text><Text style={styles.statLabel}>Tracked</Text></View>
         <View style={styles.statBox}><Text style={[styles.statValue, { color: Colors.status.info }]}>{stats.submitted}</Text><Text style={styles.statLabel}>Submitted</Text></View>
@@ -165,6 +217,20 @@ export default function FestivalTrackerScreen() {
 }
 
 const styles = StyleSheet.create({
+  browseBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12,
+    padding: 14, borderRadius: 12, backgroundColor: Colors.bg.card,
+    borderWidth: 1, borderColor: Colors.border.subtle,
+  },
+  browseTitle: { color: Colors.text.primary, fontSize: 15, fontWeight: '600' },
+  browseSub: { color: Colors.text.tertiary, fontSize: 12, marginTop: 2 },
+  deadlineBar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    gap: 12, marginTop: 10, paddingVertical: 10, paddingHorizontal: 12,
+    borderRadius: 10, backgroundColor: Colors.accent.goldBg,
+  },
+  deadlineText: { color: Colors.accent.gold, fontSize: 13, flex: 1 },
+  deadlineCta: { color: Colors.accent.gold, fontSize: 13, fontWeight: '700' },
   container: { flex: 1, backgroundColor: Colors.bg.primary },
   statsRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
   statBox: { flex: 1, backgroundColor: Colors.bg.card, borderRadius: 10, padding: 10, alignItems: 'center', borderWidth: 0.5, borderColor: Colors.border.subtle },
