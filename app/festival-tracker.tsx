@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking } from 'react-native';
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Trophy, AlertCircle, Calendar, DollarSign, ChevronDown, ChevronUp, Pencil, Trash2, ExternalLink, Search, ChevronRight } from 'lucide-react-native';
 import { useProjects, useProjectFestivals } from '@/contexts/ProjectContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { closingWithin } from '@/utils/festivalDeadlinePolicy';
+import { safeSiteUrl, siteHost } from '@/utils/festivalCatalogPolicy';
 import { rescheduleAllDeadlines } from '@/utils/festivalDeadlines';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -27,6 +28,7 @@ function FestivalCard({ item, isExpanded, onPress, onEdit, onDelete }: {
   item: FestivalSubmission; isExpanded: boolean; onPress: () => void; onEdit: () => void; onDelete: () => void;
 }) {
   const status = STATUS_CONFIG[item.status];
+  const siteUrl = safeSiteUrl(item.platformUrl);
   const handleDelete = () => {
     appAlert('Delete Festival', `Remove "${item.festivalName}"?`, [
       { text: 'Cancel', style: 'cancel' },
@@ -78,9 +80,27 @@ function FestivalCard({ item, isExpanded, onPress, onEdit, onDelete }: {
               </View>
             ) : null}
           </View>
-          {item.platformUrl ? (
-            <View style={styles.urlRow}>
+          {/* Tappable, because for most of the catalog this link is where the
+            * real deadline lives: a listing added without a date leaves the
+            * caveat in notes and this as the only way to resolve it. Typed by
+            * hand in the edit form, so it goes through safeSiteUrl. */}
+          {siteUrl ? (
+            <TouchableOpacity
+              accessibilityRole="link"
+              accessibilityLabel={`Open ${siteHost(item.platformUrl) ?? 'the festival site'}${item.deadline ? '' : ' to confirm dates'}`}
+              style={styles.urlRow}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+              onPress={() => { Linking.openURL(siteUrl).catch(() => {}); }}
+              activeOpacity={0.7}
+            >
               <ExternalLink color={Colors.status.info} size={12} />
+              <Text style={[styles.urlText, styles.urlLink]} numberOfLines={1}>
+                {item.deadline ? siteHost(item.platformUrl) : `Confirm dates at ${siteHost(item.platformUrl)}`}
+              </Text>
+            </TouchableOpacity>
+          ) : item.platformUrl ? (
+            <View style={styles.urlRow}>
+              <ExternalLink color={Colors.text.tertiary} size={12} />
               <Text style={styles.urlText} numberOfLines={1}>{item.platformUrl}</Text>
             </View>
           ) : null}
@@ -258,7 +278,8 @@ const styles = StyleSheet.create({
   detailLabel: { fontSize: 12, fontWeight: '700' as const, color: Colors.text.tertiary, letterSpacing: 0.8 },
   detailValue: { fontSize: 13, color: Colors.text.secondary, fontWeight: '500' as const },
   urlRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
-  urlText: { fontSize: 12, color: Colors.status.info },
+  urlText: { fontSize: 12, color: Colors.text.tertiary, flexShrink: 1 },
+  urlLink: { color: Colors.status.info, fontWeight: '600' },
   notes: { fontSize: 12, color: Colors.text.tertiary, fontStyle: 'italic' as const, marginBottom: 4 },
   cardActions: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 10, marginTop: 4, borderTopWidth: 0.5, borderTopColor: Colors.border.subtle },
   editBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: Colors.accent.goldBg, borderWidth: 0.5, borderColor: Colors.accent.gold + '44' },

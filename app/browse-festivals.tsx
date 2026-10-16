@@ -29,7 +29,7 @@ import {
 } from '@/utils/festivalCatalog';
 import {
   describeDates, lowestFee, placeOf, matches, categoriesOf, regionsOf,
-  EMPTY_FILTERS, type CatalogFilters,
+  safeSiteUrl, siteHost, EMPTY_FILTERS, type CatalogFilters,
 } from '@/utils/festivalCatalogPolicy';
 
 const TYPE_LABEL: Record<FestivalKind, string> = {
@@ -55,6 +55,32 @@ function Chip({ label, active, onPress, a11y }: {
       activeOpacity={0.7}
     >
       <Text style={[styles.chipText, active && styles.chipTextOn]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+/**
+ * The festival's own site. On a row with a caveat this is the whole answer to
+ * "then when IS the deadline?", so it is gold and says so; on a row that has a
+ * real date it is just the host, quietly available.
+ */
+function SiteLink({ item, confirm }: { item: CatalogEntry; confirm: boolean }) {
+  const url = safeSiteUrl(item.website);
+  const host = siteHost(item.website);
+  if (!url || !host) return null;
+  return (
+    <TouchableOpacity
+      accessibilityRole="link"
+      accessibilityLabel={confirm ? `Confirm dates for ${item.name} at ${host}` : `Open ${host}`}
+      style={styles.siteLink}
+      hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+      onPress={() => { Linking.openURL(url).catch(() => {}); }}
+      activeOpacity={0.7}
+    >
+      <ExternalLink color={confirm ? Colors.accent.gold : Colors.text.tertiary} size={12} />
+      <Text style={[styles.siteLinkText, confirm && styles.siteLinkTextOn]} numberOfLines={1}>
+        {confirm ? `Confirm dates at ${host}` : host}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -88,6 +114,7 @@ function Row({ item, tracked, onAdd }: {
 
         <Text style={styles.rowDate}>{dates.short}</Text>
         {dates.caveat ? <Text style={styles.rowCaveat}>{dates.caveat}</Text> : null}
+        <SiteLink item={item} confirm={!dates.deadline} />
         <Text style={styles.rowFee}>{feeLabel(item)}</Text>
       </View>
 
@@ -168,11 +195,20 @@ export default function BrowseFestivalsScreen() {
       notes: dates.caveat ?? '',
       notificationDate: '',
     });
+    /* No date means the next useful thing is the festival's site, so offer it
+     * here rather than making the director find it again from the tracker. */
+    const site = safeSiteUrl(f.website);
     appAlert(
       'Added to your tracker',
       dates.deadline
         ? `${f.name} closes ${dates.deadline}.`
-        : `${f.name} was added. ${dates.caveat ?? 'Check the festival site for dates.'}`,
+        : `${f.name} was added without a deadline. ${dates.caveat ?? 'Check the festival site for dates.'}`,
+      !dates.deadline && site
+        ? [
+          { text: 'Later', style: 'cancel' },
+          { text: 'Open Festival Site', onPress: () => { Linking.openURL(site).catch(() => {}); } },
+        ]
+        : undefined,
     );
   }, [activeProjectId, addFestival]);
 
@@ -296,6 +332,9 @@ export default function BrowseFestivalsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg.primary },
+  siteLink: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4, alignSelf: 'flex-start' },
+  siteLinkText: { color: Colors.text.tertiary, fontSize: 12, flexShrink: 1 },
+  siteLinkTextOn: { color: Colors.accent.gold, fontWeight: '600' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.bg.primary, gap: 12 },
   loadingText: { color: Colors.text.tertiary, fontSize: 14 },
   searchWrap: {

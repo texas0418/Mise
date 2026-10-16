@@ -16,7 +16,7 @@
  */
 import {
   describeDates, lowestFee, matches, EMPTY_FILTERS, categoriesOf, regionsOf,
-  type CatalogEntry,
+  safeSiteUrl, siteHost, type CatalogEntry,
 } from '@/utils/festivalCatalogPolicy';
 import SNAPSHOT from '@/assets/data/festivals-snapshot.json';
 import {
@@ -116,6 +116,28 @@ ok('the snapshot still carries the estimated flag', estimatedCount > 100,
   `${estimatedCount} estimated listings; if this hits zero the honesty rules are dead code`);
 ok('no estimated listing yields a deadline',
   cat.festivals.filter(x => x.estimated).every(x => describeDates(x).deadline === ''));
+
+// ─── the link out, which is the only answer for 1,969 listings ───────────────
+ok('a plain https site passes through', safeSiteUrl('https://sundance.org') === 'https://sundance.org');
+ok('http is allowed', safeSiteUrl('http://example.org/submit') === 'http://example.org/submit');
+ok('a bare host gets https', safeSiteUrl('festivals.page4films.com') === 'https://festivals.page4films.com');
+ok('javascript: is refused', safeSiteUrl('javascript:alert(1)') === null,
+  'the catalog is downloaded at runtime and this value reaches Linking.openURL');
+ok('a store deep link is refused', safeSiteUrl('itms-apps://apps.apple.com/app/id1') === null);
+ok('tel: is refused', safeSiteUrl('tel:+15551234567') === null);
+ok('a scheme-relative URL is refused', safeSiteUrl('//evil.example') === null);
+ok('a bare word is not a host', safeSiteUrl('ask the programmer') === null);
+ok('a hostless string is refused', safeSiteUrl('https://') === null);
+ok('empty and missing are refused', safeSiteUrl('') === null && safeSiteUrl(undefined) === null
+  && safeSiteUrl(null) === null);
+ok('whitespace is trimmed', safeSiteUrl('  https://a.example  ') === 'https://a.example');
+ok('credentials in the host are refused', safeSiteUrl('https://user@evil.example') === null);
+ok('siteHost drops the scheme, www and path',
+  siteHost('https://www.Sundance.org/festival/submit') === 'sundance.org');
+ok('siteHost refuses what safeSiteUrl refuses', siteHost('javascript:void 0') === null);
+ok('every listing in the snapshot has an openable site',
+  cat.festivals.every(x => safeSiteUrl(x.website) !== null),
+  'a dateless row with no link is a dead end for the director');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

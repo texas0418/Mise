@@ -169,3 +169,36 @@ export function categoriesOf(list: CatalogEntry[]): string[] {
 export function regionsOf(list: CatalogEntry[]): string[] {
   return [...new Set(list.map(f => f.region).filter((r): r is string => !!r))].sort();
 }
+
+// ─── The festival's own site ──────────────────────────────────────────────────
+
+/*
+ * 1,969 of the 2,662 listings never produce a deadline, so for most of this
+ * calendar the festival's own site is not a nicety, it is the only way the
+ * director gets a real date. It is also the first URL in the app that comes
+ * from data rather than from source: the catalog is downloadable, and the
+ * tracker's platform field is typed by hand. Both reach Linking.openURL, which
+ * will happily open `javascript:`, `tel:` or a store deep link, so nothing
+ * opens a URL from either source without passing through here first.
+ */
+const HOSTNAME = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:\d{1,5})?$/i;
+
+/** An http(s) URL safe to hand to Linking.openURL, or null. Bare hosts get https. */
+export function safeSiteUrl(raw?: string | null): string | null {
+  const text = (raw ?? '').trim();
+  if (!text || /\s/.test(text)) return null;
+  const hadScheme = /^https?:\/\//i.test(text);
+  /* Any other scheme is refused outright rather than coerced: a listing
+   * reading `tel:` or `itms-apps:` is bad data at best. */
+  if (!hadScheme && /^[a-z][a-z0-9+.-]*:/i.test(text)) return null;
+  const host = text.replace(/^https?:\/\//i, '').split(/[/?#]/)[0];
+  if (!HOSTNAME.test(host)) return null;
+  return hadScheme ? text : `https://${text}`;
+}
+
+/** The bare host, for a link label a director can recognise. Null when unusable. */
+export function siteHost(raw?: string | null): string | null {
+  const url = safeSiteUrl(raw);
+  if (!url) return null;
+  return url.replace(/^https?:\/\//i, '').split(/[/?#]/)[0].replace(/^www\./i, '').toLowerCase();
+}
