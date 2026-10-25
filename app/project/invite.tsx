@@ -74,9 +74,11 @@ export default function InviteScreen() {
       if (error) throw error;
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      /* Nothing is emailed yet. The invite is claimed the moment that
+       * address signs in, so the director has to pass the address on. */
       appAlert(
-        'Invitation Sent',
-        `Invited ${email.trim()} as ${ROLE_LABELS[selectedRole]}`,
+        'Added to the Project',
+        `${email.trim()} is on the project as ${ROLE_LABELS[selectedRole]}. Tell them to open Mise and sign in or create an account with that exact email address. The project will be there when they do.`,
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (e: any) {
