@@ -221,7 +221,11 @@ async function pushSingleItem(item: SyncQueueItem, userId: string): Promise<void
 
   if ((action === 'insert' || action === 'update') && data) {
     let row = recordToSnake(data);
-    row.user_id = userId;
+    /* user_id is the row's CREATOR and must survive edits by other members
+     * of the project, so only stamp it on rows that have none. Overwriting
+     * it on every push used to hand a scene's ownership to whichever crew
+     * member last touched it. */
+    if (action === 'insert' || !row.user_id) row.user_id = userId;
     convertRowIds(row);
     row.updated_at = new Date().toISOString();
     if (action === 'insert') row.created_at = row.created_at || new Date().toISOString();
@@ -268,9 +272,10 @@ async function pullTableChanges(config: TableConfig, userId: string): Promise<nu
     .select('*')
     .order('updated_at', { ascending: true });
 
-  if (config.table === 'projects') {
-    query = query.eq('user_id', userId);
-  }
+  /* No user_id filter, on projects or anything else: row-level security
+   * decides what this account may see, and since crew sharing that includes
+   * projects the user belongs to but did not create. Filtering here would
+   * hide a director's project from the crew she invited. */
 
   if (lastSync) {
     query = query.gt('updated_at', lastSync);
