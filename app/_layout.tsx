@@ -347,6 +347,10 @@ export default function RootLayout() {
                     options={{ title: "Festivals" }}
                   />
                   <Stack.Screen
+                    name="browse-festivals"
+                    options={{ title: "Browse Festivals" }}
+                  />
+                  <Stack.Screen
                     name="new-festival"
                     options={{
                       ...FORM_MODAL_OPTIONS,
