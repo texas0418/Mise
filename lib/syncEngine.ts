@@ -14,135 +14,36 @@ import { supabase } from '@/lib/supabase';
 import {
   SYNCABLE_TABLES,
   type TableConfig,
-  recordToSnake,
-  recordToCamel,
-  applyPushAliases,
-  applyPullAliases,
 } from '@/lib/syncConfig';
 import {
   getPendingItems,
   dequeue,
   markFailed,
   pruneFailedItems,
+  clearQueue,
   type SyncQueueItem,
 } from '@/lib/syncQueue';
 import { isProEntitled } from '@/lib/entitlement';
+import { ensureUUID } from '@/lib/syncIds';
+import {
+  buildPushRow,
+  buildUploadRow,
+  mergePulledRows,
+  removeById,
+  softDeletePatch,
+} from '@/lib/syncMerge';
+import { writeStoreFromSync } from '@/lib/storeWrites';
+import {
+  isSyncAllowed,
+  getAcceptedProjectIds,
+  setAcceptedProjectIds,
+  newlyJoined,
+} from '@/lib/syncGate';
 
-// ---------------------------------------------------------------------------
-// UUID helpers — app uses numeric IDs, Supabase expects UUIDs
-// ---------------------------------------------------------------------------
-function isValidUUID(str: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-}
-
-function deterministicUUID(input: string): string {
-  let hex: string;
-  try {
-    hex = BigInt(input).toString(16).padStart(32, '0').slice(0, 32);
-  } catch {
-    let h1 = 0x811c9dc5;
-    for (let i = 0; i < input.length; i++) {
-      h1 ^= input.charCodeAt(i);
-      h1 = Math.imul(h1, 0x01000193);
-    }
-    let h2 = 0x1234abcd;
-    for (let i = 0; i < input.length; i++) {
-      h2 ^= input.charCodeAt(i);
-      h2 = Math.imul(h2, 0x5bd1e995);
-    }
-    hex = ((Math.abs(h1) >>> 0).toString(16).padStart(8, '0') +
-      (Math.abs(h2) >>> 0).toString(16).padStart(8, '0')).padEnd(32, '0');
-  }
-  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
-}
-
-function ensureUUID(value: string | null | undefined): string | null | undefined {
-  if (!value) return value;
-  if (typeof value !== 'string') value = String(value);
-  if (isValidUUID(value)) return value;
-  return deterministicUUID(value);
-}
-
-function convertRowIds(row: Record<string, any>): Record<string, any> {
-  for (const key of Object.keys(row)) {
-    if ((key === 'id' || key.endsWith('_id')) && row[key] && typeof row[key] === 'string') {
-      if (!isValidUUID(row[key])) {
-        row[key] = deterministicUUID(row[key]);
-      }
-    }
-  }
-  return row;
-}
-
-// ---------------------------------------------------------------------------
-// Known Supabase columns per table
-// Generated from: SELECT table_name, column_name FROM information_schema.columns
-// WHERE table_schema = 'public' ORDER BY table_name, ordinal_position;
-// ---------------------------------------------------------------------------
-const KNOWN_COLUMNS: Record<string, string[] | null> = {
-  projects: ['id', 'user_id', 'title', 'logline', 'genre', 'status', 'format', 'image_url', 'budget', 'director', 'producer', 'created_at', 'updated_at', 'archived_at', 'deleted_at'],
-  shots: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'type', 'movement', 'lens', 'description', 'notes', 'status', 'created_at', 'updated_at', 'deleted_at'],
-  schedule_days: ['id', 'user_id', 'project_id', 'date', 'day_number', 'scenes', 'location', 'call_time', 'wrap_time', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  crew_members: ['id', 'user_id', 'project_id', 'name', 'role', 'department', 'phone', 'email', 'created_at', 'updated_at', 'deleted_at'],
-  crew_assignments: ['id', 'user_id', 'project_id', 'crew_member_id', 'role', 'call_time', 'created_at', 'updated_at', 'deleted_at'],
-  takes: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'take_number', 'is_circled', 'is_ng', 'notes', 'timestamp', 'created_at', 'updated_at', 'deleted_at'],
-  scenes: ['id', 'user_id', 'project_id', 'number', 'heading', 'int_ext', 'time_of_day', 'location', 'page_eighths', 'cast_list', 'extras', 'props', 'wardrobe', 'special_equipment', 'synopsis', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  scene_breakdowns: ['id', 'user_id', 'project_id', 'scene_number', 'scene_name', 'int_ext', 'time_of_day', 'location', 'cast_list', 'extras', 'props', 'wardrobe', 'special_equipment', 'notes', 'page_count', 'created_at', 'updated_at', 'deleted_at'],
-  location_scouts: ['id', 'user_id', 'project_id', 'name', 'address', 'contact_name', 'contact_phone', 'permit_required', 'permit_status', 'parking_notes', 'power_available', 'notes', 'rating', 'photo_urls', 'scenes', 'latitude', 'longitude', 'created_at', 'updated_at', 'deleted_at'],
-  budget_items: ['id', 'user_id', 'project_id', 'category', 'description', 'estimated', 'actual', 'notes', 'vendor', 'paid', 'created_at', 'updated_at', 'deleted_at'],
-  continuity_notes: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'description', 'details', 'timestamp', 'created_at', 'updated_at', 'deleted_at'],
-  vfx_shots: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'description', 'complexity', 'status', 'vendor', 'deadline', 'notes', 'estimated_cost', 'created_at', 'updated_at', 'deleted_at'],
-  festival_submissions: ['id', 'user_id', 'project_id', 'festival_name', 'location', 'deadline', 'submission_date', 'fee', 'status', 'category', 'platform_url', 'notes', 'notification_date', 'created_at', 'updated_at', 'deleted_at'],
-  production_notes: ['id', 'user_id', 'project_id', 'title', 'content', 'category', 'pinned', 'created_at', 'updated_at', 'deleted_at'],
-  mood_board_items: ['id', 'user_id', 'project_id', 'board_name', 'type', 'image_url', 'color', 'note', 'label', 'created_at', 'updated_at', 'deleted_at'],
-  call_sheet_entries: ['id', 'user_id', 'project_id', 'schedule_day_id', 'crew_member_id', 'call_time', 'role', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  director_credits: ['id', 'user_id', 'project_id', 'title', 'role', 'year', 'format', 'festival', 'award', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  shot_references: ['id', 'user_id', 'project_id', 'shot_id', 'scene_number', 'title', 'image_url', 'shot_type', 'lighting_style', 'notes', 'tags', 'created_at', 'updated_at', 'deleted_at'],
-  wrap_reports: ['id', 'user_id', 'project_id', 'schedule_day_id', 'day_number', 'date', 'call_time', 'actual_wrap', 'scheduled_wrap', 'scenes_scheduled', 'scenes_completed', 'shots_planned', 'shots_completed', 'total_takes', 'circled_takes', 'ng_takes', 'pages_scheduled', 'pages_completed', 'overtime_minutes', 'notes', 'safety_incidents', 'weather_conditions', 'created_at', 'updated_at', 'deleted_at'],
-  location_weather: ['id', 'user_id', 'project_id', 'location_id', 'date', 'sunrise', 'sunset', 'golden_hour_am', 'golden_hour_pm', 'temp_high', 'temp_low', 'condition', 'wind_speed', 'humidity', 'precip_chance', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  blocking_notes: ['id', 'user_id', 'project_id', 'scene_number', 'title', 'description', 'actor_positions', 'camera_position', 'movement_notes', 'diagram_url', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  color_references: ['id', 'user_id', 'project_id', 'scene_number', 'name', 'lut_style', 'primary_color', 'secondary_color', 'accent_color', 'contrast', 'saturation', 'temperature', 'reference_film', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  time_entries: ['id', 'user_id', 'project_id', 'schedule_day_id', 'crew_member_id', 'department', 'date', 'call_time', 'wrap_time', 'lunch_start', 'lunch_end', 'scheduled_hours', 'actual_hours', 'overtime_hours', 'rate', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  script_sides: ['id', 'user_id', 'project_id', 'scene_number', 'scene_header', 'page_start', 'page_end', 'page_count', 'shoot_date', 'status', 'synopsis', 'cast_ids', 'linked_shot_ids', 'annotations', 'revision_color', 'revision_date', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  cast_members: ['id', 'user_id', 'project_id', 'actor_name', 'character_name', 'character_description', 'status', 'headshot', 'email', 'phone', 'agent_name', 'agent_contact', 'scenes', 'shoot_days', 'availability', 'performance_notes', 'preferred_takes', 'costume_notes', 'created_at', 'updated_at', 'deleted_at'],
-  call_sheet_details: ['id', 'user_id', 'project_id', 'schedule_day_id', 'hospital_name', 'hospital_address', 'hospital_phone', 'safety_notes', 'parking_notes', 'basecamp_notes', 'crew_park_notes', 'nearest_bathroom', 'walkie_channels', 'catering_location', 'breakfast_time', 'lunch_time', 'company_moves', 'version', 'issued_at', 'created_at', 'updated_at', 'deleted_at'],
-  cast_call_times: ['id', 'user_id', 'project_id', 'schedule_day_id', 'cast_member_id', 'makeup_time', 'wardrobe_time', 'on_set_time', 'notes', 'created_at', 'updated_at', 'deleted_at'],
-  lookbook_items: ['id', 'user_id', 'project_id', 'section', 'title', 'description', 'image_url', 'reference_film', 'color_hex', 'sort_order', 'created_at', 'updated_at', 'deleted_at'],
-  director_statements: ['id', 'user_id', 'project_id', 'text', 'created_at', 'updated_at', 'deleted_at'],
-  scene_selects: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'take_number', 'rating', 'is_circled', 'is_alt', 'editor_note', 'performance_note', 'technical_note', 'timecode', 'created_at', 'updated_at', 'deleted_at'],
-  director_messages: ['id', 'user_id', 'project_id', 'category', 'priority', 'subject', 'body', 'recipients', 'sent_at', 'scene_number', 'created_at', 'updated_at', 'deleted_at'],
-  script_annotations: ['id', 'script_pdf_id', 'project_id', 'user_id', 'page_number', 'type', 'color', 'x', 'y', 'width', 'height', 'text_content', 'path_data', 'stroke_width', 'created_at', 'updated_at', 'deleted_at'],
-  script_pdfs: ['id', 'project_id', 'user_id', 'title', 'file_path', 'file_size', 'page_count', 'version', 'color_code', 'uploaded_at', 'created_at', 'updated_at', 'deleted_at'],
-  // lighting_diagrams not yet in Supabase — will pass through without stripping
-};
-
-function stripUnknownColumns(table: string, row: Record<string, any>): Record<string, any> {
-  const known = KNOWN_COLUMNS[table];
-  if (!known) return row;
-  const cleaned: Record<string, any> = {};
-  for (const key of Object.keys(row)) {
-    if (known.includes(key)) cleaned[key] = row[key];
-  }
-  return cleaned;
-}
-
-// ---------------------------------------------------------------------------
-// Field-level merge: remote wins for non-null fields when timestamps tie/remote wins;
-// local fields are KEPT if the remote value is null/undefined.
-// ---------------------------------------------------------------------------
-function mergeRecords(
-  local: Record<string, any>,
-  remote: Record<string, any>,
-): Record<string, any> {
-  const merged = { ...local };
-  for (const key of Object.keys(remote)) {
-    const remoteVal = remote[key];
-    if (remoteVal !== null && remoteVal !== undefined) {
-      merged[key] = remoteVal;
-    }
-  }
-  return merged;
-}
+// Ids, row shapes and merging live in lib/syncIds.ts and lib/syncMerge.ts,
+// which have no React Native imports so the tests can drive them.
+export { deterministicUUID, ensureUUID, isValidUUID } from '@/lib/syncIds';
+export { mergeRecords } from '@/lib/syncMerge';
 
 // ---------------------------------------------------------------------------
 // Sync cursor
@@ -218,19 +119,10 @@ export async function pushLocalChanges(userId: string): Promise<{ pushed: number
 
 async function pushSingleItem(item: SyncQueueItem, userId: string): Promise<void> {
   const { table, recordId, action, data } = item;
+  const now = new Date().toISOString();
 
   if ((action === 'insert' || action === 'update') && data) {
-    let row = recordToSnake(data);
-    /* user_id is the row's CREATOR and must survive edits by other members
-     * of the project, so only stamp it on rows that have none. Overwriting
-     * it on every push used to hand a scene's ownership to whichever crew
-     * member last touched it. */
-    if (action === 'insert' || !row.user_id) row.user_id = userId;
-    convertRowIds(row);
-    row.updated_at = new Date().toISOString();
-    if (action === 'insert') row.created_at = row.created_at || new Date().toISOString();
-    row = applyPushAliases(table, row);
-    row = stripUnknownColumns(table, row);
+    const row = buildPushRow(table, data, userId, action, now);
     const { error } = await supabase.from(table).upsert(row, { onConflict: 'id' });
     if (error) throw error;
   }
@@ -239,120 +131,153 @@ async function pushSingleItem(item: SyncQueueItem, userId: string): Promise<void
     const safeId = ensureUUID(recordId) || recordId;
     const { error } = await supabase
       .from(table)
-      .update({ deleted_at: new Date().toISOString() })
+      .update(softDeletePatch(now))
       .eq('id', safeId);
     if (error) throw error;
   }
 }
 
 // ---------------------------------------------------------------------------
+// Memberships
+// ---------------------------------------------------------------------------
+const KNOWN_PROJECTS_KEY = 'mise_sync_known_projects';
+
+/**
+ * Read which projects this account has accepted a place on. Feeds the sync
+ * gate (crew sync without Pro) and the full-pull check below. A failed read
+ * keeps the last known list rather than locking a member out offline.
+ */
+export async function refreshMemberships(userId: string): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('project_members')
+      .select('project_id')
+      .eq('user_id', userId)
+      .not('accepted_at', 'is', null)
+      .is('deleted_at', null);
+    if (error) throw error;
+    setAcceptedProjectIds((data ?? []).map((r: { project_id: string }) => r.project_id));
+  } catch (e: any) {
+    console.warn('[SyncEngine] Membership check failed:', e?.message || e);
+  }
+  return getAcceptedProjectIds();
+}
+
+async function readKnownProjects(): Promise<string[] | null> {
+  const raw = await AsyncStorage.getItem(KNOWN_PROJECTS_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Pull remote changes from Supabase (incremental)
+//
+// The cursor is per table, not per project. A project this account has just
+// joined has rows older than every cursor, so an incremental pull would never
+// deliver them. When a new accepted membership or a project id never seen
+// before turns up, the cursors are cleared and everything is pulled again.
 // ---------------------------------------------------------------------------
 export async function pullRemoteChanges(userId: string): Promise<{ tables: number; records: number }> {
+  const memberships = await refreshMemberships(userId);
+  const known = await readKnownProjects();
+  let fullPull = known === null || newlyJoined(known, memberships).length > 0;
+  if (fullPull) await clearAllSyncCursors();
+
   let totalRecords = 0;
+  const seenProjects = new Set<string>([...(known ?? []), ...memberships]);
 
   for (const config of SYNCABLE_TABLES) {
     try {
-      const pulled = await pullTableChanges(config, userId);
-      totalRecords += pulled;
+      const pulled = await pullTableChanges(config);
+      totalRecords += pulled.changed;
+      if (config.table !== 'projects') continue;
+      const appeared = newlyJoined([...seenProjects], pulled.ids);
+      pulled.ids.forEach((id) => seenProjects.add(id));
+      if (appeared.length > 0 && !fullPull) {
+        fullPull = true;
+        await clearChildCursors();
+      }
     } catch (error: any) {
       console.warn(`[SyncEngine] Failed to pull ${config.table}:`, error.message);
     }
   }
 
+  await AsyncStorage.setItem(KNOWN_PROJECTS_KEY, JSON.stringify([...seenProjects]));
   return { tables: SYNCABLE_TABLES.length, records: totalRecords };
 }
 
-// eslint-disable-next-line complexity -- tracked in #23
-async function pullTableChanges(config: TableConfig, userId: string): Promise<number> {
-  const lastSync = await getLastSyncTime(config.table);
+async function clearChildCursors(): Promise<void> {
+  const keys = SYNCABLE_TABLES
+    .filter((t) => t.table !== 'projects')
+    .map((t) => `${SYNC_CURSOR_PREFIX}${t.table}`);
+  await AsyncStorage.multiRemove(keys);
+}
 
-  let query = supabase
-    .from(config.table)
-    .select('*')
-    .order('updated_at', { ascending: true });
+const PULL_PAGE = 1000;
+const MAX_PAGES = 20;
 
+/** Pull one table page by page, merging each page on the store's write chain. */
+async function pullTableChanges(config: TableConfig): Promise<{ changed: number; ids: string[] }> {
+  let changed = 0;
+  const ids: string[] = [];
+
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const rows = await fetchPage(config.table, await getLastSyncTime(config.table));
+    if (rows.length === 0) break;
+
+    changed += await applyRemoteRows(config, rows);
+    rows.forEach((r) => { if (r.id && !r.deleted_at) ids.push(r.id); });
+
+    const latest = rows[rows.length - 1]?.updated_at;
+    if (latest) await setLastSyncTime(config.table, latest);
+    if (rows.length < PULL_PAGE || !latest) break;
+  }
+  return { changed, ids };
+}
+
+async function fetchPage(table: string, since: string | null): Promise<Record<string, any>[]> {
   /* No user_id filter, on projects or anything else: row-level security
    * decides what this account may see, and since crew sharing that includes
-   * projects the user belongs to but did not create. Filtering here would
-   * hide a director's project from the crew she invited. */
-
-  if (lastSync) {
-    query = query.gt('updated_at', lastSync);
-  }
-
-  query = query.limit(1000);
-
-  const { data: rows, error } = await query;
+   * projects the user belongs to but did not create. */
+  let query = supabase.from(table).select('*').order('updated_at', { ascending: true });
+  if (since) query = query.gt('updated_at', since);
+  const { data, error } = await query.limit(PULL_PAGE);
   if (error) throw error;
-  if (!rows || rows.length === 0) return 0;
+  return data ?? [];
+}
 
-  // Load local data
-  const localRaw = await AsyncStorage.getItem(config.storageKey);
-  let localItems: Record<string, any>[] = [];
-  if (localRaw) {
-    try {
-      localItems = JSON.parse(localRaw);
-    } catch {
-      localItems = [];
-    }
-  }
+/**
+ * Merge server rows into a local store. The pull and the realtime listener
+ * both come through here, so both apply the pull aliases, merge field by
+ * field, and write on the store's chain.
+ */
+export function applyRemoteRows(config: TableConfig, rows: Record<string, any>[]): Promise<number> {
+  return writeStoreFromSync(config.storageKey, (items) => mergePulledRows(config.table, items, rows));
+}
 
-  const localMap = new Map<string, Record<string, any>>();
-  for (const item of localItems) localMap.set(item.id, item);
-
-  let mergedCount = 0;
-
-  for (const row of rows) {
-    let camelRecord = recordToCamel<Record<string, any>>(row);
-    camelRecord = applyPullAliases(config.table, camelRecord);
-
-    // Soft-deleted remote record — remove locally
-    if (camelRecord.deletedAt) {
-      localMap.delete(camelRecord.id);
-      mergedCount++;
-      continue;
-    }
-
-    const localItem = localMap.get(camelRecord.id);
-
-    if (!localItem) {
-      localMap.set(camelRecord.id, camelRecord);
-      mergedCount++;
-      continue;
-    }
-
-    // Both exist — last-write-wins on timestamp, but with field-level merge
-    const remoteTime = new Date(camelRecord.updatedAt || 0).getTime();
-    const localTime = new Date(localItem.updatedAt || localItem.createdAt || 0).getTime();
-
-    if (remoteTime >= localTime) {
-      localMap.set(camelRecord.id, mergeRecords(localItem, camelRecord));
-      mergedCount++;
-    }
-  }
-
-  await AsyncStorage.setItem(config.storageKey, JSON.stringify(Array.from(localMap.values())));
-
-  const latestRow = rows[rows.length - 1];
-  if (latestRow?.updated_at) {
-    await setLastSyncTime(config.table, latestRow.updated_at);
-  }
-
-  return mergedCount;
+/** A hard delete seen by realtime. */
+export function applyRemoteDelete(config: TableConfig, id: string): Promise<number> {
+  return writeStoreFromSync(config.storageKey, (items) => removeById(items, id));
 }
 
 // ---------------------------------------------------------------------------
-// Full sync — push then pull
+// Full sync: push then pull
 // ---------------------------------------------------------------------------
 let syncInProgress = false;
 
 export async function fullSync(userId: string): Promise<{ pushed: number; pulled: number; failed: number }> {
   if (syncInProgress) return { pushed: 0, pulled: 0, failed: 0 };
   syncInProgress = true;
-  setStatus('syncing');
 
   try {
+    await refreshMemberships(userId);
+    if (!isSyncEnabled(userId)) return { pushed: 0, pulled: 0, failed: 0 };
+    setStatus('syncing');
     const pushResult = await pushLocalChanges(userId);
     const pullResult = await pullRemoteChanges(userId);
     setStatus('idle');
@@ -367,10 +292,11 @@ export async function fullSync(userId: string): Promise<{ pushed: number; pulled
 }
 
 // ---------------------------------------------------------------------------
-// Initial upload — push all local data for first-time sync
+// Initial upload: push all local data for first-time sync
 // ---------------------------------------------------------------------------
 export async function initialUpload(userId: string): Promise<number> {
   let uploaded = 0;
+  const now = new Date().toISOString();
 
   for (const config of SYNCABLE_TABLES) {
     try {
@@ -380,16 +306,8 @@ export async function initialUpload(userId: string): Promise<number> {
       const items: Record<string, any>[] = JSON.parse(localRaw);
       if (items.length === 0) continue;
 
-      const rows = items.map((item) => {
-        let row = recordToSnake(item);
-        row.user_id = userId;
-        convertRowIds(row);
-        row.updated_at = row.updated_at || new Date().toISOString();
-        row.created_at = row.created_at || new Date().toISOString();
-        row = applyPushAliases(config.table, row);
-        row = stripUnknownColumns(config.table, row);
-        return row;
-      });
+      // Never overwrites a user_id the row already has (M4).
+      const rows = items.map((item) => buildUploadRow(config.table, item, userId, now));
 
       for (let i = 0; i < rows.length; i += 100) {
         const batch = rows.slice(i, i + 100);
@@ -401,13 +319,28 @@ export async function initialUpload(userId: string): Promise<number> {
         }
       }
 
-      await setLastSyncTime(config.table, new Date().toISOString());
+      await setLastSyncTime(config.table, now);
     } catch (error: any) {
       console.error(`[SyncEngine] Upload failed ${config.table}:`, error.message);
     }
   }
 
   return uploaded;
+}
+
+// ---------------------------------------------------------------------------
+// Clear this device: every store, the queue, the cursors (sign-out "clear")
+// ---------------------------------------------------------------------------
+export async function clearLocalSyncData(): Promise<void> {
+  await clearQueue();
+  await clearAllSyncCursors();
+  setAcceptedProjectIds([]);
+  await AsyncStorage.multiRemove([
+    ...SYNCABLE_TABLES.map((t) => t.storageKey),
+    KNOWN_PROJECTS_KEY,
+    'mise_active_project',
+    'mise_import_history',
+  ]);
 }
 
 // ---------------------------------------------------------------------------
@@ -442,13 +375,17 @@ export async function runMigrationsIfNeeded(): Promise<boolean> {
 }
 
 /**
- * Whether this device should sync at all.
+ * Whether this device should push and pull right now.
  *
  * Being signed in used to be the whole test, so every free account pushed and
  * pulled against Supabase while the paywall advertised Multi-Device Sync as a
- * paid feature — the claim and the behaviour disagreed, and the bill was real
- * (#43). Sync now requires a paid entitlement as well as a session.
+ * paid feature (#43). It then required Pro, which locked out the crew a
+ * director invited. The rule itself is in lib/syncGate.ts.
  */
 export function isSyncEnabled(userId: string | null | undefined): boolean {
-  return !!userId && isProEntitled();
+  return isSyncAllowed({
+    signedIn: !!userId,
+    proEntitled: isProEntitled(),
+    acceptedMemberships: getAcceptedProjectIds().length,
+  });
 }

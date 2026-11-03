@@ -1,20 +1,29 @@
 // ---------------------------------------------------------------------------
-// lib/realtimeSubscriptions.ts — Live updates via Supabase Realtime
+// lib/realtimeSubscriptions.ts: live updates via Supabase Realtime
 //
 // Subscribes to Postgres changes on all syncable tables. When another device
-// makes a change, it arrives via WebSocket and is merged into local
-// AsyncStorage + invalidates React Query cache so UI re-renders.
+// makes a change, it arrives via WebSocket and goes through the same path as a
+// pull (applyRemoteRows): pull aliases applied, merged field by field rather
+// than replacing the local record, and written on the store's write chain.
+// It used to skip all three, so a scene edited elsewhere lost its cast.
+//
+// The account's own project_members rows are watched too. A new accepted
+// membership changes who may sync and needs a full pull (see syncEngine.ts).
 // ---------------------------------------------------------------------------
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
-import { SYNCABLE_TABLES, recordToCamel, type TableConfig } from '@/lib/syncConfig';
+import { SYNCABLE_TABLES, type TableConfig } from '@/lib/syncConfig';
+import { applyRemoteRows, applyRemoteDelete } from '@/lib/syncEngine';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import type { QueryClient } from '@tanstack/react-query';
 
 let activeChannel: RealtimeChannel | null = null;
 
-export function subscribeToChanges(userId: string, queryClient: QueryClient): void {
+export function subscribeToChanges(
+  userId: string,
+  queryClient: QueryClient,
+  onMembershipChange?: () => void,
+): void {
   unsubscribeAll();
 
   const channel = supabase.channel(`user_${userId}_sync`);
@@ -24,8 +33,16 @@ export function subscribeToChanges(userId: string, queryClient: QueryClient): vo
       'postgres_changes' as any,
       { event: '*', schema: 'public', table: config.table },
       (payload: RealtimePostgresChangesPayload<Record<string, any>>) => {
-        handleRealtimeEvent(payload, config, queryClient);
+        void handleRealtimeEvent(payload, config, queryClient);
       }
+    );
+  }
+
+  if (onMembershipChange) {
+    channel.on(
+      'postgres_changes' as any,
+      { event: '*', schema: 'public', table: 'project_members', filter: `user_id=eq.${userId}` },
+      () => onMembershipChange(),
     );
   }
 
@@ -40,7 +57,6 @@ export function subscribeToChanges(userId: string, queryClient: QueryClient): vo
   activeChannel = channel;
 }
 
-// eslint-disable-next-line complexity -- tracked in #22
 async function handleRealtimeEvent(
   payload: RealtimePostgresChangesPayload<Record<string, any>>,
   config: TableConfig,
@@ -49,40 +65,18 @@ async function handleRealtimeEvent(
   const eventType = payload.eventType;
 
   try {
-    const localRaw = await AsyncStorage.getItem(config.storageKey);
-    let localItems: Record<string, any>[] = [];
-    if (localRaw) {
-      try { localItems = JSON.parse(localRaw); } catch { localItems = []; }
-    }
-
-    const localMap = new Map<string, Record<string, any>>();
-    for (const item of localItems) localMap.set(item.id, item);
-
+    let changed = 0;
     if (eventType === 'INSERT' || eventType === 'UPDATE') {
       const newRow = payload.new as Record<string, any>;
-      if (!newRow || !newRow.id) return;
-      const camelRecord = recordToCamel<Record<string, any>>(newRow);
-
-      if (camelRecord.deletedAt) {
-        localMap.delete(camelRecord.id);
-      } else {
-        const existing = localMap.get(camelRecord.id);
-        if (existing) {
-          const remoteTime = new Date(camelRecord.updatedAt || 0).getTime();
-          const localTime = new Date(existing.updatedAt || 0).getTime();
-          if (remoteTime < localTime) return;
-        }
-        localMap.set(camelRecord.id, camelRecord);
-      }
-    }
-
-    if (eventType === 'DELETE') {
+      if (!newRow?.id) return;
+      changed = await applyRemoteRows(config, [newRow]);
+    } else if (eventType === 'DELETE') {
       const oldRow = payload.old as Record<string, any>;
-      if (oldRow?.id) localMap.delete(oldRow.id);
+      if (!oldRow?.id) return;
+      changed = await applyRemoteDelete(config, oldRow.id);
     }
-
-    await AsyncStorage.setItem(config.storageKey, JSON.stringify(Array.from(localMap.values())));
-    queryClient.invalidateQueries({ queryKey: [config.queryKey] });
+    // The write already updated the cache; this only refreshes derived queries.
+    if (changed > 0) queryClient.invalidateQueries({ queryKey: [config.queryKey] });
   } catch (error: any) {
     console.warn(`[Realtime] Error ${eventType} on ${config.table}:`, error.message);
   }

@@ -18,6 +18,8 @@ import {
 import { hasRunPhotoMigration, runPhotoMigration } from "@/lib/photoMigration";
 import { hasRunSceneMigration, runSceneMigration } from "@/lib/sceneMigration";
 import { hasRunCrewMigration, runCrewMigration } from "@/lib/crewMigration";
+import { runIdMigrationIfNeeded } from "@/lib/idMigration";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { noteFirstLaunch } from "@/utils/reviewPrompt";
 import OnboardingFlow from "@/components/OnboardingFlow";
 import { useGuardedRouter } from "@/utils/useGuardedRouter";
@@ -27,6 +29,17 @@ import AlertHost from "@/components/AlertHost";
 import DesktopSidebar from "@/components/DesktopSidebar";
 
 SplashScreen.preventAutoHideAsync();
+
+async function migrateLocalIds(): Promise<void> {
+  try {
+    const r = await runIdMigrationIfNeeded(AsyncStorage);
+    if (r.ran) {
+      console.log(`[idMigration] ${r.records} records in ${r.stores} stores, ${r.duplicatesMerged} duplicates merged`);
+    }
+  } catch (e) {
+    console.warn("[idMigration] skipped:", e);
+  }
+}
 
 const queryClient = new QueryClient();
 
@@ -177,6 +190,12 @@ export default function RootLayout() {
       } catch (e) {
         console.warn("[crewMigration] skipped:", e);
       }
+
+      // Move numeric local ids to the server's uuids and merge the copies
+      // the old pull left behind. Last of the migrations, so it also maps
+      // the ids the ones above created, and before sync, which starts when
+      // the providers mount.
+      await migrateLocalIds();
 
       // Stamped once, so the review prompt can tell a new install from a
       // long-running one.
