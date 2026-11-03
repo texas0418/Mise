@@ -194,6 +194,8 @@ async function applyDecision(
       expires_at: decision.expiresAt,
       last_event_at: decision.eventAt,
       updated_at: new Date().toISOString(),
+      // Crew seats (20261103_crew_seats.sql). Only events that name the plan set them.
+      ...(decision.seats != null ? { seats: decision.seats } : {}),
     },
     { onConflict: 'user_id' }
   );

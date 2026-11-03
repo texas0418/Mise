@@ -16,7 +16,7 @@ Mise is a complete production management suite for indie filmmakers. Call sheets
 Why directors switch to Mise:
 
 - Mobile-first. Works on set. Works offline. Syncs automatically when you reconnect.
-- Share a project with your crew. Invite your AD, DP, producer, or PA by email. They join by signing in to Mise with the email address you invited, once that address is confirmed. Each crew member needs their own Mise subscription. Each role sees and edits only the tools it should.
+- Share a project with your crew. Invite your AD, DP, producer, or PA by email. They join by signing in to Mise with the email address you invited, once that address is confirmed. Crew, Production, Studio and Slate plans cover your crew (5, 15, 40 or 250 people, you included); past that, crew need their own subscription. Each role sees and edits only the tools it should.
 - Bring what you already have. Import shot lists, crew, cast, schedules, and budgets from CSV or Excel (XLSX) spreadsheets. No retyping.
 - Made for indies. Plans start at $4.99/month for one device, and grow with your crew.
 

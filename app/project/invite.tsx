@@ -23,6 +23,26 @@ import { useGuardedRouter } from '@/utils/useGuardedRouter';
 // Roles that can be assigned (not owner)
 const ASSIGNABLE_ROLES = ALL_ROLES.filter(r => r !== 'owner');
 
+/**
+ * What the director's plan covers, for the invite confirmation. Seats are
+ * counted on the server (supabase/migrations/20261103_crew_seats.sql): the
+ * owner takes one, and accepted crew fill the rest in the order they joined.
+ */
+async function seatLine(): Promise<string> {
+  const fallback = 'Crew are covered by your plan while it has seats left. Past that, they need their own Mise subscription.';
+  try {
+    const { data, error } = await supabase.rpc('mise_seat_status');
+    if (error || !data) return fallback;
+    const { seats, used } = data as { seats: number; used: number };
+    if (seats <= 1) return 'Your plan covers only you, so they need their own Mise subscription. Crew, Production and Studio plans cover your crew.';
+    const left = Math.max(0, seats - used);
+    if (left === 0) return `All ${seats} seats on your plan are taken, so they need their own Mise subscription unless someone leaves.`;
+    return `Your plan covers ${seats} people, with ${left} ${left === 1 ? 'seat' : 'seats'} free right now.`;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function InviteScreen() {
   const router = useGuardedRouter();
   const { user } = useAuth();
@@ -75,11 +95,12 @@ export default function InviteScreen() {
       if (error) throw error;
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      const seats = await seatLine();
       /* Nothing is emailed yet. The invite is claimed the moment that
        * address signs in, so the director has to pass the address on. */
       appAlert(
         'Added to the Project',
-        `${email.trim()} is on the project as ${ROLE_LABELS[selectedRole]}. Tell them to open Mise and sign in or create an account with that exact email address. The project will be there when they do. They need their own Mise subscription to work in it.`,
+        `${email.trim()} is on the project as ${ROLE_LABELS[selectedRole]}. Tell them to open Mise and sign in or create an account with that exact email address. The project will be there when they do. ${seats}`,
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (e: any) {

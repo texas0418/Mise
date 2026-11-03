@@ -40,6 +40,9 @@ export interface RevenueCatEvent {
   /** TRANSFER only: the ids the purchases moved away from, and to. */
   transferred_from?: string[] | null;
   transferred_to?: string[] | null;
+  /** The store product. PRODUCT_CHANGE also carries the one switched to. */
+  product_id?: string | null;
+  new_product_id?: string | null;
 }
 
 export type Decision =
@@ -50,6 +53,8 @@ export type Decision =
       expiresAt: string | null;
       eventAt: string;
       reason: string;
+      /** People the plan covers, owner included. null leaves the stored value alone. */
+      seats: number | null;
     }
   | { action: 'ignore'; reason: string };
 
@@ -64,6 +69,26 @@ export type Decision =
 export const PRO_ENTITLEMENT = 'Mise Film Director Suite Pro';
 
 /** Event types that mean the subscription is active as of this event. */
+/**
+ * People a plan covers, the owner included: Solo 1, Crew 5, Production 15,
+ * Studio 40, Slate 250 (lib/tiers.ts deviceLimit). Apple ids look like
+ * com.mise.film_director_suite.crew_monthly, Play ids like
+ * mise_crew:crew-monthly. The legacy pro_* products are Solo. Mirrors
+ * public.mise_seats_for_product() in supabase/migrations/20261103_crew_seats.sql.
+ */
+export function seatsForProduct(productId: string | null | undefined): number {
+  const id = (productId ?? '').toLowerCase();
+  if (id.includes('slate')) return 250;
+  if (id.includes('studio')) return 40;
+  if (id.includes('production')) return 15;
+  if (id.includes('crew')) return 5;
+  return 1;
+}
+
+function eventSeats(event: RevenueCatEvent): number {
+  return seatsForProduct(event.new_product_id ?? event.product_id);
+}
+
 const GRANTS = new Set([
   'INITIAL_PURCHASE',
   'RENEWAL',
@@ -208,14 +233,15 @@ export function decide(event: RevenueCatEvent | null | undefined, nowMs: number)
     eventAt: msToIso(event.event_timestamp_ms) ?? new Date(nowMs).toISOString(),
   };
 
-  if (GRANTS.has(type)) return { ...base, isPro: true, reason: type };
-  if (REVOKES.has(type)) return { ...base, isPro: false, reason: type };
+  if (GRANTS.has(type)) return { ...base, isPro: true, reason: type, seats: eventSeats(event) };
+  if (REVOKES.has(type)) return { ...base, isPro: false, reason: type, seats: null };
 
   if (HONOUR_EXPIRY.has(type)) {
     const stillPaid = stillWithinPaidPeriod(event, nowMs);
     return {
       ...base,
       isPro: stillPaid,
+      seats: null,
       reason: stillPaid ? `${type} — paid period still running` : `${type} — paid period ended`,
     };
   }
@@ -273,7 +299,7 @@ export function transferDecisions(event: RevenueCatEvent | null | undefined, now
 
   return [
     ...from.filter((id) => !both.has(id)).map((userId) => ({
-      action: 'apply' as const, userId, isPro: false, expiresAt: null, eventAt,
+      action: 'apply' as const, userId, isPro: false, expiresAt: null, eventAt, seats: null,
       reason: 'TRANSFER away from this account',
     })),
     // Grant only a paid period the event shows is still running. A TRANSFER
@@ -283,7 +309,7 @@ export function transferDecisions(event: RevenueCatEvent | null | undefined, now
     // and the next RENEWAL grants here.
     ...(event.expiration_at_ms != null && event.expiration_at_ms > nowMs
       ? to.filter((id) => !both.has(id)).map((userId) => ({
-          action: 'apply' as const, userId, isPro: true, expiresAt, eventAt,
+          action: 'apply' as const, userId, isPro: true, expiresAt, eventAt, seats: eventSeats(event),
           reason: 'TRANSFER to this account',
         }))
       : []),

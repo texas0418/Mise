@@ -4,25 +4,24 @@
 // Mutations are always queued on the device. This decides only whether the
 // queue is pushed and the server is pulled.
 //
-// Sync requires Pro (#43). Every person on a crew is a cost, so an invited
-// crew member syncs a shared project on their own subscription, not the
-// director's (Simon, 2026-11-03). Their edits are still queued on the device,
-// never dropped, and go up once they subscribe.
+// Sync requires Pro of your own (#43), or a seat on a director's plan: Crew
+// covers 5 people, Production 15, Studio 40, Slate 250, owner included
+// (Simon, 2026-11-03). The server counts seats (20261103_crew_seats.sql) and
+// says whether this account holds one; past the number, crew need their own
+// subscription. Edits are always queued on the device, never dropped, and go
+// up once the account may sync.
 // ---------------------------------------------------------------------------
-
-/** Whether accepted crew sync shared projects without Pro of their own. They do not. */
-export const CREW_SYNC_WITHOUT_PRO = false;
 
 export interface SyncGateInput {
   signedIn: boolean;
   proEntitled: boolean;
-  acceptedMemberships: number;
+  /** The server says a director's plan has a seat for this account. */
+  seatCovered: boolean;
 }
 
-export function isSyncAllowed({ signedIn, proEntitled, acceptedMemberships }: SyncGateInput): boolean {
+export function isSyncAllowed({ signedIn, proEntitled, seatCovered }: SyncGateInput): boolean {
   if (!signedIn) return false;
-  if (proEntitled) return true;
-  return CREW_SYNC_WITHOUT_PRO && acceptedMemberships > 0;
+  return proEntitled || seatCovered;
 }
 
 // ---------------------------------------------------------------------------
@@ -41,6 +40,19 @@ export function setAcceptedProjectIds(ids: string[]): void {
   if (next.join(',') === acceptedProjectIds.join(',')) return;
   acceptedProjectIds = next;
   listeners.forEach((fn) => fn(next));
+}
+
+let seatCovered = false;
+
+export function getSeatCovered(): boolean {
+  return seatCovered;
+}
+
+/** Set by the sync engine from public.mise_sync_access(). */
+export function setSeatCovered(next: boolean): void {
+  if (next === seatCovered) return;
+  seatCovered = next;
+  listeners.forEach((fn) => fn(acceptedProjectIds));
 }
 
 export function onAcceptedProjectsChange(fn: (ids: string[]) => void): () => void {
