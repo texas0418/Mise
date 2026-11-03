@@ -73,33 +73,26 @@ export default function ProfileScreen() {
   }, [newPassword, confirmPassword, updatePassword]);
 
   /*
-   * Sign-out used to keep the previous account's records and its pending
-   * queue on the phone, so the next account to sign in saw them and pushed
-   * them. Ask instead. FLAGGED FOR SIMON (M4): the choice is the 1.3.3
-   * default; "Keep" leaves the queue too, so the same account can sign back
-   * in and push what it had not sent yet.
+   * Signing out keeps this device's projects. They stay until the user
+   * deletes them (Simon, 2026-11-03). The pending queue stays too, so the
+   * same account can sign back in and push what it had not sent yet.
    */
-  const finishSignOut = useCallback(async (clearData: boolean) => {
-    try {
-      await signOut();
-      if (clearData) await resetSync({ clearData: true });
-      router.replace('/auth/sign-in');
-    } catch (error: any) {
-      appAlert('Error', error.message);
-    }
-  }, [signOut, resetSync, router]);
-
   const handleSignOut = useCallback(async () => {
-    appAlert(
-      'Sign Out',
-      'Keep your projects on this device, or clear them? Clearing removes everything stored here, including changes not synced yet. Anything already synced stays in your account.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Keep on This Device', onPress: () => { void finishSignOut(false); } },
-        { text: 'Clear This Device', style: 'destructive', onPress: () => { void finishSignOut(true); } },
-      ],
-    );
-  }, [finishSignOut]);
+    appAlert('Sign Out', 'Your projects stay on this device.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        onPress: async () => {
+          try {
+            await signOut();
+            router.replace('/auth/sign-in');
+          } catch (error: any) {
+            appAlert('Error', error.message);
+          }
+        },
+      },
+    ]);
+  }, [signOut, router]);
 
   const deleteEverything = useCallback(async () => {
     setDeleting(true);

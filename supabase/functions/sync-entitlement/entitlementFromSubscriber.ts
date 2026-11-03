@@ -37,7 +37,7 @@ export const PRO_ENTITLEMENT = 'Mise Film Director Suite Pro';
 export interface RevenueCatSubscriber {
   entitlements?: Record<
     string,
-    { expires_date?: string | null; purchase_date?: string | null } | null
+    { expires_date?: string | null; purchase_date?: string | null; product_identifier?: string | null } | null
   > | null;
 }
 
@@ -46,7 +46,19 @@ export interface SubscriberEntitlement {
   expiresAt: string | null;
   /** When the entitlement was bought, used as the staleness cursor. */
   purchasedAt: string | null;
+  /** People the plan covers, owner included (see seatsForProduct). */
+  seats: number;
   reason: string;
+}
+
+/** Same mapping as the webhook's seatsForProduct and public.mise_seats_for_product(). */
+export function seatsForProduct(productId: string | null | undefined): number {
+  const id = (productId ?? '').toLowerCase();
+  if (id.includes('slate')) return 250;
+  if (id.includes('studio')) return 40;
+  if (id.includes('production')) return 15;
+  if (id.includes('crew')) return 5;
+  return 1;
 }
 
 /**
@@ -74,6 +86,7 @@ export function entitlementFromSubscriber(
     isPro: false,
     expiresAt: null,
     purchasedAt: null,
+    seats: 1,
     reason,
   });
 
@@ -85,11 +98,12 @@ export function entitlementFromSubscriber(
   if (!entry) return none(`no ${PRO_ENTITLEMENT} entitlement on this customer`);
 
   const purchasedAt = normaliseDate(entry.purchase_date);
+  const seats = seatsForProduct(entry.product_identifier);
   const expiresRaw = entry.expires_date;
 
   // A lifetime grant. RevenueCat states this as an explicit null.
   if (expiresRaw == null) {
-    return { isPro: true, expiresAt: null, purchasedAt, reason: 'entitlement does not expire' };
+    return { isPro: true, expiresAt: null, purchasedAt, seats, reason: 'entitlement does not expire' };
   }
 
   const expiresAt = normaliseDate(expiresRaw);
@@ -108,6 +122,7 @@ export function entitlementFromSubscriber(
     isPro: active,
     expiresAt,
     purchasedAt,
+    seats,
     reason: active ? 'entitlement is active' : 'entitlement expired',
   };
 }

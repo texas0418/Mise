@@ -37,6 +37,8 @@ import {
   isSyncAllowed,
   getAcceptedProjectIds,
   setAcceptedProjectIds,
+  getSeatCovered,
+  setSeatCovered,
   newlyJoined,
 } from '@/lib/syncGate';
 
@@ -157,6 +159,9 @@ export async function refreshMemberships(userId: string): Promise<string[]> {
       .is('deleted_at', null);
     if (error) throw error;
     setAcceptedProjectIds((data ?? []).map((r: { project_id: string }) => r.project_id));
+    const access = await supabase.rpc('mise_sync_access');
+    if (access.error) throw access.error;
+    setSeatCovered(!!(access.data as { seat_covered?: boolean } | null)?.seat_covered);
   } catch (e: any) {
     console.warn('[SyncEngine] Membership check failed:', e?.message || e);
   }
@@ -335,6 +340,7 @@ export async function clearLocalSyncData(): Promise<void> {
   await clearQueue();
   await clearAllSyncCursors();
   setAcceptedProjectIds([]);
+  setSeatCovered(false);
   await AsyncStorage.multiRemove([
     ...SYNCABLE_TABLES.map((t) => t.storageKey),
     KNOWN_PROJECTS_KEY,
@@ -386,6 +392,6 @@ export function isSyncEnabled(userId: string | null | undefined): boolean {
   return isSyncAllowed({
     signedIn: !!userId,
     proEntitled: isProEntitled(),
-    acceptedMemberships: getAcceptedProjectIds().length,
+    seatCovered: getSeatCovered(),
   });
 }

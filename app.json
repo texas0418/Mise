@@ -27,7 +27,7 @@
         ],
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "11"
+      "buildNumber": "13"
     },
     "android": {
       "adaptiveIcon": {
@@ -35,7 +35,7 @@
         "backgroundColor": "#0A0A0A"
       },
       "package": "com.mise.film_director_suite",
-      "versionCode": 7
+      "versionCode": 9
     },
     "web": {
       "favicon": "./assets/images/favicon.png"

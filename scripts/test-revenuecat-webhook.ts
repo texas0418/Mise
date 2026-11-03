@@ -31,6 +31,7 @@ import {
   isUuid,
   resolveUserId,
   transferDecisions,
+  seatsForProduct,
   PRO_ENTITLEMENT,
 } from '../supabase/functions/revenuecat-webhook/entitlementFromEvent.ts';
 
@@ -228,6 +229,16 @@ ok('a transfer with no expiry only revokes',
            return d.length === 1 && d[0].userId === OLD && d[0].isPro === false; })());
 ok('another event type is not a transfer',
   transferDecisions(event({ type: 'RENEWAL' }), NOW).length === 0);
+
+// --- crew seats ---------------------------------------------------------------
+
+ok('a Crew purchase covers 5', (decide(event({ product_id: 'com.mise.film_director_suite.crew_monthly' }), NOW) as any).seats === 5);
+ok('a Play Studio purchase covers 40', (decide(event({ product_id: 'mise_studio:studio-monthly' }), NOW) as any).seats === 40);
+ok('a legacy Pro purchase covers 1', (decide(event({ product_id: 'com.mise.film_director_suite.pro_monthly' }), NOW) as any).seats === 1);
+ok('a plan change uses the new product',
+  (decide(event({ type: 'PRODUCT_CHANGE', product_id: 'com.mise.film_director_suite.crew_monthly', new_product_id: 'com.mise.film_director_suite.production_monthly' }), NOW) as any).seats === 15);
+ok('an expiration leaves seats alone', (decide(event({ type: 'EXPIRATION', product_id: 'x.crew_monthly' }), NOW) as any).seats === null);
+ok('a Slate id maps to 250', seatsForProduct('mise_slate:slate-monthly') === 250);
 
 // --- timestamps -------------------------------------------------------------
 
