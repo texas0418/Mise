@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Move, AlertCircle, Camera, Users, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectBlockingNotes } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -97,7 +98,8 @@ function BlockingCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function BlockingNotesScreen() {
-  const { activeProject, activeProjectId, deleteBlockingNote } = useProjects();
+  const { activeProject, activeProjectId, deleteBlockingNote: deleteBlockingNoteUnchecked } = useProjects();
+  const deleteBlockingNote = useGuardedDelete('blocking', deleteBlockingNoteUnchecked);
   const notes = useProjectBlockingNotes(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

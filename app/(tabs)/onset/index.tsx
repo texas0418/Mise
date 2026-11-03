@@ -4,6 +4,7 @@ import { appAlert } from '@/lib/appAlert';
 import { Plus, CircleDot, CircleCheck, CircleX, AlertCircle, ChevronDown, ChevronUp, Trash2, Maximize2 } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectTakes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { Take } from '@/types';
@@ -236,7 +237,8 @@ function TakeCard({ take, onToggleCircle, onToggleNG, onEdit, onDelete }: {
 
 // ─── Main Screen ─────────────────────────────────────────────────
 export default function OnSetScreen() {
-  const { activeProject, activeProjectId, addTake, updateTake, deleteTake } = useProjects();
+  const { activeProject, activeProjectId, addTake, updateTake, deleteTake: deleteTakeUnchecked } = useProjects();
+  const deleteTake = useGuardedDelete('shots', deleteTakeUnchecked);
   const takes = useProjectTakes(activeProjectId);
   const router = useGuardedRouter();
 

@@ -6,6 +6,7 @@ import {
   Plus, FileText, AlertCircle, ChevronDown, ChevronUp,
   Eye, Trash2, Upload,
 } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectScriptPDFs } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -162,7 +163,8 @@ function ScriptCard({
 // Scripts List Screen
 // ---------------------------------------------------------------------------
 export default function ScriptsScreen() {
-  const { activeProject, activeProjectId, deleteScriptPDF } = useProjects();
+  const { activeProject, activeProjectId, deleteScriptPDF: deleteScriptPDFUnchecked } = useProjects();
+  const deleteScriptPDF = useGuardedDelete('scripts', deleteScriptPDFUnchecked);
   const scripts = useProjectScriptPDFs(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

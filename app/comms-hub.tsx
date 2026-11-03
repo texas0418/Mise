@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Share, Linking } from 'react-native';
 import { appAlert } from '@/lib/appAlert';
 import { Plus, Send, Clock, AlertTriangle, MessageCircle, Trash2, Share2, ChevronDown, ChevronUp, Megaphone } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectMessages, useProjectCrew } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -107,7 +108,8 @@ function MessageCard({ msg, onDelete, onShare, onSendText, onSendEmail }: {
 }
 
 export default function CommsHubScreen() {
-  const { activeProjectId, deleteMessage } = useProjects();
+  const { activeProjectId, deleteMessage: deleteMessageUnchecked } = useProjects();
+  const deleteMessage = useGuardedDelete('messages', deleteMessageUnchecked);
   const messages = useProjectMessages(activeProjectId);
   const crew = useProjectCrew(activeProjectId);
   const router = useGuardedRouter();

@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProjects } from '@/contexts/ProjectContext';
 import { usePermission } from '@/contexts/PermissionContext';
 import { supabase } from '@/lib/supabase';
+import { ensureUUID } from '@/lib/syncIds';
 import { ALL_ROLES, ROLE_LABELS, ROLE_DESCRIPTIONS, type Role } from '@/lib/permissions';
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -61,7 +62,7 @@ export default function TeamScreen() {
       const { data, error } = await supabase
         .from('project_members')
         .select('id, user_id, email, role, accepted_at, invited_by')
-        .eq('project_id', activeProjectId)
+        .eq('project_id', ensureUUID(activeProjectId))
         .is('deleted_at', null);
 
       if (error) throw error;

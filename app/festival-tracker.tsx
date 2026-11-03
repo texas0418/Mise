@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Trophy, AlertCircle, Calendar, DollarSign, ChevronDown, ChevronUp, Pencil, Trash2, ExternalLink } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectFestivals } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -100,7 +101,8 @@ function FestivalCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function FestivalTrackerScreen() {
-  const { activeProject, activeProjectId, deleteFestival } = useProjects();
+  const { activeProject, activeProjectId, deleteFestival: deleteFestivalUnchecked } = useProjects();
+  const deleteFestival = useGuardedDelete('festivals', deleteFestivalUnchecked);
   const festivals = useProjectFestivals(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

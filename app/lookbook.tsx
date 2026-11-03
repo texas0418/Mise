@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SectionList, TouchableOpacity, Animated, TextIn
 import { appAlert } from '@/lib/appAlert';
 import { Image } from 'expo-image';
 import { Plus, Trash2, Film, Palette, Eye, Camera, Music, Shirt, Globe, Sparkles, PenLine, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectLookbook, useProjectDirectorStatement } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -156,7 +157,8 @@ function DirectorStatementSection({ statement, onSave }: {
 }
 
 export default function LookbookScreen() {
-  const { activeProjectId, activeProject, deleteLookbookItem, addDirectorStatement, updateDirectorStatement } = useProjects();
+  const { activeProjectId, activeProject, deleteLookbookItem: deleteLookbookItemUnchecked, addDirectorStatement, updateDirectorStatement } = useProjects();
+  const deleteLookbookItem = useGuardedDelete('lookbook', deleteLookbookItemUnchecked);
   const lookbook = useProjectLookbook(activeProjectId);
   const statement = useProjectDirectorStatement(activeProjectId);
   const router = useGuardedRouter();

@@ -4,6 +4,7 @@ import { appAlert } from '@/lib/appAlert';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { Plus, MapPin, Star, Zap, Phone, AlertCircle, Shield, ChevronDown, ChevronUp, Pencil, Trash2, Car, ImageIcon } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectLocations } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -156,7 +157,8 @@ function LocationCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function LocationsScreen() {
-  const { activeProject, activeProjectId, deleteLocation } = useProjects();
+  const { activeProject, activeProjectId, deleteLocation: deleteLocationUnchecked } = useProjects();
+  const deleteLocation = useGuardedDelete('locations', deleteLocationUnchecked);
   const locations = useProjectLocations(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

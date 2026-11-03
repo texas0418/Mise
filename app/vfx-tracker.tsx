@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Sparkles, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectVFX } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -136,7 +137,8 @@ function VFXCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function VFXTrackerScreen() {
-  const { activeProject, activeProjectId, deleteVFXShot } = useProjects();
+  const { activeProject, activeProjectId, deleteVFXShot: deleteVFXShotUnchecked } = useProjects();
+  const deleteVFXShot = useGuardedDelete('vfx', deleteVFXShotUnchecked);
   const vfxShots = useProjectVFX(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

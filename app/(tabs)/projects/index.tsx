@@ -5,6 +5,7 @@ import { Image } from 'expo-image';
 import { Plus, Film, ChevronRight, Trash2, Check, Archive, ArchiveRestore } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useProjects } from '@/contexts/ProjectContext';
+import { usePermission } from '@/contexts/PermissionContext';
 import { maybeAskForReview } from '@/utils/reviewPrompt';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -28,10 +29,12 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
   'completed': Colors.text.tertiary,
 };
 
-function ProjectCard({ project, index, isActive, onPress, onDelete, onArchive, onRestore }: {
+function ProjectCard({ project, index, isActive, canManage, onPress, onDelete, onArchive, onRestore }: {
   project: Project;
   index: number;
   isActive: boolean;
+  /** Owner or director. Crew get no Archive or Delete on someone else's film. */
+  canManage: boolean;
   onPress: () => void;
   onDelete: () => void;
   onArchive: () => void;
@@ -100,7 +103,7 @@ function ProjectCard({ project, index, isActive, onPress, onDelete, onArchive, o
 
   return (
     <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-      <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
+      <Swipeable ref={swipeableRef} renderRightActions={canManage ? renderRightActions : undefined} overshootRight={false}>
         <TouchableOpacity accessibilityRole="button"
           style={[styles.projectCard, isActive && styles.projectCardActive]}
           onPress={onPress}
@@ -152,6 +155,7 @@ export default function ProjectsScreen() {
     archiveProject, restoreProject, isLoading, takes, wrapReports,
     scenes, shots, castMembers, crew, locations,
   } = useProjects();
+  const { canDeleteProjectFor } = usePermission();
   const [showArchived, setShowArchived] = useState(false);
   const router = useGuardedRouter();
   const { isTablet, isDesktop, gridColumns, contentPadding } = useLayout();
@@ -194,6 +198,7 @@ export default function ProjectsScreen() {
   // shot, day and take behind. Now the delete really does take them, so the
   // warning names what goes and offers archiving as the way out (#46).
   const handleDeleteProject = useCallback((project: Project) => {
+    if (!canDeleteProjectFor(project)) return;
     appAlert(
       `Delete "${project.title}"?`,
       'This deletes the film and everything in it — shots, shoot days, takes, '
@@ -209,7 +214,7 @@ export default function ProjectsScreen() {
         },
       ]
     );
-  }, [deleteProject, archiveProject]);
+  }, [deleteProject, archiveProject, canDeleteProjectFor]);
 
   const active = useMemo(() => projects.filter(p => !p.archivedAt), [projects]);
   const archived = useMemo(() => projects.filter(p => p.archivedAt), [projects]);
@@ -226,13 +231,14 @@ export default function ProjectsScreen() {
         project={item}
         index={index}
         isActive={item.id === activeProjectId}
+        canManage={canDeleteProjectFor(item)}
         onPress={() => handleProjectPress(item)}
         onDelete={() => handleDeleteProject(item)}
         onArchive={() => archiveProject(item.id)}
         onRestore={() => restoreProject(item.id)}
       />
     </View>
-  ), [handleProjectPress, handleDeleteProject, archiveProject, restoreProject, isTablet, columns, activeProjectId]);
+  ), [handleProjectPress, handleDeleteProject, archiveProject, restoreProject, isTablet, columns, activeProjectId, canDeleteProjectFor]);
 
   if (isLoading) {
     return (

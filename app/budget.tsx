@@ -4,6 +4,7 @@ import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, DollarSign, AlertCircle, Check, Clock, ChevronDown, ChevronUp, Pencil, Trash2, Search, ArrowUpDown, LayoutGrid, FileText } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectBudget } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -149,7 +150,8 @@ function BudgetCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 
 // eslint-disable-next-line complexity -- tracked in #3
 export default function BudgetScreen() {
-  const { activeProject, activeProjectId, deleteBudgetItem, addBudgetItem, addBudgetItemBulk } = useProjects();
+  const { activeProject, activeProjectId, deleteBudgetItem: deleteBudgetItemUnchecked, addBudgetItem, addBudgetItemBulk } = useProjects();
+  const deleteBudgetItem = useGuardedDelete('budget', deleteBudgetItemUnchecked);
   const budget = useProjectBudget(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

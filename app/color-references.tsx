@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from '
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Paintbrush, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectColorReferences } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -135,7 +136,8 @@ function ColorRefCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function ColorReferencesScreen() {
-  const { activeProject, activeProjectId, deleteColorReference } = useProjects();
+  const { activeProject, activeProjectId, deleteColorReference: deleteColorReferenceUnchecked } = useProjects();
+  const deleteColorReference = useGuardedDelete('color_refs', deleteColorReferenceUnchecked);
   const refs = useProjectColorReferences(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

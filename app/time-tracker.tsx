@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Clock, AlertCircle, AlertTriangle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectTimeEntries } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -122,7 +123,8 @@ function TimeCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function TimeTrackerScreen() {
-  const { activeProject, activeProjectId, deleteTimeEntry } = useProjects();
+  const { activeProject, activeProjectId, deleteTimeEntry: deleteTimeEntryUnchecked } = useProjects();
+  const deleteTimeEntry = useGuardedDelete('time_entries', deleteTimeEntryUnchecked);
   const entries = useProjectTimeEntries(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();
