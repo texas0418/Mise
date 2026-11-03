@@ -11,6 +11,7 @@ import Colors from '@/constants/colors';
 import { Take } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { toggleLabel, saveTakeHint } from '@/utils/a11yLabels';
+import { newId } from '@/lib/newId';
 
 /** Existing take -> form field values. Module-level so the screen stays under
  *  the lint complexity ceiling. */
@@ -139,7 +140,7 @@ export default function LogTakeScreen() {
       updateTake({ ...existingItem!, ...fields });
     } else {
       addTake({
-        id: Date.now().toString(),
+        id: newId(),
         projectId: activeProjectId,
         ...fields,
         timestamp: new Date().toISOString(),

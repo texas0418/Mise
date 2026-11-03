@@ -11,6 +11,7 @@ import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 export default function NewContinuityScreen() {
   const { formColumn } = useLayout();
@@ -52,7 +53,7 @@ export default function NewContinuityScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const data: any = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       sceneNumber: parseInt(sceneNumber, 10) || 1,
       shotNumber: shotNumber.trim() || '1A',

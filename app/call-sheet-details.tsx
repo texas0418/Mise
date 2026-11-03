@@ -30,6 +30,7 @@ import { TimeField } from '@/components/DateTimeField';
 import Colors from '@/constants/colors';
 import { CallSheetDetails } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 /** Every editable field, in the order a call sheet reads. */
 type DetailField = Exclude<keyof CallSheetDetails, 'id' | 'projectId' | 'scheduleDayId' | 'version' | 'issuedAt' | 'createdAt'>;
@@ -146,7 +147,7 @@ export default function CallSheetDetailsScreen() {
       (entry: CallSheetDetails) => entry.scheduleDayId === dayId,
       (found: CallSheetDetails | null) => {
         const base: CallSheetDetails = found ?? {
-          id: Date.now().toString(),
+          id: newId(),
           projectId: activeProjectId,
           scheduleDayId: dayId,
           version: 1,

@@ -13,6 +13,7 @@ import Colors from '@/constants/colors';
 import { MoodBoardItemType } from '@/types';
 import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 const TYPE_OPTIONS: { label: string; value: MoodBoardItemType }[] = [
   { label: 'Color Swatch', value: 'color' },
@@ -63,7 +64,7 @@ export default function NewMoodItemScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       boardName: boardName.trim() || 'Visual Tone',
       type,

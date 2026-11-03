@@ -6,6 +6,7 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { useProjects, useProjectBlockingNotes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 export default function NewBlockingNoteScreen() {
   const { formColumn } = useLayout();
@@ -42,7 +43,7 @@ export default function NewBlockingNoteScreen() {
     if (!title.trim() || !sceneNumber || !activeProjectId) return;
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       sceneNumber: parseInt(sceneNumber),
       title: title.trim(),

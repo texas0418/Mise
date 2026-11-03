@@ -38,6 +38,7 @@ import { getSignedScriptURL } from '@/utils/scriptPicker';
 import Colors from '@/constants/colors';
 import { ScriptRevisionColor, ScriptAnnotation } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -590,7 +591,7 @@ function useAnnotationTools({
     if (scriptId && projectId) {
       const now = new Date().toISOString();
       addScriptAnnotation({
-        id: `hl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        id: newId(),
         scriptPdfId: scriptId,
         projectId,
         userId,
@@ -645,7 +646,7 @@ function useAnnotationTools({
       if (scriptId && projectId) {
         const now = new Date().toISOString();
         addScriptAnnotation({
-          id: `note_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          id: newId(),
           scriptPdfId: scriptId,
           projectId,
           userId,

@@ -18,6 +18,7 @@ import { ScheduleDay, Scene, CastMember, CastCallTime } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { CompactTimeField } from '@/components/DateTimeField';
+import { newId } from '@/lib/newId';
 
 /** Which of an actor's three times is being edited. */
 type CastTimeField = 'makeupTime' | 'wardrobeTime' | 'onSetTime';
@@ -368,7 +369,7 @@ export default function CallSheetsScreen() {
     upsertCastCallTime(
       (entry: CastCallTime) => entry.scheduleDayId === dayId && entry.castMemberId === castMemberId,
       (existing: CastCallTime | null) => applyCastTime(existing ?? {
-        id: Date.now().toString(),
+        id: newId(),
         projectId: activeProjectId,
         scheduleDayId: dayId,
         castMemberId,

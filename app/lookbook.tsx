@@ -10,6 +10,7 @@ import { LookbookItem, LookbookSectionType, DirectorStatement } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 const SECTION_CONFIG: Record<LookbookSectionType, { label: string; icon: React.ElementType; color: string }> = {
   'tone': { label: 'Tone & Mood', icon: Sparkles, color: '#FBBF24' },
@@ -167,7 +168,7 @@ export default function LookbookScreen() {
       updateDirectorStatement({ ...statement, text, updatedAt: new Date().toISOString() });
     } else {
       addDirectorStatement({
-        id: Date.now().toString(),
+        id: newId(),
         projectId: activeProjectId || '1',
         text,
         updatedAt: new Date().toISOString(),

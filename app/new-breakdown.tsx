@@ -11,6 +11,7 @@ import { parseEighths, formatEighths } from '@/utils/eighths';
 import Colors from '@/constants/colors';
 import { SceneIntExt, SceneTimeOfDay } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 const INT_EXT_OPTIONS: { label: string; value: SceneIntExt }[] = [
   { label: 'INT', value: 'INT' },
@@ -84,7 +85,7 @@ export default function NewBreakdownScreen() {
     const stamp = new Date().toISOString();
     const data = {
       ...(existingItem ?? {}),
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       // Scene numbers stay text: "14A" is a real scene number, 14 is not the
       // same scene, and parseInt would silently merge them.

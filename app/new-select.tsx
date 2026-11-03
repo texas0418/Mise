@@ -10,6 +10,7 @@ import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
 import { SceneSelect, SelectRating } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 // eslint-disable-next-line complexity -- tracked in #9
 export default function NewSelectScreen() {
@@ -58,7 +59,7 @@ export default function NewSelectScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const select: SceneSelect = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId || '1',
       sceneNumber: parseInt(sceneNumber) || 0,
       shotNumber: shotNumber.trim(),

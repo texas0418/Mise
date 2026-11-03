@@ -10,6 +10,7 @@ import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 export default function NewShotReferenceScreen() {
   const { formColumn } = useLayout();
@@ -44,7 +45,7 @@ export default function NewShotReferenceScreen() {
     if (!title.trim() || !activeProjectId) return;
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       title: title.trim(),
       imageUrl: imageUrl.trim() || '',

@@ -7,6 +7,7 @@
  */
 
 import { BudgetItem, BudgetCategory } from '@/types';
+import { newId } from '@/lib/newId';
 
 interface TemplateLine {
   category: BudgetCategory;
@@ -124,9 +125,8 @@ const TEMPLATE_LINES: TemplateLine[] = [
  * All amounts are zero — the director fills them in.
  */
 export function generateBudgetTemplate(projectId: string): BudgetItem[] {
-  const now = Date.now();
-  return TEMPLATE_LINES.map((line, i) => ({
-    id: `tmpl-${now}-${i}`,
+  return TEMPLATE_LINES.map((line) => ({
+    id: newId(),
     projectId,
     category: line.category,
     description: line.description,

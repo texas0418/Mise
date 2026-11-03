@@ -9,6 +9,7 @@ import { useProjects, useProjectShots, useProjectTakes, useProjectSchedule, useP
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { DateField, TimeField } from '@/components/DateTimeField';
+import { newId } from '@/lib/newId';
 
 export default function NewWrapReportScreen() {
   const { formColumn } = useLayout();
@@ -75,7 +76,7 @@ export default function NewWrapReportScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       scheduleDayId: isEditing ? existingItem!.scheduleDayId : '',
       dayNumber: parseInt(dayNumber) || 1,
