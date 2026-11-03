@@ -1,4 +1,4 @@
-MISE — GOOGLE PLAY STORE LISTING (revised 2026-11-03 for 1.3.3; first draft 2026-08-16)
+MISE: GOOGLE PLAY STORE LISTING (revised 2026-11-03 for 1.3.3; first draft 2026-08-16)
 ==========================================================================================
 
 APP NAME (30 chars max)
@@ -22,18 +22,18 @@ Why directors switch to Mise:
 
 What's inside:
 
-— Call sheets with location, crew, scenes, and call times
-— Shot lists with references, lighting diagrams, color notes
-— Script viewer and scene-by-scene breakdown
-— Scene-level shoot-day scheduling
-— Crew and cast management with contact info and roles
-— Locations with maps, photos, and weather
-— Budget tracking with line items and categories
-— Mood boards and color references
-— VFX shot tracking
-— Festival submission tracker
-— Wrap reports and production notes
-— Export to PDF, CSV, or share via your device's native share sheet
+- Call sheets with location, crew, scenes, and call times
+- Shot lists with references, lighting diagrams, color notes
+- Script viewer and scene-by-scene breakdown
+- Scene-level shoot-day scheduling
+- Crew and cast management with contact info and roles
+- Locations with maps, photos, and weather
+- Budget tracking with line items and categories
+- Mood boards and color references
+- VFX shot tracking
+- Festival submission tracker
+- Wrap reports and production notes
+- Export to PDF, CSV, or share via your device's native share sheet
 
 Built by an indie filmmaker. Used on real productions.
 
@@ -71,7 +71,7 @@ GRAPHIC ASSETS (store/)
 
 DATA SAFETY FORM — NOT local-only when signed in
 - Optional accounts + Supabase sync: email, synced production content — "collected", encrypted in transit; app fully usable without an account (declare optional)
-- Purchases: RevenueCat subscriptions, five tiers from lib/tiers.ts (Solo, Crew, Production, Studio, Slate) — RevenueCat Google config at submission
+- Purchases: RevenueCat subscriptions, five tiers from lib/tiers.ts (Solo, Crew, Production, Studio, Slate); RevenueCat Google config at submission
 
 CONTENT RATING: Everyone
 
