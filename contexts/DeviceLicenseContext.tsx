@@ -226,12 +226,12 @@ export const [DeviceLicenseProvider, useDeviceLicense] = createContextHook(() =>
 
     try {
       // Step 1: RevenueCat purchase (store transaction). No auth required.
-      const rcSuccess = await purchaseTier(tierId, period);
-      if (!rcSuccess) {
-        // User cancelled, package missing, or RC error — RC has already set its
-        // own error state. Don't surface a Mise-side error for cancellations.
+      const rc = await purchaseTier(tierId, period);
+      if (!rc.ok) {
+        // A cancel comes back with no error and stays silent. Anything else is
+        // shown: the paywall used to say nothing when a purchase failed (M3).
         setIsPurchasing(false);
-        return { success: false };
+        return rc.error ? { success: false, error: rc.error } : { success: false };
       }
 
       // Step 2: If signed in with a registered device, link the entitlement to
