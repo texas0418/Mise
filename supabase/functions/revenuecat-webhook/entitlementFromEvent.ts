@@ -256,9 +256,10 @@ function uuidsIn(list: string[] | null | undefined): string[] {
  * new one gains it. Anonymous ids are skipped like everywhere else: there is
  * no Supabase row to write. An account on both sides keeps what it has.
  *
- * The grant takes the event's expiry when there is one. TRANSFER payloads
- * usually carry none, which stores a grant with no end date; the next
- * RENEWAL or EXPIRATION, now attributed to the new account, corrects it.
+ * The new accounts are granted only when the event carries an expiry still
+ * in the future, and the grant takes that expiry. Without one, only the
+ * revoke is written; the next RENEWAL, now attributed to the new account,
+ * grants it.
  */
 export function transferDecisions(event: RevenueCatEvent | null | undefined, nowMs: number): ApplyDecision[] {
   if (!event || event.type !== 'TRANSFER') return [];
