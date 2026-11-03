@@ -4,17 +4,14 @@
 // Mutations are always queued on the device. This decides only whether the
 // queue is pushed and the server is pulled.
 //
-// Sync used to require Pro on this device (#43). Crew a director invited do not
-// usually hold Pro of their own, so every edit they made was dropped before it
-// was even queued, with nothing on screen to say so. The rule now also lets in
-// a signed-in account that has accepted at least one project membership.
-//
-// FLAGGED FOR SIMON: CREW_SYNC_WITHOUT_PRO is the default the 1.3.3 audit
-// chose. Set it to false to go back to "Pro only"; nothing else needs to move.
+// Sync requires Pro (#43). Every person on a crew is a cost, so an invited
+// crew member syncs a shared project on their own subscription, not the
+// director's (Simon, 2026-11-03). Their edits are still queued on the device,
+// never dropped, and go up once they subscribe.
 // ---------------------------------------------------------------------------
 
-/** Accepted crew sync their shared projects without buying Pro themselves. */
-export const CREW_SYNC_WITHOUT_PRO = true;
+/** Whether accepted crew sync shared projects without Pro of their own. They do not. */
+export const CREW_SYNC_WITHOUT_PRO = false;
 
 export interface SyncGateInput {
   signedIn: boolean;

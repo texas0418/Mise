@@ -79,7 +79,7 @@ export default function InviteScreen() {
        * address signs in, so the director has to pass the address on. */
       appAlert(
         'Added to the Project',
-        `${email.trim()} is on the project as ${ROLE_LABELS[selectedRole]}. Tell them to open Mise and sign in or create an account with that exact email address. The project will be there when they do.`,
+        `${email.trim()} is on the project as ${ROLE_LABELS[selectedRole]}. Tell them to open Mise and sign in or create an account with that exact email address. The project will be there when they do. They need their own Mise subscription to work in it.`,
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (e: any) {
