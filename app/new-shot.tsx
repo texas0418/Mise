@@ -12,6 +12,7 @@ import { ShotType, ShotMovement, ShotStatus } from '@/types';
 import { SHOT_TYPES, SHOT_MOVEMENTS } from '@/constants/filmData';
 import { Lightbulb } from 'lucide-react-native';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 const STATUS_OPTIONS: { value: ShotStatus; label: string; color: string }[] = [
   { value: 'planned', label: 'Planned', color: Colors.text.tertiary },
@@ -82,7 +83,7 @@ export default function NewShotScreen() {
     const linkedScene = findScene(scenes, existingItem?.sceneId, sceneNumber);
 
     const shotData = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       sceneId: linkedScene?.id,
       sceneNumber: parseInt(sceneNumber, 10) || 1,

@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProjects } from '@/contexts/ProjectContext';
 import { usePermission } from '@/contexts/PermissionContext';
 import { supabase } from '@/lib/supabase';
+import { ensureUUID } from '@/lib/syncIds';
 import { ALL_ROLES, ROLE_LABELS, ROLE_DESCRIPTIONS, type Role } from '@/lib/permissions';
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -26,6 +27,18 @@ interface Member {
   role: Role;
   acceptedAt: string | null;
   invitedBy: string;
+}
+
+/* A pending invite has no user yet: it is linked the moment someone signs in
+ * with that address. Show the address so the director can see who has not
+ * turned up, and never slice a null user_id. */
+function displayNameFor(
+  row: { user_id: string | null; email: string | null; accepted_at: string | null },
+  myId: string | undefined,
+): string {
+  if (row.user_id && row.user_id === myId) return 'You';
+  if (!row.user_id || !row.accepted_at) return row.email || 'Invited';
+  return row.email || `Member ${row.user_id.slice(0, 6)}`;
 }
 
 export default function TeamScreen() {
@@ -48,8 +61,8 @@ export default function TeamScreen() {
     try {
       const { data, error } = await supabase
         .from('project_members')
-        .select('id, user_id, role, accepted_at, invited_by')
-        .eq('project_id', activeProjectId)
+        .select('id, user_id, email, role, accepted_at, invited_by')
+        .eq('project_id', ensureUUID(activeProjectId))
         .is('deleted_at', null);
 
       if (error) throw error;
@@ -57,15 +70,14 @@ export default function TeamScreen() {
       // Fetch user details for each member
       const memberList: Member[] = [];
       for (const row of data || []) {
-        const { data: profile } = await supabase.auth.admin
-          ? { data: null } // admin API not available client-side
-          : { data: null };
-
+        /* A pending invite has no user yet: it is linked the moment someone
+         * signs in with that address. Show the address so the director can
+         * see who has not turned up, and never slice a null user_id. */
         memberList.push({
           id: row.id,
-          userId: row.user_id,
-          email: '', // Will be populated by join or separate lookup
-          displayName: row.user_id === user?.id ? 'You' : `User ${row.user_id.slice(0, 6)}`,
+          userId: row.user_id ?? '',
+          email: row.email ?? '',
+          displayName: displayNameFor(row, user?.id),
           role: row.role as Role,
           acceptedAt: row.accepted_at,
           invitedBy: row.invited_by,

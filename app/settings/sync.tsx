@@ -100,7 +100,8 @@ function StatusCard({
         bg: Colors.bg.tertiary,
       };
     }
-    if (!isPro) {
+    // Crew on a shared project sync without Pro (lib/syncGate.ts).
+    if (!isPro && !isSyncEnabled) {
       return {
         icon: <CloudOff color={Colors.accent.gold} size={20} />,
         label: 'Sync Is a Pro Feature',

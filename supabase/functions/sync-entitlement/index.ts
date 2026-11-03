@@ -198,6 +198,7 @@ Deno.serve(async (req: Request) => {
      */
     last_event_at: entitlement.purchasedAt,
     updated_at: new Date().toISOString(),
+    seats: entitlement.seats,
   });
 
   if (error) {

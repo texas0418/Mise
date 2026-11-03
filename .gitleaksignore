@@ -1,0 +1,4 @@
+# The Supabase anon key in lib/supabase.ts is public: it ships in every app
+# build and row-level security protects the data. This commit touched its line
+# (removing a stale TODO) before the inline gitleaks:allow marker was added.
+97572bfa1678c3b209a9e5c09bfb04604ca89d84:lib/supabase.ts:jwt:11

@@ -13,6 +13,8 @@ import {
 import { useSync } from '@/contexts/SyncContext';
 import { compareSceneNumbers } from '@/utils/eighths';
 import { castTimesForDay } from '@/utils/callSheet';
+import { serializeWrite, setStoreWriteListener } from '@/lib/storeWrites';
+import { SYNCABLE_TABLES } from '@/lib/syncConfig';
 
 const STORAGE_KEYS = {
   projects: 'mise_projects',
@@ -81,24 +83,8 @@ async function saveToStorage<T>(key: string, data: T[]): Promise<T[]> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Serialized writes
-//
-// Each storage key owns a promise chain. Every mutation runs as a step on that
-// chain and reads its base state *inside* the step, so two mutations issued in
-// the same tick see each other's result instead of both deriving from the same
-// stale render snapshot and the second silently discarding the first.
-// The chain also guarantees the underlying setItem calls land in issue order.
-// ---------------------------------------------------------------------------
-const writeChains = new Map<string, Promise<void>>();
-
-function serializeWrite(storageKey: string, step: () => Promise<void>): Promise<void> {
-  const previous = writeChains.get(storageKey) ?? Promise.resolve();
-  const next = previous.then(step);
-  // Store a settled-either-way handle so one failed step can't stall the chain.
-  writeChains.set(storageKey, next.catch(() => undefined));
-  return next;
-}
+// Serialized writes: see lib/storeWrites.ts. The sync pull and the realtime
+// listener take steps on the same per-key chain as the mutations below.
 
 type EnqueueMutation = (
   table: string,
@@ -293,6 +279,19 @@ export const [ProjectProvider, useProjects] = createContextHook(() => {
   const scriptPDFStore = useEntityStore<ScriptPDF>('scriptPDFs', STORAGE_KEYS.scriptPDFs, [], 'script_pdfs', enqueueMutation);
   const scriptAnnotationStore = useEntityStore<ScriptAnnotation>('scriptAnnotations', STORAGE_KEYS.scriptAnnotations, [], 'script_annotations', enqueueMutation);
   const lightingDiagramStore = useEntityStore<LightingDiagram>('lightingDiagrams', STORAGE_KEYS.lightingDiagrams, [], 'lighting_diagrams', enqueueMutation);
+
+  // A sync pull or realtime event writes a store on its chain; mirror the
+  // result into the cache in the same step, so the next mutation's base is
+  // the merged list and not the one from before the pull.
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const queryKeyFor = new Map(SYNCABLE_TABLES.map(t => [t.storageKey, t.queryKey]));
+    setStoreWriteListener((storageKey, items) => {
+      const queryKey = queryKeyFor.get(storageKey);
+      if (queryKey) queryClient.setQueryData([queryKey], items);
+    });
+    return () => setStoreWriteListener(null);
+  }, [queryClient]);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEYS.activeProject).then((id) => {

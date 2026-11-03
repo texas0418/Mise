@@ -4,11 +4,13 @@ import { appAlert } from '@/lib/appAlert';
 import { Plus, CircleDot, CircleCheck, CircleX, AlertCircle, ChevronDown, ChevronUp, Trash2, Maximize2 } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectTakes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { Take } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { describeTake, formatTakeTime } from '@/utils/a11yLabels';
+import { newId } from '@/lib/newId';
 
 // ─── Compact Slate ───────────────────────────────────────────────
 function CompactSlate({ 
@@ -235,7 +237,8 @@ function TakeCard({ take, onToggleCircle, onToggleNG, onEdit, onDelete }: {
 
 // ─── Main Screen ─────────────────────────────────────────────────
 export default function OnSetScreen() {
-  const { activeProject, activeProjectId, addTake, updateTake, deleteTake } = useProjects();
+  const { activeProject, activeProjectId, addTake, updateTake, deleteTake: deleteTakeUnchecked } = useProjects();
+  const deleteTake = useGuardedDelete('shots', deleteTakeUnchecked);
   const takes = useProjectTakes(activeProjectId);
   const router = useGuardedRouter();
 
@@ -285,7 +288,7 @@ export default function OnSetScreen() {
 
     const takeNumber = parseInt(takeRef.current, 10) || 1;
     addTake({
-      id: `${Date.now()}-${takeNumber}`,
+      id: newId(),
       projectId: activeProjectId,
       sceneNumber: parseInt(scene, 10) || 1,
       shotNumber: shot.trim() || '1',

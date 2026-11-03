@@ -115,10 +115,26 @@ interface SubscriptionState {
   error: string | null;
 }
 
+/**
+ * What to tell the user about a failed purchase. A cancel is the user's own
+ * choice and stays silent (null); anything else goes back to the paywall,
+ * which used to swallow it.
+ */
+function purchaseErrorMessage(error: any): string | null {
+  const userCancelled = error?.userCancelled || error?.code === '1';
+  return userCancelled ? null : error?.message || 'Purchase failed';
+}
+
+/** How a purchase ended. `error` is null on success and on a user cancel. */
+export interface PurchaseOutcome {
+  ok: boolean;
+  error: string | null;
+}
+
 interface SubscriptionContextValue extends SubscriptionState {
   /** Purchase (or change to) the given tier. The stores handle proration
    * natively because every tier shares one subscription group. */
-  purchaseTier: (tierId: TierId, period: BillingPeriod) => Promise<boolean>;
+  purchaseTier: (tierId: TierId, period: BillingPeriod) => Promise<PurchaseOutcome>;
   /** Restore any previous purchases from the store */
   restorePurchases: () => Promise<boolean>;
   /** Refresh subscription status (call after device activation) */
@@ -226,7 +242,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         return;
       }
 
-      if (LOG_LEVEL) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+      // Verbose store logs only in development builds.
+      if (__DEV__ && LOG_LEVEL) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
       await Purchases.configure({ apiKey });
       console.log('[Subscription] RevenueCat initialized');
 
@@ -343,10 +360,11 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
    * UpgradeInfo slot).
    */
   const purchaseTier = useCallback(
-    async (tierId: TierId, period: BillingPeriod): Promise<boolean> => {
+    async (tierId: TierId, period: BillingPeriod): Promise<PurchaseOutcome> => {
       if (!Purchases) {
-        setState(prev => ({ ...prev, error: unavailableMessage('Purchase') }));
-        return false;
+        const error = unavailableMessage('Purchase');
+        setState(prev => ({ ...prev, error }));
+        return { ok: false, error };
       }
 
       const tier = getTier(tierId);
@@ -356,11 +374,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         pkg = await fetchTierPackage(tierId, period);
       }
       if (!pkg) {
-        setState(prev => ({
-          ...prev,
-          error: `${tier.name} plan not available. Please try again later.`,
-        }));
-        return false;
+        const error = `${tier.name} plan not available. Please try again later.`;
+        setState(prev => ({ ...prev, error }));
+        return { ok: false, error };
       }
 
       const changingFromTier =
@@ -374,15 +390,13 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       try {
         const { customerInfo } = await Purchases.purchasePackage(pkg, null, googleChange);
-        return applyCustomerInfo(customerInfo, 'Purchase completed but entitlement not found');
+        const missing = 'Purchase completed but entitlement not found';
+        const isPro = applyCustomerInfo(customerInfo, missing);
+        return isPro ? { ok: true, error: null } : { ok: false, error: missing };
       } catch (error: any) {
-        const userCancelled = error?.userCancelled || error?.code === '1';
-        setState(prev => ({
-          ...prev,
-          isLoading: false,
-          error: userCancelled ? null : error?.message || 'Purchase failed',
-        }));
-        return false;
+        const message = purchaseErrorMessage(error);
+        setState(prev => ({ ...prev, isLoading: false, error: message }));
+        return { ok: false, error: message };
       }
     },
     [state.tierPackages, state.activeTierId]

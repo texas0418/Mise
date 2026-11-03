@@ -10,6 +10,7 @@ import { useProjects, useProjectNotes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { NoteCategory } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 const CATEGORY_OPTIONS: { label: string; value: NoteCategory }[] = [
   { label: 'General', value: 'general' },
@@ -60,7 +61,7 @@ export default function NewNoteScreen() {
 
     const now = new Date().toISOString();
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       title: title.trim(),
       content: content.trim(),

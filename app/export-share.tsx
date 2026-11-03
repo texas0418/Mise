@@ -20,6 +20,7 @@ import { toCsv } from '@/utils/csv';
 import { castTimesForDay, advanceDay, matchLocation } from '@/utils/callSheet';
 import { fetchDayWeather } from '@/utils/forecast';
 import { sharePdf, shareCsv } from '@/utils/shareDocument';
+import { useReviewAsk } from '@/utils/useReviewAsk';
 import { ScheduleDay, WrapReport } from '@/types';
 
 type Format = 'pdf' | 'csv';
@@ -84,6 +85,7 @@ function DayPicker<T extends { id: string; dayNumber: number; date: string }>({
 
 export default function ExportShareScreen() {
   const { activeProject, activeProjectId, castCallTimes, callSheetDetails } = useProjects();
+  const askForReview = useReviewAsk();
   const crew = useProjectCrew(activeProjectId);
   const cast = useProjectCast(activeProjectId);
   const locations = useProjectLocations(activeProjectId);
@@ -137,6 +139,7 @@ export default function ExportShareScreen() {
         if (row.key === 'selects') { const { headers, rows } = selectsCsv(selects); await shareCsv(toCsv(headers, rows), name); }
         if (row.key === 'takes') { const { headers, rows } = takesCsv(takes); await shareCsv(toCsv(headers, rows), name); }
         if (row.key === 'budget') { const { headers, rows } = budgetCsv(budget); await shareCsv(toCsv(headers, rows), name); }
+        askForReview();
         return;
       }
 
@@ -160,11 +163,13 @@ export default function ExportShareScreen() {
         case 'budget':
           await sharePdf(buildBudgetHtml(activeProject, budget), name); break;
       }
+      // A document went out: a calm, earned moment to ask (M6).
+      askForReview();
     } finally {
       setBusy(null);
     }
   }, [activeProject, shots, scenes, schedule, budget, wrapReports,
-      selects, takes, scheduleDayId, wrapReportId, shareCallSheet]);
+      selects, takes, scheduleDayId, wrapReportId, shareCallSheet, askForReview]);
 
   if (!activeProject) {
     return (

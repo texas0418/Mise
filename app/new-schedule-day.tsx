@@ -12,6 +12,7 @@ import Colors from '@/constants/colors';
 import { scheduleNotificationsForDay } from '@/utils/notifications';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { DateField, TimeField } from '@/components/DateTimeField';
+import { newId } from '@/lib/newId';
 
 export default function NewScheduleDayScreen() {
   const { formColumn } = useLayout();
@@ -67,7 +68,7 @@ export default function NewScheduleDayScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       date: date.trim(),
       dayNumber: isEditing ? existingItem!.dayNumber : nextDayNumber,

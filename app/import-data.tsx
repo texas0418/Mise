@@ -35,6 +35,7 @@ import { getEntityConfig, EntityConfig } from '@/utils/importRegistry';
 import { shareCSVTemplate } from '@/utils/csvTemplates';
 import { recordImport } from '@/utils/importHistory';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 type Step = 'pick' | 'map' | 'confirm';
 
@@ -116,14 +117,15 @@ export default function ImportDataScreen() {
       }
 
       let itemsWithMeta: Record<string, unknown>[] | null = null;
+      const fallbackIds: string[] = [];
 
       // Check for addBulk first, fall back to individual adds
       const bulkAddFn = (projects as Record<string, unknown>)[entityConfig.addMethod + 'Bulk'] as ((items: Record<string, unknown>[]) => void) | undefined;
 
       if (bulkAddFn) {
         // Use bulk add if available
-        itemsWithMeta = convertedRows.map((row, i) => ({
-          id: `import-${Date.now()}-${i}`,
+        itemsWithMeta = convertedRows.map((row) => ({
+          id: newId(),
           projectId,
           ...row,
           createdAt: new Date().toISOString(),
@@ -135,12 +137,13 @@ export default function ImportDataScreen() {
         for (let i = 0; i < convertedRows.length; i++) {
           const row = convertedRows[i];
           const item = {
-            id: `import-${Date.now()}-${i}`,
+            id: newId(),
             projectId,
             ...row,
             createdAt: new Date().toISOString(),
             timestamp: new Date().toISOString(),
           };
+          fallbackIds.push(item.id);
           addFn(item as Record<string, unknown>);
           // Small delay to avoid overwhelming AsyncStorage
           if (i % 10 === 9) {
@@ -152,7 +155,7 @@ export default function ImportDataScreen() {
       // Record import for undo
       const importedIds = itemsWithMeta
         ? itemsWithMeta.map((item: Record<string, unknown>) => item.id as string)
-        : convertedRows.map((_, i) => `import-${Date.now()}-${i}`);
+        : fallbackIds;
       await recordImport({
         entityKey: entityConfig.key,
         entityLabel: entityConfig.label,

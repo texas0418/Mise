@@ -5,15 +5,18 @@ import { appAlert } from '@/lib/appAlert';
 import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { useReviewAsk } from '@/utils/useReviewAsk';
 import { useProjects, useProjectShots, useProjectTakes, useProjectSchedule, useProjectWrapReports } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { DateField, TimeField } from '@/components/DateTimeField';
+import { newId } from '@/lib/newId';
 
 export default function NewWrapReportScreen() {
   const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { activeProject, activeProjectId, addWrapReport, updateWrapReport } = useProjects();
+  const askForReview = useReviewAsk();
   const shots = useProjectShots(activeProjectId);
   const takes = useProjectTakes(activeProjectId);
   const schedule = useProjectSchedule(activeProjectId);
@@ -75,7 +78,7 @@ export default function NewWrapReportScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       scheduleDayId: isEditing ? existingItem!.scheduleDayId : '',
       dayNumber: parseInt(dayNumber) || 1,
@@ -101,6 +104,8 @@ export default function NewWrapReportScreen() {
 
     if (isEditing) { updateWrapReport(data); } else { addWrapReport(data); }
     router.back();
+    // The day is wrapped and written up: not on set any more (M6).
+    askForReview({ afterWrap: true });
   };
 
   return (

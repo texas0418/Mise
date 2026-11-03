@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, FileText, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectWrapReports } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -97,7 +98,8 @@ function WrapCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function WrapReportsScreen() {
-  const { activeProject, activeProjectId, deleteWrapReport } = useProjects();
+  const { activeProject, activeProjectId, deleteWrapReport: deleteWrapReportUnchecked } = useProjects();
+  const deleteWrapReport = useGuardedDelete('wrap_reports', deleteWrapReportUnchecked);
   const reports = useProjectWrapReports(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

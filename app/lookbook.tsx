@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SectionList, TouchableOpacity, Animated, TextIn
 import { appAlert } from '@/lib/appAlert';
 import { Image } from 'expo-image';
 import { Plus, Trash2, Film, Palette, Eye, Camera, Music, Shirt, Globe, Sparkles, PenLine, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectLookbook, useProjectDirectorStatement } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -10,6 +11,7 @@ import { LookbookItem, LookbookSectionType, DirectorStatement } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 const SECTION_CONFIG: Record<LookbookSectionType, { label: string; icon: React.ElementType; color: string }> = {
   'tone': { label: 'Tone & Mood', icon: Sparkles, color: '#FBBF24' },
@@ -155,7 +157,8 @@ function DirectorStatementSection({ statement, onSave }: {
 }
 
 export default function LookbookScreen() {
-  const { activeProjectId, activeProject, deleteLookbookItem, addDirectorStatement, updateDirectorStatement } = useProjects();
+  const { activeProjectId, activeProject, deleteLookbookItem: deleteLookbookItemUnchecked, addDirectorStatement, updateDirectorStatement } = useProjects();
+  const deleteLookbookItem = useGuardedDelete('lookbook', deleteLookbookItemUnchecked);
   const lookbook = useProjectLookbook(activeProjectId);
   const statement = useProjectDirectorStatement(activeProjectId);
   const router = useGuardedRouter();
@@ -167,7 +170,7 @@ export default function LookbookScreen() {
       updateDirectorStatement({ ...statement, text, updatedAt: new Date().toISOString() });
     } else {
       addDirectorStatement({
-        id: Date.now().toString(),
+        id: newId(),
         projectId: activeProjectId || '1',
         text,
         updatedAt: new Date().toISOString(),

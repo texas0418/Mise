@@ -15,12 +15,33 @@ import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProjects } from '@/contexts/ProjectContext';
 import { supabase } from '@/lib/supabase';
+import { ensureUUID } from '@/lib/syncIds';
 import { ALL_ROLES, ROLE_LABELS, ROLE_DESCRIPTIONS, type Role } from '@/lib/permissions';
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
 // Roles that can be assigned (not owner)
 const ASSIGNABLE_ROLES = ALL_ROLES.filter(r => r !== 'owner');
+
+/**
+ * What the director's plan covers, for the invite confirmation. Seats are
+ * counted on the server (supabase/migrations/20261103_crew_seats.sql): the
+ * owner takes one, and accepted crew fill the rest in the order they joined.
+ */
+async function seatLine(): Promise<string> {
+  const fallback = 'Crew are covered by your plan while it has seats left. Past that, they need their own Mise subscription.';
+  try {
+    const { data, error } = await supabase.rpc('mise_seat_status');
+    if (error || !data) return fallback;
+    const { seats, used } = data as { seats: number; used: number };
+    if (seats <= 1) return 'Your plan covers only you, so they need their own Mise subscription. Crew, Production and Studio plans cover your crew.';
+    const left = Math.max(0, seats - used);
+    if (left === 0) return `All ${seats} seats on your plan are taken, so they need their own Mise subscription unless someone leaves.`;
+    return `Your plan covers ${seats} people, with ${left} ${left === 1 ? 'seat' : 'seats'} free right now.`;
+  } catch {
+    return fallback;
+  }
+}
 
 export default function InviteScreen() {
   const router = useGuardedRouter();
@@ -48,7 +69,7 @@ export default function InviteScreen() {
       const { data: existing } = await supabase
         .from('project_members')
         .select('id')
-        .eq('project_id', activeProjectId)
+        .eq('project_id', ensureUUID(activeProjectId))
         .eq('email', email.trim().toLowerCase())
         .is('deleted_at', null)
         .maybeSingle();
@@ -63,7 +84,7 @@ export default function InviteScreen() {
       const { error } = await supabase
         .from('project_members')
         .insert({
-          project_id: activeProjectId,
+          project_id: ensureUUID(activeProjectId),
           user_id: null,
           email: email.trim().toLowerCase(),
           role: selectedRole,
@@ -74,9 +95,12 @@ export default function InviteScreen() {
       if (error) throw error;
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      const seats = await seatLine();
+      /* Nothing is emailed yet. The invite is claimed the moment that
+       * address signs in, so the director has to pass the address on. */
       appAlert(
-        'Invitation Sent',
-        `Invited ${email.trim()} as ${ROLE_LABELS[selectedRole]}`,
+        'Added to the Project',
+        `${email.trim()} is on the project as ${ROLE_LABELS[selectedRole]}. Tell them to open Mise and sign in or create an account with that exact email address. The project will be there when they do. ${seats}`,
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (e: any) {

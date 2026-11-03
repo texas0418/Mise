@@ -11,6 +11,7 @@ import Colors from '@/constants/colors';
 import { Department } from '@/types';
 import { DEPARTMENTS } from '@/constants/filmData';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 export default function NewCrewScreen() {
   const { formColumn } = useLayout();
@@ -48,7 +49,7 @@ export default function NewCrewScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       name: name.trim(),
       role: role.trim(),
       department,
@@ -64,7 +65,7 @@ export default function NewCrewScreen() {
       // making them a contact nobody is working with would be surprising.
       if (activeProjectId) {
         addCrewAssignment({
-          id: `assign-${Date.now()}-${data.id}`,
+          id: newId(),
           projectId: activeProjectId,
           crewMemberId: data.id,
           createdAt: new Date().toISOString(),

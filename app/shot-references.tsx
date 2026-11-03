@@ -4,6 +4,7 @@ import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Image as ImageIcon, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
 import { Image } from 'expo-image';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectShotReferences } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -116,7 +117,8 @@ function ReferenceCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function ShotReferencesScreen() {
-  const { activeProject, activeProjectId, deleteShotReference } = useProjects();
+  const { activeProject, activeProjectId, deleteShotReference: deleteShotReferenceUnchecked } = useProjects();
+  const deleteShotReference = useGuardedDelete('shot_refs', deleteShotReferenceUnchecked);
   const references = useProjectShotReferences(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

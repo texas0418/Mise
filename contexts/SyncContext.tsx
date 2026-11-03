@@ -11,8 +11,12 @@ import {
   isSyncEnabled,
   onSyncStatusChange,
   runMigrationsIfNeeded,
+  refreshMemberships,
+  clearLocalSyncData,
   type SyncStatus,
 } from '@/lib/syncEngine';
+import { onProEntitledChange } from '@/lib/entitlement';
+import { onAcceptedProjectsChange } from '@/lib/syncGate';
 import {
   loadQueue,
   enqueue as queueEnqueue,
@@ -32,8 +36,19 @@ export const [SyncProvider, useSync] = createContextHook(() => {
   const [hasCompletedInitialSync, setHasCompletedInitialSync] = useState(false);
 
   const userId = user?.id ?? null;
-  const syncEnabledRef = useRef(false);
-  syncEnabledRef.current = isSyncEnabled(userId);
+
+  /* Whether the queue is pushed and the server pulled. Recomputed whenever
+   * the entitlement or the account's memberships change, not only when this
+   * provider happens to re-render: it used to be read into a ref during
+   * render, so buying Pro left sync off until something else re-rendered. */
+  const [syncEnabled, setSyncEnabled] = useState(() => isSyncEnabled(userId));
+  useEffect(() => {
+    const recompute = () => setSyncEnabled(isSyncEnabled(userId));
+    recompute();
+    const offPro = onProEntitledChange(recompute);
+    const offMembers = onAcceptedProjectsChange(recompute);
+    return () => { offPro(); offMembers(); };
+  }, [userId]);
 
   // Load queue on mount
   useEffect(() => {
@@ -48,20 +63,51 @@ export const [SyncProvider, useSync] = createContextHook(() => {
     });
   }, []);
 
-  // Subscribe to realtime when authenticated
-  useEffect(() => {
-    if (isAuthenticated && userId) subscribeToChanges(userId, queryClient);
-    else unsubscribeAll();
-    return () => unsubscribeAll();
-  }, [isAuthenticated, userId, queryClient]);
+  const doSync = useCallback(async (uid: string) => {
+    if (!uid) return;
+    setIsSyncing(true);
+    try {
+      // fullSync re-reads memberships and applies the gate itself.
+      const result = await fullSync(uid);
+      setLastSyncedAt(new Date().toISOString());
+      setPendingCount(getPendingCount());
+      if (result.pulled > 0) queryClient.invalidateQueries();
+    } catch (e: any) {
+      console.warn('[SyncContext] Sync failed:', e.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [queryClient]);
 
-  // Sync on app foreground
+  // Becoming entitled (a purchase, or accepting an invite) syncs right away.
+  const wasEnabled = useRef(syncEnabled);
+  useEffect(() => {
+    const turnedOn = syncEnabled && !wasEnabled.current;
+    wasEnabled.current = syncEnabled;
+    if (turnedOn && userId && hasCompletedInitialSync) void doSync(userId);
+  }, [syncEnabled, userId, hasCompletedInitialSync, doSync]);
+
+  // Subscribe to realtime while sync is on. A change to this account's own
+  // memberships re-reads them and syncs, which does a full pull on a join.
+  useEffect(() => {
+    if (!isAuthenticated || !userId || !syncEnabled) {
+      unsubscribeAll();
+      return;
+    }
+    subscribeToChanges(userId, queryClient, () => {
+      void refreshMemberships(userId).then(() => doSync(userId));
+    });
+    return () => unsubscribeAll();
+  }, [isAuthenticated, userId, syncEnabled, queryClient, doSync]);
+
+  // Sync on app foreground. fullSync checks the gate, and checking it there
+  // also re-reads memberships, which is how a newly invited member turns on.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s: AppStateStatus) => {
-      if (s === 'active' && syncEnabledRef.current && userId) doSync(userId);
+      if (s === 'active' && userId) void doSync(userId);
     });
     return () => sub.remove();
-  }, [userId]);
+  }, [userId, doSync]);
 
   // Run migrations then initial sync when user first authenticates
   useEffect(() => {
@@ -79,21 +125,6 @@ export const [SyncProvider, useSync] = createContextHook(() => {
     }
   }, [isAuthenticated, userId]);
 
-  const doSync = useCallback(async (uid: string) => {
-    if (!uid) return;
-    setIsSyncing(true);
-    try {
-      const result = await fullSync(uid);
-      setLastSyncedAt(new Date().toISOString());
-      setPendingCount(getPendingCount());
-      if (result.pulled > 0) queryClient.invalidateQueries();
-    } catch (e: any) {
-      console.warn('[SyncContext] Sync failed:', e.message);
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [queryClient]);
-
   const syncNow = useCallback(async () => {
     if (userId) await doSync(userId);
   }, [userId, doSync]);
@@ -104,7 +135,8 @@ export const [SyncProvider, useSync] = createContextHook(() => {
     action: SyncAction,
     data: Record<string, any> | null,
   ) => {
-    if (!syncEnabledRef.current) return;
+    // Always queued, entitled or not. Only the push is gated, so an edit made
+    // before sync turns on (a purchase, an accepted invite) is not lost.
     await queueEnqueue(table, recordId, action, data);
     setPendingCount(getPendingCount());
   }, []);
@@ -133,21 +165,31 @@ export const [SyncProvider, useSync] = createContextHook(() => {
     }
   }, [userId, queryClient]);
 
-  const resetSync = useCallback(async () => {
-    await clearQueue();
+  /**
+   * Stop syncing this account on this device. With `clearData`, also remove
+   * every local record, the queue and the cursors, so the next account to
+   * sign in here neither sees nor pushes the previous one's data.
+   */
+  const resetSync = useCallback(async (options?: { clearData?: boolean }) => {
     unsubscribeAll();
+    if (options?.clearData) {
+      await clearLocalSyncData();
+      await queryClient.resetQueries();
+    } else {
+      await clearQueue();
+    }
     setPendingCount(0);
     setLastSyncedAt(null);
     setHasCompletedInitialSync(false);
     setSyncStatus('idle');
-  }, []);
+  }, [queryClient]);
 
   return {
     syncStatus,
     pendingCount,
     lastSyncedAt,
     isSyncing,
-    isSyncEnabled: syncEnabledRef.current,
+    isSyncEnabled: syncEnabled,
     syncNow,
     enqueueMutation,
     doInitialUpload,

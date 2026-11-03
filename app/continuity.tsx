@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, BookOpen, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2, Camera } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectContinuity } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -91,7 +92,8 @@ function ContinuityCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function ContinuityScreen() {
-  const { activeProject, activeProjectId, deleteContinuityNote } = useProjects();
+  const { activeProject, activeProjectId, deleteContinuityNote: deleteContinuityNoteUnchecked } = useProjects();
+  const deleteContinuityNote = useGuardedDelete('continuity', deleteContinuityNoteUnchecked);
   const notes = useProjectContinuity(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

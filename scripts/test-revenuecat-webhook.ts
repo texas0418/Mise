@@ -30,6 +30,8 @@ import {
   isStale,
   isUuid,
   resolveUserId,
+  transferDecisions,
+  seatsForProduct,
   PRO_ENTITLEMENT,
 } from '../supabase/functions/revenuecat-webhook/entitlementFromEvent.ts';
 
@@ -189,8 +191,54 @@ ok('TEST is ignored, not attempted',
 ok('TEST is ignored even when malformed',
   decide({ type: 'TEST' }, NOW).action === 'ignore');
 
-ok('TRANSFER is ignored rather than half-applied',
+ok('decide() leaves TRANSFER to transferDecisions()',
   decide(event({ type: 'TRANSFER' }), NOW).action === 'ignore');
+
+// --- TRANSFER (#76) ---------------------------------------------------------
+
+const OLD = '0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d';
+const NEW = '5e6f7a8b-9c0d-4e1f-a2b3-c4d5e6f7a8b9';
+const transfer = (over: Record<string, unknown> = {}) =>
+  event({ type: 'TRANSFER', app_user_id: undefined, transferred_from: [OLD], transferred_to: [NEW], expiration_at_ms: NOW + 24 * HOUR, ...over });
+
+const moved = transferDecisions(transfer(), NOW);
+ok('a transfer writes both accounts', moved.length === 2, JSON.stringify(moved));
+ok('the old account is revoked',
+  moved.some(d => d.userId === OLD && d.isPro === false));
+ok('the new account is granted',
+  moved.some(d => d.userId === NEW && d.isPro === true));
+ok('both carry the event time', moved.every(d => d.eventAt === new Date(NOW).toISOString()));
+
+const anon = transferDecisions(transfer({ transferred_from: ['$RCAnonymousID:abc'], transferred_to: [NEW] }), NOW);
+ok('an anonymous id is skipped, the real one still granted',
+  anon.length === 1 && anon[0].userId === NEW && anon[0].isPro);
+
+ok('empty lists write nothing',
+  transferDecisions(transfer({ transferred_from: [], transferred_to: [] }), NOW).length === 0);
+ok('missing lists write nothing',
+  transferDecisions(transfer({ transferred_from: null, transferred_to: undefined }), NOW).length === 0);
+ok('an account on both sides is left alone',
+  transferDecisions(transfer({ transferred_from: [OLD], transferred_to: [OLD] }), NOW).length === 0);
+ok('a transfer of another entitlement writes nothing',
+  transferDecisions(transfer({ entitlement_ids: ['Something Else'] }), NOW).length === 0);
+ok('a transfer of a lapsed purchase only revokes',
+  (() => { const d = transferDecisions(transfer({ expiration_at_ms: NOW - HOUR }), NOW);
+           return d.length === 1 && d[0].userId === OLD && d[0].isPro === false; })());
+ok('a transfer with no expiry only revokes',
+  (() => { const d = transferDecisions(transfer({ expiration_at_ms: null }), NOW);
+           return d.length === 1 && d[0].userId === OLD && d[0].isPro === false; })());
+ok('another event type is not a transfer',
+  transferDecisions(event({ type: 'RENEWAL' }), NOW).length === 0);
+
+// --- crew seats ---------------------------------------------------------------
+
+ok('a Crew purchase covers 5', (decide(event({ product_id: 'com.mise.film_director_suite.crew_monthly' }), NOW) as any).seats === 5);
+ok('a Play Studio purchase covers 40', (decide(event({ product_id: 'mise_studio:studio-monthly' }), NOW) as any).seats === 40);
+ok('a legacy Pro purchase covers 1', (decide(event({ product_id: 'com.mise.film_director_suite.pro_monthly' }), NOW) as any).seats === 1);
+ok('a plan change uses the new product',
+  (decide(event({ type: 'PRODUCT_CHANGE', product_id: 'com.mise.film_director_suite.crew_monthly', new_product_id: 'com.mise.film_director_suite.production_monthly' }), NOW) as any).seats === 15);
+ok('an expiration leaves seats alone', (decide(event({ type: 'EXPIRATION', product_id: 'x.crew_monthly' }), NOW) as any).seats === null);
+ok('a Slate id maps to 250', seatsForProduct('mise_slate:slate-monthly') === 250);
 
 // --- timestamps -------------------------------------------------------------
 

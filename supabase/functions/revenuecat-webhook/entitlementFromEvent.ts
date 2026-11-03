@@ -37,6 +37,12 @@ export interface RevenueCatEvent {
   entitlement_id?: string | null;
   /** Every id RevenueCat considers the same customer, including aliased ones. */
   aliases?: string[] | null;
+  /** TRANSFER only: the ids the purchases moved away from, and to. */
+  transferred_from?: string[] | null;
+  transferred_to?: string[] | null;
+  /** The store product. PRODUCT_CHANGE also carries the one switched to. */
+  product_id?: string | null;
+  new_product_id?: string | null;
 }
 
 export type Decision =
@@ -47,6 +53,8 @@ export type Decision =
       expiresAt: string | null;
       eventAt: string;
       reason: string;
+      /** People the plan covers, owner included. null leaves the stored value alone. */
+      seats: number | null;
     }
   | { action: 'ignore'; reason: string };
 
@@ -61,6 +69,26 @@ export type Decision =
 export const PRO_ENTITLEMENT = 'Mise Film Director Suite Pro';
 
 /** Event types that mean the subscription is active as of this event. */
+/**
+ * People a plan covers, the owner included: Solo 1, Crew 5, Production 15,
+ * Studio 40, Slate 250 (lib/tiers.ts deviceLimit). Apple ids look like
+ * com.mise.film_director_suite.crew_monthly, Play ids like
+ * mise_crew:crew-monthly. The legacy pro_* products are Solo. Mirrors
+ * public.mise_seats_for_product() in supabase/migrations/20261103_crew_seats.sql.
+ */
+export function seatsForProduct(productId: string | null | undefined): number {
+  const id = (productId ?? '').toLowerCase();
+  if (id.includes('slate')) return 250;
+  if (id.includes('studio')) return 40;
+  if (id.includes('production')) return 15;
+  if (id.includes('crew')) return 5;
+  return 1;
+}
+
+function eventSeats(event: RevenueCatEvent): number {
+  return seatsForProduct(event.new_product_id ?? event.product_id);
+}
+
 const GRANTS = new Set([
   'INITIAL_PURCHASE',
   'RENEWAL',
@@ -148,15 +176,12 @@ function msToIso(ms: number | null | undefined): string | null {
  * RevenueCat dashboard always comes back 200 during setup, whatever it puts in
  * the other fields.
  *
- * TRANSFER moves an entitlement between app user ids and carries
- * transferred_from/transferred_to rather than a single subject. Handling it
- * properly means revoking from one account and granting to another; nothing in
- * Mise creates them today (they come from Apple family sharing and manual
- * support transfers), so it is logged and left alone rather than half-done.
+ * TRANSFER is not decided here: it has no single subject. transferDecisions()
+ * below turns it into one revoke per old account and one grant per new one.
  */
 const SKIP: Record<string, string> = {
   TEST: 'test event',
-  TRANSFER: 'TRANSFER is not handled — see #76',
+  TRANSFER: 'TRANSFER is applied per account by transferDecisions()',
 };
 
 /** Why an event could not be tied to an account, phrased for the event log. */
@@ -208,14 +233,15 @@ export function decide(event: RevenueCatEvent | null | undefined, nowMs: number)
     eventAt: msToIso(event.event_timestamp_ms) ?? new Date(nowMs).toISOString(),
   };
 
-  if (GRANTS.has(type)) return { ...base, isPro: true, reason: type };
-  if (REVOKES.has(type)) return { ...base, isPro: false, reason: type };
+  if (GRANTS.has(type)) return { ...base, isPro: true, reason: type, seats: eventSeats(event) };
+  if (REVOKES.has(type)) return { ...base, isPro: false, reason: type, seats: null };
 
   if (HONOUR_EXPIRY.has(type)) {
     const stillPaid = stillWithinPaidPeriod(event, nowMs);
     return {
       ...base,
       isPro: stillPaid,
+      seats: null,
       reason: stillPaid ? `${type} — paid period still running` : `${type} — paid period ended`,
     };
   }
@@ -239,4 +265,53 @@ export function isStale(appliedAt: string | null | undefined, eventAt: string): 
   const incoming = Date.parse(eventAt);
   if (Number.isNaN(applied) || Number.isNaN(incoming)) return false;
   return incoming <= applied;
+}
+
+type ApplyDecision = Extract<Decision, { action: 'apply' }>;
+
+function uuidsIn(list: string[] | null | undefined): string[] {
+  return Array.isArray(list) ? [...new Set(list.filter(isUuid))] : [];
+}
+
+/**
+ * What a TRANSFER means for each account it names (#76).
+ *
+ * RevenueCat moves purchases from the `transferred_from` ids to the
+ * `transferred_to` ids, for example when a customer restores on a device that
+ * is signed into a different account. Every old account loses Pro and every
+ * new one gains it. Anonymous ids are skipped like everywhere else: there is
+ * no Supabase row to write. An account on both sides keeps what it has.
+ *
+ * The new accounts are granted only when the event carries an expiry still
+ * in the future, and the grant takes that expiry. Without one, only the
+ * revoke is written; the next RENEWAL, now attributed to the new account,
+ * grants it.
+ */
+export function transferDecisions(event: RevenueCatEvent | null | undefined, nowMs: number): ApplyDecision[] {
+  if (!event || event.type !== 'TRANSFER') return [];
+  if (!touchesProEntitlement(event)) return [];
+
+  const from = uuidsIn(event.transferred_from);
+  const to = uuidsIn(event.transferred_to);
+  const both = new Set(from.filter((id) => to.includes(id)));
+  const eventAt = msToIso(event.event_timestamp_ms) ?? new Date(nowMs).toISOString();
+  const expiresAt = msToIso(event.expiration_at_ms);
+
+  return [
+    ...from.filter((id) => !both.has(id)).map((userId) => ({
+      action: 'apply' as const, userId, isPro: false, expiresAt: null, eventAt, seats: null,
+      reason: 'TRANSFER away from this account',
+    })),
+    // Grant only a paid period the event shows is still running. A TRANSFER
+    // can carry a long-lapsed purchase (a restore onto a new account), and a
+    // grant with no end date would stay Pro until an event that never comes.
+    // Skipping is the recoverable mistake: the app checks RevenueCat itself,
+    // and the next RENEWAL grants here.
+    ...(event.expiration_at_ms != null && event.expiration_at_ms > nowMs
+      ? to.filter((id) => !both.has(id)).map((userId) => ({
+          action: 'apply' as const, userId, isPro: true, expiresAt, eventAt, seats: eventSeats(event),
+          reason: 'TRANSFER to this account',
+        }))
+      : []),
+  ];
 }

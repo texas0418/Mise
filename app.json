@@ -2,7 +2,7 @@
   "expo": {
     "name": "Mise Film Director Suite",
     "slug": "mise-film-director-suite",
-    "version": "1.3.1",
+    "version": "1.3.3",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "mise-app",
@@ -20,7 +20,6 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Mise needs access to your photo library to attach reference images to shots, mood boards, lookbook items, and location scouts in your film projects.",
-        "NSPhotoLibraryAddUsageDescription": "Mise saves exported lighting diagrams and production documents to your photo library.",
         "NSCameraUsageDescription": "Mise uses your camera to photograph shot lists, scripts, and location photos for your film projects.",
         "NSLocationWhenInUseUsageDescription": "Mise uses your location to auto-populate weather data and map coordinates for your filming locations.",
         "UIRequiredDeviceCapabilities": [
@@ -28,7 +27,7 @@
         ],
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "8"
+      "buildNumber": "13"
     },
     "android": {
       "adaptiveIcon": {
@@ -36,7 +35,7 @@
         "backgroundColor": "#0A0A0A"
       },
       "package": "com.mise.film_director_suite",
-      "versionCode": 5
+      "versionCode": 9
     },
     "web": {
       "favicon": "./assets/images/favicon.png"

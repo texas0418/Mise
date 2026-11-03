@@ -16,10 +16,24 @@
  */
 
 let proEntitled = false;
+const listeners = new Set<(value: boolean) => void>();
 
-/** Called by DeviceLicenseContext whenever the resolved entitlement changes. */
+/**
+ * Called by DeviceLicenseContext whenever the resolved entitlement changes.
+ * Subscribers hear about it, because a module variable alone changes nothing
+ * on screen: sync stayed off after a purchase until something else happened
+ * to re-render SyncContext.
+ */
 export function setProEntitled(value: boolean): void {
+  if (proEntitled === value) return;
   proEntitled = value;
+  listeners.forEach((fn) => fn(value));
+}
+
+/** Hear about entitlement changes. Returns the unsubscribe. */
+export function onProEntitledChange(fn: (value: boolean) => void): () => void {
+  listeners.add(fn);
+  return () => { listeners.delete(fn); };
 }
 
 /** True once the device is known to hold a licence or an active subscription. */
