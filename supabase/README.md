@@ -36,7 +36,7 @@ So:
 it as an alternative source of truth, so the gate is not yet hard. That is
 deliberate — device registration legitimately writes those rows from the client
 on every launch, and the mirror is empty until updated builds are in people's
-hands. See #76.
+hands. See #76. TRANSFER events are applied per account since 1.3.3 (`transferDecisions`).
 
 ## Deploying the function
 
