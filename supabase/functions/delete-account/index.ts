@@ -45,10 +45,20 @@ import { USER_TABLES, PROJECT_TABLES, isMissingTable } from './tables.ts';
 const BUCKET = 'scripts';
 const PAGE = 1000;
 
+// The web build at mise.simonbuilds.app calls this from the browser, which
+// sends a CORS preflight first. Native apps send no Origin and ignore these.
+const WEB_ORIGIN = 'https://mise.simonbuilds.app';
+const CORS = {
+  'Access-Control-Allow-Origin': WEB_ORIGIN,
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  Vary: 'Origin',
+};
+
 function json(status: number, body: Record<string, unknown>): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...CORS, 'Content-Type': 'application/json' },
   });
 }
 
@@ -150,6 +160,7 @@ async function deleteFiles(admin: SupabaseClient, userId: string): Promise<boole
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'POST') return json(405, { error: 'method not allowed' });
 
   const userId = await callerId(req);
