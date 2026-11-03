@@ -53,7 +53,8 @@ export const KNOWN_COLUMNS: Record<string, string[] | null> = {
   director_messages: ['id', 'user_id', 'project_id', 'category', 'priority', 'subject', 'body', 'recipients', 'sent_at', 'scene_number', 'created_at', 'updated_at', 'deleted_at'],
   script_annotations: ['id', 'script_pdf_id', 'project_id', 'user_id', 'page_number', 'type', 'color', 'x', 'y', 'width', 'height', 'text_content', 'path_data', 'stroke_width', 'created_at', 'updated_at', 'deleted_at'],
   script_pdfs: ['id', 'project_id', 'user_id', 'title', 'file_path', 'file_size', 'page_count', 'version', 'color_code', 'uploaded_at', 'created_at', 'updated_at', 'deleted_at'],
-  // lighting_diagrams not yet in Supabase: passes through without stripping
+  // Server table from supabase/migrations/20261103_lighting_diagrams_table.sql.
+  lighting_diagrams: ['id', 'user_id', 'project_id', 'scene_number', 'shot_number', 'title', 'description', 'template_name', 'elements', 'bg_style', 'notes', 'created_at', 'updated_at', 'deleted_at'],
 };
 
 export function stripUnknownColumns(table: string, row: Record<string, any>): Record<string, any> {
