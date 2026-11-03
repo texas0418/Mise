@@ -30,7 +30,13 @@
  * serve at all if that secret is not configured.
  */
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { decide, isStale, type Decision, type RevenueCatEvent } from './entitlementFromEvent.ts';
+import {
+  decide,
+  isStale,
+  transferDecisions,
+  type Decision,
+  type RevenueCatEvent,
+} from './entitlementFromEvent.ts';
 
 /**
  * Compare in time independent of how much of the string matched.
@@ -206,6 +212,19 @@ async function applyDecision(
   return json(200, { ok: true, applied: true, is_pro: decision.isPro });
 }
 
+/** Apply several decisions from one event. Any failure fails the delivery, so RevenueCat retries. */
+async function applyAll(
+  supabase: Supabase,
+  decisions: Extract<Decision, { action: 'apply' }>[],
+  eventId: string
+): Promise<Response> {
+  for (const decision of decisions) {
+    const res = await applyDecision(supabase, decision, eventId);
+    if (res.status >= 500) return res;
+  }
+  return json(200, { ok: true, applied: true, accounts: decisions.length });
+}
+
 Deno.serve(async (req: Request) => {
   const rejected = reject(req);
   if (rejected) return rejected;
@@ -223,6 +242,10 @@ Deno.serve(async (req: Request) => {
   const supabase = serviceClient();
 
   const eventId = await logDelivery(supabase, event, decision);
+
+  // A TRANSFER revokes from one account and grants to another (#76).
+  const transfers = transferDecisions(event, Date.now());
+  if (transfers.length > 0) return applyAll(supabase, transfers, eventId);
 
   if (decision.action === 'ignore') {
     console.log(`[revenuecat-webhook] ignored (${event?.type ?? 'no type'}): ${decision.reason}`);

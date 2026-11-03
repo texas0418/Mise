@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Linking,
+  Platform,
 } from 'react-native';
 import { appAlert } from '@/lib/appAlert';
 import {
@@ -393,8 +394,12 @@ export default function PaywallScreen() {
     }
   };
 
+  // iOS uses Apple's standard EULA. Play and the web have no platform EULA,
+  // so they get Mise's own terms.
   const openTerms = () =>
-    Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
+    Linking.openURL(Platform.OS === 'ios'
+      ? 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'
+      : 'https://page4films.com/mise/terms.html');
   const openPrivacy = () =>
     Linking.openURL('https://page4films.com/mise/privacy.html');
 

@@ -26,6 +26,8 @@ export type MoodBoardItemType = 'color' | 'reference' | 'note';
 
 export interface Project {
   id: string;
+  /** The account that created it. Set by the server; absent on a local-only project. */
+  userId?: string;
   title: string;
   logline: string;
   genre: string;

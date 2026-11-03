@@ -28,6 +28,7 @@ import {
   Download,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectBudget } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -334,7 +335,8 @@ function SubtotalRow({ label, estimated, actual, cols }: { label: string; estima
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 
 export default function BudgetSpreadsheetScreen() {
-  const { activeProject, activeProjectId, updateBudgetItem, deleteBudgetItem } = useProjects();
+  const { activeProject, activeProjectId, updateBudgetItem, deleteBudgetItem: deleteBudgetItemUnchecked } = useProjects();
+  const deleteBudgetItem = useGuardedDelete('budget', deleteBudgetItemUnchecked);
   const budget = useProjectBudget(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentWidth } = useLayout();

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, FileText, MapPin, Clock, Users, Package, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectScenes } from '@/contexts/ProjectContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatEighths, totalEighths } from '@/utils/eighths';
@@ -168,7 +169,8 @@ function BreakdownCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function ScriptBreakdownScreen() {
-  const { activeProject, activeProjectId, deleteScene } = useProjects();
+  const { activeProject, activeProjectId, deleteScene: deleteSceneUnchecked } = useProjects();
+  const deleteScene = useGuardedDelete('script_breakdown', deleteSceneUnchecked);
   const breakdowns = useProjectScenes(activeProjectId);
   const router = useGuardedRouter();
   const queryClient = useQueryClient();

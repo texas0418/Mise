@@ -11,6 +11,7 @@ import Colors from '@/constants/colors';
 import { FestivalStatus } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { DateField } from '@/components/DateTimeField';
+import { newId } from '@/lib/newId';
 
 const STATUS_OPTIONS: { label: string; value: FestivalStatus }[] = [
   { label: 'Researching', value: 'researching' },
@@ -61,7 +62,7 @@ export default function NewFestivalScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       festivalName: festivalName.trim(),
       location: location.trim(),

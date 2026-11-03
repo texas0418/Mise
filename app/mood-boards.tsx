@@ -4,6 +4,7 @@ import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Palette, AlertCircle, Pencil, Trash2 } from 'lucide-react-native';
 import { Image } from 'expo-image';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectMoodBoard } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -97,7 +98,8 @@ function MoodBoardCard({ item, isSelected, onPress, onEdit, onDelete }: {
 }
 
 export default function MoodBoardsScreen() {
-  const { activeProject, activeProjectId, deleteMoodBoardItem } = useProjects();
+  const { activeProject, activeProjectId, deleteMoodBoardItem: deleteMoodBoardItemUnchecked } = useProjects();
+  const deleteMoodBoardItem = useGuardedDelete('mood_board', deleteMoodBoardItemUnchecked);
   const items = useProjectMoodBoard(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

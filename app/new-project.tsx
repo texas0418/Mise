@@ -12,6 +12,7 @@ import { ProjectStatus } from '@/types';
 import { PROJECT_STATUSES, GENRES } from '@/constants/filmData';
 import { generateBudgetTemplate, TEMPLATE_LINE_COUNT } from '@/utils/budgetTemplate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 export default function NewProjectScreen() {
   const { formColumn } = useLayout();
@@ -79,7 +80,7 @@ export default function NewProjectScreen() {
       return;
     }
 
-    const projectId = Date.now().toString();
+    const projectId = newId();
     addProject({
       id: projectId,
       ...fields,

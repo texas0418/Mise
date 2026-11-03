@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated } from 'react-native';
 import { appAlert } from '@/lib/appAlert';
 import { Plus, FileText, Clock, MessageSquare, Camera, Users, ChevronDown, ChevronUp, Tag, Trash2, Eye, Pencil } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectScriptSides, useProjectShots } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -203,7 +204,8 @@ function SideCard({ side, index, isExpanded, onPress, onEdit, onDelete, linkedSh
 }
 
 export default function ScriptSidesScreen() {
-  const { activeProjectId, deleteScriptSide } = useProjects();
+  const { activeProjectId, deleteScriptSide: deleteScriptSideUnchecked } = useProjects();
+  const deleteScriptSide = useGuardedDelete('script_sides', deleteScriptSideUnchecked);
   const sides = useProjectScriptSides(activeProjectId);
   const shots = useProjectShots(activeProjectId);
   const router = useGuardedRouter();

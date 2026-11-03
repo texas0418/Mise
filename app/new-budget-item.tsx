@@ -11,6 +11,7 @@ import Colors from '@/constants/colors';
 import { BudgetCategory } from '@/types';
 import { BUDGET_CATEGORIES } from '@/constants/filmData';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 export default function NewBudgetItemScreen() {
   const { formColumn } = useLayout();
@@ -57,7 +58,7 @@ export default function NewBudgetItemScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       category,
       description: description.trim(),

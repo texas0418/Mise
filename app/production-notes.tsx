@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, StickyNote, AlertCircle, Pin, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectNotes } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -106,7 +107,8 @@ function NoteCard({ item, isExpanded, onPress, onEdit, onDelete }: {
 }
 
 export default function ProductionNotesScreen() {
-  const { activeProject, activeProjectId, deleteNote } = useProjects();
+  const { activeProject, activeProjectId, deleteNote: deleteNoteUnchecked } = useProjects();
+  const deleteNote = useGuardedDelete('notes', deleteNoteUnchecked);
   const notes = useProjectNotes(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

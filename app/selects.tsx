@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, SectionList, TouchableOpacity } from 'react-native';
 import { appAlert } from '@/lib/appAlert';
 import { Plus, Star, Circle, CircleDot, Trash2, Clock, MessageSquare, Camera, AlertTriangle, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectSelects } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -115,7 +116,8 @@ function SelectCard({ select, onEdit, onDelete }: {
 }
 
 export default function SelectsScreen() {
-  const { activeProjectId, deleteSceneSelect } = useProjects();
+  const { activeProjectId, deleteSceneSelect: deleteSceneSelectUnchecked } = useProjects();
+  const deleteSceneSelect = useGuardedDelete('selects', deleteSceneSelectUnchecked);
   const selects = useProjectSelects(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

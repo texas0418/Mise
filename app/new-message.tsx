@@ -10,6 +10,7 @@ import Colors from '@/constants/colors';
 import { DirectorMessage, MessagePriority, MessageCategory } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { RECIPIENT_LABELS, ALL_DEPARTMENTS } from '@/utils/messageDelivery';
+import { newId } from '@/lib/newId';
 
 const PRIORITY_OPTIONS: { key: MessagePriority; label: string; color: string }[] = [
   { key: 'normal', label: 'Normal', color: Colors.text.secondary },
@@ -67,7 +68,7 @@ export default function NewMessageScreen() {
     }
 
     const msg: DirectorMessage = {
-      id: Date.now().toString(),
+      id: newId(),
       projectId: activeProjectId || '1',
       category,
       priority,

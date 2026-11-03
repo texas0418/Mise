@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { appAlert } from '@/lib/appAlert';
 import { Plus, MapPin, Clock, FileText, CalendarDays, AlertCircle, Trash2, ChevronDown, ChevronUp, Film } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectSchedule, useProjectScenes } from '@/contexts/ProjectContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatEighths, totalEighths } from '@/utils/eighths';
@@ -165,7 +166,8 @@ function ScheduleCard({ day, scenes, onDelete }: { day: ScheduleDay; scenes: Sce
 }
 
 export default function ScheduleScreen() {
-  const { activeProject, activeProjectId, deleteScheduleDay } = useProjects();
+  const { activeProject, activeProjectId, deleteScheduleDay: deleteScheduleDayUnchecked } = useProjects();
+  const deleteScheduleDay = useGuardedDelete('schedule', deleteScheduleDayUnchecked);
   const schedule = useProjectSchedule(activeProjectId);
   const scenes = useProjectScenes(activeProjectId);
   const queryClient = useQueryClient();

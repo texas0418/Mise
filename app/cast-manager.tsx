@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated } from 're
 import { appAlert } from '@/lib/appAlert';
 import { Image } from 'expo-image';
 import { Plus, User, Phone, Mail, Film, Calendar, Star, Trash2, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectCast } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -214,7 +215,8 @@ function CastCard({ member, index, onEdit, onDelete, onStatusChange }: {
 }
 
 export default function CastManagerScreen() {
-  const { activeProjectId, deleteCastMember, updateCastMember } = useProjects();
+  const { activeProjectId, deleteCastMember: deleteCastMemberUnchecked, updateCastMember } = useProjects();
+  const deleteCastMember = useGuardedDelete('cast', deleteCastMemberUnchecked);
   const cast = useProjectCast(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

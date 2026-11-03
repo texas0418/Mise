@@ -11,6 +11,7 @@ import Colors from '@/constants/colors';
 import { ScriptSide, SidesStatus, SideAnnotation } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { DateField } from '@/components/DateTimeField';
+import { newId } from '@/lib/newId';
 
 const STATUS_OPTIONS: { value: SidesStatus; label: string }[] = [
   { value: 'upcoming', label: 'Upcoming' },
@@ -98,7 +99,7 @@ export default function NewScriptSideScreen() {
     }
 
     const sideData: ScriptSide = {
-      id: isEditing ? existingSide!.id : Date.now().toString(),
+      id: isEditing ? existingSide!.id : newId(),
       projectId: activeProjectId || '1',
       sceneNumber: parseInt(sceneNumber) || 0,
       sceneHeader: sceneHeader.trim(),

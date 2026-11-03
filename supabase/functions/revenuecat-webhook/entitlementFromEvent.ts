@@ -37,6 +37,9 @@ export interface RevenueCatEvent {
   entitlement_id?: string | null;
   /** Every id RevenueCat considers the same customer, including aliased ones. */
   aliases?: string[] | null;
+  /** TRANSFER only: the ids the purchases moved away from, and to. */
+  transferred_from?: string[] | null;
+  transferred_to?: string[] | null;
 }
 
 export type Decision =
@@ -148,15 +151,12 @@ function msToIso(ms: number | null | undefined): string | null {
  * RevenueCat dashboard always comes back 200 during setup, whatever it puts in
  * the other fields.
  *
- * TRANSFER moves an entitlement between app user ids and carries
- * transferred_from/transferred_to rather than a single subject. Handling it
- * properly means revoking from one account and granting to another; nothing in
- * Mise creates them today (they come from Apple family sharing and manual
- * support transfers), so it is logged and left alone rather than half-done.
+ * TRANSFER is not decided here: it has no single subject. transferDecisions()
+ * below turns it into one revoke per old account and one grant per new one.
  */
 const SKIP: Record<string, string> = {
   TEST: 'test event',
-  TRANSFER: 'TRANSFER is not handled — see #76',
+  TRANSFER: 'TRANSFER is applied per account by transferDecisions()',
 };
 
 /** Why an event could not be tied to an account, phrased for the event log. */
@@ -239,4 +239,45 @@ export function isStale(appliedAt: string | null | undefined, eventAt: string): 
   const incoming = Date.parse(eventAt);
   if (Number.isNaN(applied) || Number.isNaN(incoming)) return false;
   return incoming <= applied;
+}
+
+type ApplyDecision = Extract<Decision, { action: 'apply' }>;
+
+function uuidsIn(list: string[] | null | undefined): string[] {
+  return Array.isArray(list) ? [...new Set(list.filter(isUuid))] : [];
+}
+
+/**
+ * What a TRANSFER means for each account it names (#76).
+ *
+ * RevenueCat moves purchases from the `transferred_from` ids to the
+ * `transferred_to` ids, for example when a customer restores on a device that
+ * is signed into a different account. Every old account loses Pro and every
+ * new one gains it. Anonymous ids are skipped like everywhere else: there is
+ * no Supabase row to write. An account on both sides keeps what it has.
+ *
+ * The grant takes the event's expiry when there is one. TRANSFER payloads
+ * usually carry none, which stores a grant with no end date; the next
+ * RENEWAL or EXPIRATION, now attributed to the new account, corrects it.
+ */
+export function transferDecisions(event: RevenueCatEvent | null | undefined, nowMs: number): ApplyDecision[] {
+  if (!event || event.type !== 'TRANSFER') return [];
+  if (!touchesProEntitlement(event)) return [];
+
+  const from = uuidsIn(event.transferred_from);
+  const to = uuidsIn(event.transferred_to);
+  const both = new Set(from.filter((id) => to.includes(id)));
+  const eventAt = msToIso(event.event_timestamp_ms) ?? new Date(nowMs).toISOString();
+  const expiresAt = msToIso(event.expiration_at_ms);
+
+  return [
+    ...from.filter((id) => !both.has(id)).map((userId) => ({
+      action: 'apply' as const, userId, isPro: false, expiresAt: null, eventAt,
+      reason: 'TRANSFER away from this account',
+    })),
+    ...to.filter((id) => !both.has(id)).map((userId) => ({
+      action: 'apply' as const, userId, isPro: true, expiresAt, eventAt,
+      reason: 'TRANSFER to this account',
+    })),
+  ];
 }

@@ -10,6 +10,7 @@ import ImportButton from '@/components/ImportButton';
 import { CrewMember, Department } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 const DEPT_LABELS: Record<Department, string> = {
   direction: 'Direction', camera: 'Camera', sound: 'Sound', art: 'Art',
@@ -159,7 +160,7 @@ export default function CrewDirectoryScreen() {
       deleteCrewAssignment(existing.id);
     } else {
       addCrewAssignment({
-        id: `assign-${Date.now()}-${crewMemberId}`,
+        id: newId(),
         projectId: activeProjectId,
         crewMemberId,
         createdAt: new Date().toISOString(),

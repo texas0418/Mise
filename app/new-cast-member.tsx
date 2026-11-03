@@ -12,6 +12,7 @@ import Colors from '@/constants/colors';
 import { CastMember, CastStatus } from '@/types';
 import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 const STATUS_OPTIONS: { value: CastStatus; label: string }[] = [
   { value: 'wishlist', label: 'Wishlist' },
@@ -80,7 +81,7 @@ export default function NewCastMemberScreen() {
     }
 
     const memberData: CastMember = {
-      id: isEditing ? existingMember!.id : Date.now().toString(),
+      id: isEditing ? existingMember!.id : newId(),
       projectId: activeProjectId || '1',
       actorName: actorName.trim(),
       characterName: characterName.trim(),

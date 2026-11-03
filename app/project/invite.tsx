@@ -15,6 +15,7 @@ import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProjects } from '@/contexts/ProjectContext';
 import { supabase } from '@/lib/supabase';
+import { ensureUUID } from '@/lib/syncIds';
 import { ALL_ROLES, ROLE_LABELS, ROLE_DESCRIPTIONS, type Role } from '@/lib/permissions';
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
@@ -48,7 +49,7 @@ export default function InviteScreen() {
       const { data: existing } = await supabase
         .from('project_members')
         .select('id')
-        .eq('project_id', activeProjectId)
+        .eq('project_id', ensureUUID(activeProjectId))
         .eq('email', email.trim().toLowerCase())
         .is('deleted_at', null)
         .maybeSingle();
@@ -63,7 +64,7 @@ export default function InviteScreen() {
       const { error } = await supabase
         .from('project_members')
         .insert({
-          project_id: activeProjectId,
+          project_id: ensureUUID(activeProjectId),
           user_id: null,
           email: email.trim().toLowerCase(),
           role: selectedRole,

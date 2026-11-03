@@ -11,6 +11,7 @@ import Colors from '@/constants/colors';
 import { LightingTemplateName, LightingElement } from '@/types';
 import { LIGHTING_TEMPLATES, getTemplate, loadCustomTemplates, deleteCustomTemplate, CustomTemplate } from '@/utils/lightingTemplates';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 export default function NewLightingDiagramScreen() {
   const { formColumn } = useLayout();
@@ -106,7 +107,7 @@ export default function NewLightingDiagramScreen() {
       }));
 
       addLightingDiagram({
-        id: Date.now().toString(),
+        id: newId(),
         projectId: activeProjectId,
         sceneNumber: sceneNumber ? parseInt(sceneNumber) : undefined,
         shotNumber: shotNumber.trim() || undefined,

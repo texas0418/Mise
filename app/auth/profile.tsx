@@ -13,7 +13,10 @@ import { appAlert } from '@/lib/appAlert';
 import { User, Lock, LogOut, Trash2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
+import { requestAccountDeletion, SUPPORT_EMAIL } from '@/lib/deleteAccount';
+import { useSync } from '@/contexts/SyncContext';
 import Colors from '@/constants/colors';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 
@@ -21,6 +24,7 @@ export default function ProfileScreen() {
   const { formColumn } = useLayout();
   const router = useGuardedRouter();
   const { user, signOut, updateProfile, updatePassword } = useAuth();
+  const { resetSync } = useSync();
 
   const [displayName, setDisplayName] = useState(
     user?.user_metadata?.display_name || ''
@@ -68,23 +72,51 @@ export default function ProfileScreen() {
     }
   }, [newPassword, confirmPassword, updatePassword]);
 
+  /*
+   * Sign-out used to keep the previous account's records and its pending
+   * queue on the phone, so the next account to sign in saw them and pushed
+   * them. Ask instead. FLAGGED FOR SIMON (M4): the choice is the 1.3.3
+   * default; "Keep" leaves the queue too, so the same account can sign back
+   * in and push what it had not sent yet.
+   */
+  const finishSignOut = useCallback(async (clearData: boolean) => {
+    try {
+      await signOut();
+      if (clearData) await resetSync({ clearData: true });
+      router.replace('/auth/sign-in');
+    } catch (error: any) {
+      appAlert('Error', error.message);
+    }
+  }, [signOut, resetSync, router]);
+
   const handleSignOut = useCallback(async () => {
-    appAlert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await signOut();
-            router.replace('/auth/sign-in');
-          } catch (error: any) {
-            appAlert('Error', error.message);
-          }
-        },
-      },
-    ]);
-  }, [signOut, router]);
+    appAlert(
+      'Sign Out',
+      'Keep your projects on this device, or clear them? Clearing removes everything stored here, including changes not synced yet. Anything already synced stays in your account.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Keep on This Device', onPress: () => { void finishSignOut(false); } },
+        { text: 'Clear This Device', style: 'destructive', onPress: () => { void finishSignOut(true); } },
+      ],
+    );
+  }, [finishSignOut]);
+
+  const deleteEverything = useCallback(async () => {
+    setDeleting(true);
+    const failure = await requestAccountDeletion();
+    if (failure) {
+      setDeleting(false);
+      appAlert('Error', `${failure}\n\nYour account was not deleted. Try again, or email ${SUPPORT_EMAIL} and we will delete it for you.`);
+      return;
+    }
+    // The account is gone on the server; take everything off this device.
+    await resetSync({ clearData: true });
+    await AsyncStorage.clear();
+    await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    setDeleting(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    router.replace('/auth/sign-in');
+  }, [resetSync, router]);
 
   const handleDeleteAccount = useCallback(async () => {
     appAlert(
@@ -104,40 +136,7 @@ export default function ProfileScreen() {
                 {
                   text: 'Yes, Delete Everything',
                   style: 'destructive',
-                  onPress: async () => {
-                    setDeleting(true);
-                    try {
-                      const userId = user?.id;
-                      if (!userId) throw new Error('No user ID found.');
-
-                      // Delete all user data from every table
-                      const tables = [
-                        'shots', 'schedule_days', 'crew_members', 'takes',
-                        'scene_breakdowns', 'location_scouts', 'budget_items',
-                        'continuity_notes', 'vfx_shots', 'festival_submissions',
-                        'production_notes', 'mood_board_items', 'call_sheet_entries',
-                        'director_credits', 'shot_references', 'wrap_reports',
-                        'location_weather', 'blocking_notes', 'color_references',
-                        'time_entries', 'script_sides', 'cast_members',
-                        'lookbook_items', 'director_statements', 'scene_selects',
-                        'director_messages', 'script_annotations', 'script_pdfs',
-                        'projects',
-                      ];
-
-                      for (const table of tables) {
-                        await supabase.from(table).delete().eq('user_id', userId);
-                      }
-
-                      // Sign out and navigate to sign-in
-                      await signOut();
-                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                      router.replace('/auth/sign-in');
-                    } catch (error: any) {
-                      appAlert('Error', error.message || 'Failed to delete account. Please contact support at hello@mise.app.');
-                    } finally {
-                      setDeleting(false);
-                    }
-                  },
+                  onPress: () => { void deleteEverything(); },
                 },
               ]
             );
@@ -145,7 +144,7 @@ export default function ProfileScreen() {
         },
       ]
     );
-  }, [user, signOut, router]);
+  }, [deleteEverything]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, formColumn]} keyboardShouldPersistTaps="handled">

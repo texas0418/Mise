@@ -11,6 +11,7 @@ import Colors from '@/constants/colors';
 import { VFXComplexity, VFXShotStatus } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { DateField } from '@/components/DateTimeField';
+import { newId } from '@/lib/newId';
 
 const COMPLEXITY_OPTIONS: { label: string; value: VFXComplexity }[] = [
   { label: 'Simple', value: 'simple' },
@@ -77,7 +78,7 @@ export default function NewVFXScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       sceneNumber: parseInt(sceneNumber, 10) || 1,
       shotNumber: shotNumber.trim() || '1A',

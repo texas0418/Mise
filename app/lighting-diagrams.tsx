@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { appAlert } from '@/lib/appAlert';
 import { Stack } from 'expo-router';
 import { Plus, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2, Camera, Users, Zap } from 'lucide-react-native';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectLightingDiagrams } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
 import Colors from '@/constants/colors';
@@ -129,7 +130,8 @@ function DiagramCard({ item, isExpanded, onPress, onEdit, onOpen, onDelete }: {
 }
 
 export default function LightingDiagramsScreen() {
-  const { activeProject, activeProjectId, deleteLightingDiagram } = useProjects();
+  const { activeProject, activeProjectId, deleteLightingDiagram: deleteLightingDiagramUnchecked } = useProjects();
+  const deleteLightingDiagram = useGuardedDelete('lighting', deleteLightingDiagramUnchecked);
   const diagrams = useProjectLightingDiagrams(activeProjectId);
   const router = useGuardedRouter();
   const { contentPadding, contentColumn } = useLayout();

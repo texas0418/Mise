@@ -6,11 +6,13 @@ import { KEYBOARD_BEHAVIOR } from '@/utils/keyboardAvoiding';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { CircleCheck, CircleX, Trash2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectTakes } from '@/contexts/ProjectContext';
 import Colors from '@/constants/colors';
 import { Take } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { toggleLabel, saveTakeHint } from '@/utils/a11yLabels';
+import { newId } from '@/lib/newId';
 
 /** Existing take -> form field values. Module-level so the screen stays under
  *  the lint complexity ceiling. */
@@ -83,7 +85,8 @@ function TakeStatusRow({ isCircled, isNG, onToggleCircle, onToggleNG }: {
 export default function LogTakeScreen() {
   const { formColumn } = useLayout();
   const router = useGuardedRouter();
-  const { addTake, updateTake, deleteTake, activeProjectId, activeProject } = useProjects();
+  const { addTake, updateTake, deleteTake: deleteTakeUnchecked, activeProjectId, activeProject } = useProjects();
+  const deleteTake = useGuardedDelete('shots', deleteTakeUnchecked);
   const takes = useProjectTakes(activeProjectId);
 
   // `id` opens an existing take for correction; scene/shot/take carry the
@@ -139,7 +142,7 @@ export default function LogTakeScreen() {
       updateTake({ ...existingItem!, ...fields });
     } else {
       addTake({
-        id: Date.now().toString(),
+        id: newId(),
         projectId: activeProjectId,
         ...fields,
         timestamp: new Date().toISOString(),

@@ -7,6 +7,7 @@ import {
   useProjects, useProjectSchedule, useProjectCrew, useProjectScenes,
   useProjectCast, useDayCastCallTimes, useCallSheetDetails, AssignedCrew,
 } from '@/contexts/ProjectContext';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useLayout } from '@/utils/useLayout';
 import { formatEighths } from '@/utils/eighths';
 import {
@@ -18,6 +19,7 @@ import { ScheduleDay, Scene, CastMember, CastCallTime } from '@/types';
 import PermissionGate from '@/contexts/PermissionGate';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { CompactTimeField } from '@/components/DateTimeField';
+import { newId } from '@/lib/newId';
 
 /** Which of an actor's three times is being edited. */
 type CastTimeField = 'makeupTime' | 'wardrobeTime' | 'onSetTime';
@@ -353,7 +355,8 @@ function CallSheetCard({ day, crew, scenes, cast, projectTitle, isExpanded, onPr
 }
 
 export default function CallSheetsScreen() {
-  const { activeProject, activeProjectId, deleteScheduleDay } = useProjects();
+  const { activeProject, activeProjectId, deleteScheduleDay: deleteScheduleDayUnchecked } = useProjects();
+  const deleteScheduleDay = useGuardedDelete('call_sheets', deleteScheduleDayUnchecked);
   const crew = useProjectCrew(activeProjectId);
   const scenes = useProjectScenes(activeProjectId);
   const cast = useProjectCast(activeProjectId);
@@ -368,7 +371,7 @@ export default function CallSheetsScreen() {
     upsertCastCallTime(
       (entry: CastCallTime) => entry.scheduleDayId === dayId && entry.castMemberId === castMemberId,
       (existing: CastCallTime | null) => applyCastTime(existing ?? {
-        id: Date.now().toString(),
+        id: newId(),
         projectId: activeProjectId,
         scheduleDayId: dayId,
         castMemberId,

@@ -12,6 +12,7 @@ import Colors from '@/constants/colors';
 import { LookbookItem, LookbookSectionType } from '@/types';
 import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 const SECTION_OPTIONS: { value: LookbookSectionType; label: string }[] = [
   { value: 'tone', label: 'Tone & Mood' },
@@ -66,7 +67,7 @@ export default function NewLookbookItemScreen() {
     }
 
     const itemData: LookbookItem = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId || '1',
       section,
       title: title.trim(),

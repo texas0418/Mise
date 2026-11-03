@@ -20,6 +20,7 @@ import { pickPDF, uploadPDFToSupabase, PickedPDF } from '@/utils/scriptPicker';
 import Colors from '@/constants/colors';
 import { ScriptRevisionColor } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 // ---------------------------------------------------------------------------
 // Revision color options (industry standard order)
@@ -98,7 +99,7 @@ export default function NewScriptScreen() {
       // 2. Create local ScriptPDF record (syncs to Supabase via sync engine)
       const now = new Date().toISOString();
       addScriptPDF({
-        id: Date.now().toString(),
+        id: newId(),
         projectId: activeProjectId,
         userId: user.id,
         title: title.trim(),

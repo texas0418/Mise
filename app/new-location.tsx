@@ -12,6 +12,7 @@ import { showImagePickerOptions } from '@/utils/imagePicker';
 import Colors from '@/constants/colors';
 import { resolvePhotoUri } from '@/utils/photoStorage';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 export default function NewLocationScreen() {
   const { formColumn } = useLayout();
@@ -77,7 +78,7 @@ export default function NewLocationScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       name: name.trim(),
       address: address.trim(),

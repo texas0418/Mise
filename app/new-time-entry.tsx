@@ -11,6 +11,7 @@ import Colors from '@/constants/colors';
 import { Department } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
 import { DateField, TimeField } from '@/components/DateTimeField';
+import { newId } from '@/lib/newId';
 
 export default function NewTimeEntryScreen() {
   const { formColumn } = useLayout();
@@ -58,7 +59,7 @@ export default function NewTimeEntryScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       scheduleDayId: isEditing ? existingItem!.scheduleDayId : '',
       department,

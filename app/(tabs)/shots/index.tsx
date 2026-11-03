@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SectionList, Animated as RNAn
 import { appAlert } from '@/lib/appAlert';
 import { Plus, Camera, Check, Clock, Eye, AlertCircle, Trash2, ChevronDown, ChevronUp, Pencil } from 'lucide-react-native';
 import { Swipeable } from 'react-native-gesture-handler';
+import { useGuardedDelete } from '@/contexts/PermissionContext';
 import { useProjects, useProjectShots, useProjectScenes, findScene } from '@/contexts/ProjectContext';
 import { formatEighths, compareSceneNumbers } from '@/utils/eighths';
 import { useLayout } from '@/utils/useLayout';
@@ -136,7 +137,8 @@ function ShotCard({ shot, onEdit, onDelete }: { shot: Shot; onEdit: () => void; 
 }
 
 export default function ShotsScreen() {
-  const { activeProject, activeProjectId, deleteShot } = useProjects();
+  const { activeProject, activeProjectId, deleteShot: deleteShotUnchecked } = useProjects();
+  const deleteShot = useGuardedDelete('shots', deleteShotUnchecked);
   const shots = useProjectShots(activeProjectId);
   const scenes = useProjectScenes(activeProjectId);
   const router = useGuardedRouter();

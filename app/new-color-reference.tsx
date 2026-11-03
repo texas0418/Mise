@@ -8,6 +8,7 @@ import { LUT_STYLES } from '@/constants/filmData';
 import Colors from '@/constants/colors';
 import { LUTStyle } from '@/types';
 import { useGuardedRouter } from '@/utils/useGuardedRouter';
+import { newId } from '@/lib/newId';
 
 export default function NewColorReferenceScreen() {
   const { formColumn } = useLayout();
@@ -52,7 +53,7 @@ export default function NewColorReferenceScreen() {
     if (!name.trim() || !activeProjectId) return;
 
     const data = {
-      id: isEditing ? existingItem!.id : Date.now().toString(),
+      id: isEditing ? existingItem!.id : newId(),
       projectId: activeProjectId,
       name: name.trim(),
       sceneNumber: sceneNumber ? parseInt(sceneNumber) : undefined,

@@ -1,5 +1,5 @@
-MISE — GOOGLE PLAY STORE LISTING (draft 2026-08-16, adapted from live iOS 1.1.0 copy)
-=======================================================================================
+MISE: GOOGLE PLAY STORE LISTING (revised 2026-11-03 for 1.3.3; first draft 2026-08-16)
+==========================================================================================
 
 APP NAME (30 chars max)
 Mise: Film Director Suite
@@ -16,28 +16,28 @@ Mise is a complete production management suite for indie filmmakers. Call sheets
 Why directors switch to Mise:
 
 - Mobile-first. Works on set. Works offline. Syncs automatically when you reconnect.
-- Real-time collaboration. Invite your AD, DP, producer, or PA. Role-based access keeps the right people in the right tools.
-- Built for the way directors actually work. Type, paste, or photograph your shot lists, crew sheets, and scene notes. AI Import turns them into structured data. No retyping.
-- Made for indies. $4.99/month for the first device. $2.99/month for each additional device. Compare to other production tools at $29 to $99/month.
+- Share a project with your crew. Invite your AD, DP, producer, or PA by email. They join by signing in to Mise with the email address you invited, once that address is confirmed. Each role sees and edits only the tools it should.
+- Bring what you already have. Import shot lists, crew, cast, schedules, and budgets from CSV or Excel (XLSX) spreadsheets. No retyping.
+- Made for indies. Plans start at $4.99/month for one device, and grow with your crew.
 
 What's inside:
 
-— Call sheets with location, crew, scenes, and call times
-— Shot lists with references, lighting diagrams, color notes
-— Script viewer and scene-by-scene breakdown
-— Scene-level scheduling with stripboard view
-— Crew and cast management with contact info and roles
-— Locations with maps, photos, and weather
-— Budget tracking with line items and categories
-— Mood boards and color references
-— VFX shot tracking
-— Festival submission tracker
-— Wrap reports and production notes
-— Export to PDF, CSV, or share via your device's native share sheet
+- Call sheets with location, crew, scenes, and call times
+- Shot lists with references, lighting diagrams, color notes
+- Script viewer and scene-by-scene breakdown
+- Scene-level shoot-day scheduling
+- Crew and cast management with contact info and roles
+- Locations with maps, photos, and weather
+- Budget tracking with line items and categories
+- Mood boards and color references
+- VFX shot tracking
+- Festival submission tracker
+- Wrap reports and production notes
+- Export to PDF, CSV, or share via your device's native share sheet
 
 Built by an indie filmmaker. Used on real productions.
 
-Mise was built by Simon Shih, an actor-director making films in Atlanta, Georgia. Every feature exists because a real production needed it. Mise is owned and operated by Page 4 Films, LLC.
+Mise was built by Simon Shih, a filmmaker and actor in Atlanta, Georgia. Every feature exists because a real production needed it. Mise is owned and operated by Page 4 Films, LLC.
 
 Privacy-first. Your data, your call.
 
@@ -45,9 +45,14 @@ Sign in to sync across your devices and crew, or use Mise locally without an acc
 
 Subscription:
 
-- First device: $4.99/month or $49.99/year (save 17%)
-- Each additional device: $2.99/month or $29.99/year (save 17%)
-- Cancel anytime through your Google Play subscription settings
+Plans are priced by how many devices they cover:
+- Solo, 1 device: $4.99/month or $49.99/year
+- Crew, up to 5 devices: $14.99/month or $149.99/year
+- Production, up to 15 devices: $34.99/month or $349.99/year
+- Studio, up to 40 devices: $79.99/month
+- Slate, up to 250 devices: $149.99/month
+Prices are in USD; Google Play shows the price in your currency before you buy.
+Subscriptions renew automatically until canceled. Cancel anytime in your Google Play subscription settings.
 
 Have questions or feature requests? Email hello@page4films.com. We read every message.
 -----------------------------------------------------
@@ -66,8 +71,7 @@ GRAPHIC ASSETS (store/)
 
 DATA SAFETY FORM — NOT local-only when signed in
 - Optional accounts + Supabase sync: email, synced production content — "collected", encrypted in transit; app fully usable without an account (declare optional)
-- AI Import sends photographed/pasted text for structured extraction — declare user content processed for app functionality; confirm retention with Simon
-- Purchases: RevenueCat subscriptions (first device + additional device tiers) — Play needs ONE subscription with base plans/offers per tier; RevenueCat Google config at submission
+- Purchases: RevenueCat subscriptions, five tiers from lib/tiers.ts (Solo, Crew, Production, Studio, Slate); RevenueCat Google config at submission
 
 CONTENT RATING: Everyone
 
