@@ -275,9 +275,16 @@ export function transferDecisions(event: RevenueCatEvent | null | undefined, now
       action: 'apply' as const, userId, isPro: false, expiresAt: null, eventAt,
       reason: 'TRANSFER away from this account',
     })),
-    ...to.filter((id) => !both.has(id)).map((userId) => ({
-      action: 'apply' as const, userId, isPro: true, expiresAt, eventAt,
-      reason: 'TRANSFER to this account',
-    })),
+    // Grant only a paid period the event shows is still running. A TRANSFER
+    // can carry a long-lapsed purchase (a restore onto a new account), and a
+    // grant with no end date would stay Pro until an event that never comes.
+    // Skipping is the recoverable mistake: the app checks RevenueCat itself,
+    // and the next RENEWAL grants here.
+    ...(event.expiration_at_ms != null && event.expiration_at_ms > nowMs
+      ? to.filter((id) => !both.has(id)).map((userId) => ({
+          action: 'apply' as const, userId, isPro: true, expiresAt, eventAt,
+          reason: 'TRANSFER to this account',
+        }))
+      : []),
   ];
 }

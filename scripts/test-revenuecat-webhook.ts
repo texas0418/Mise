@@ -198,7 +198,7 @@ ok('decide() leaves TRANSFER to transferDecisions()',
 const OLD = '0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d';
 const NEW = '5e6f7a8b-9c0d-4e1f-a2b3-c4d5e6f7a8b9';
 const transfer = (over: Record<string, unknown> = {}) =>
-  event({ type: 'TRANSFER', app_user_id: undefined, transferred_from: [OLD], transferred_to: [NEW], ...over });
+  event({ type: 'TRANSFER', app_user_id: undefined, transferred_from: [OLD], transferred_to: [NEW], expiration_at_ms: NOW + 24 * HOUR, ...over });
 
 const moved = transferDecisions(transfer(), NOW);
 ok('a transfer writes both accounts', moved.length === 2, JSON.stringify(moved));
@@ -220,6 +220,12 @@ ok('an account on both sides is left alone',
   transferDecisions(transfer({ transferred_from: [OLD], transferred_to: [OLD] }), NOW).length === 0);
 ok('a transfer of another entitlement writes nothing',
   transferDecisions(transfer({ entitlement_ids: ['Something Else'] }), NOW).length === 0);
+ok('a transfer of a lapsed purchase only revokes',
+  (() => { const d = transferDecisions(transfer({ expiration_at_ms: NOW - HOUR }), NOW);
+           return d.length === 1 && d[0].userId === OLD && d[0].isPro === false; })());
+ok('a transfer with no expiry only revokes',
+  (() => { const d = transferDecisions(transfer({ expiration_at_ms: null }), NOW);
+           return d.length === 1 && d[0].userId === OLD && d[0].isPro === false; })());
 ok('another event type is not a transfer',
   transferDecisions(event({ type: 'RENEWAL' }), NOW).length === 0);
 
