@@ -6,9 +6,11 @@ import { AppState } from 'react-native';
 // ---------------------------------------------------------------------------
 // Supabase credentials
 // The anon key is safe for client-side use — RLS protects all data access.
+// It ships inside every build, so it is not a secret; the gitleaks:allow
+// marker on the line tells the secret scan so.
 // ---------------------------------------------------------------------------
 const SUPABASE_URL = 'https://mnzkjdpwaibufwhirkon.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uemtqZHB3YWlidWZ3aGlya29uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MDM4MTYsImV4cCI6MjA4ODA3OTgxNn0.LotUiQJWvsFZj5OesnzkqgpZ0ExT9_p9yejuCRlF1Jc';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uemtqZHB3YWlidWZ3aGlya29uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MDM4MTYsImV4cCI6MjA4ODA3OTgxNn0.LotUiQJWvsFZj5OesnzkqgpZ0ExT9_p9yejuCRlF1Jc'; // gitleaks:allow
 
 // ---------------------------------------------------------------------------
 // Supabase client — singleton, import this throughout the app
