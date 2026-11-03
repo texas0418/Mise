@@ -13,7 +13,7 @@
  * belong to the day, and where a tap goes.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Linking } from 'react-native';
 import { CalendarDays, AlertCircle, Plus } from 'lucide-react-native';
 import {
@@ -21,6 +21,7 @@ import {
   useProjectCast, useProjectCrew, useProjectLocations,
 } from '@/contexts/ProjectContext';
 import { useLayout } from '@/utils/useLayout';
+import { useReviewAsk } from '@/utils/useReviewAsk';
 import Colors from '@/constants/colors';
 import {
   resolveCurrentDay, scenesForDay, shotsForScenes, summarizeWork, isShotComplete,
@@ -344,6 +345,17 @@ export default function TodayScreen() {
   }, []);
 
   const selection = useMemo(() => resolveCurrentDay(schedule, now), [schedule, now]);
+
+  // The app opens here, so this is where most people would ever see the
+  // review prompt. Once per visit, and useReviewAsk skips any shoot day.
+  const askForReview = useReviewAsk();
+  const asked = useRef(false);
+  const { isLoading } = useProjects();
+  useEffect(() => {
+    if (isLoading || asked.current) return;
+    asked.current = true;
+    askForReview();
+  }, [isLoading, askForReview]);
 
   if (!activeProject || !activeProjectId) {
     return (
