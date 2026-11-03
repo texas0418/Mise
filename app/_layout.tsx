@@ -572,6 +572,14 @@ export default function RootLayout() {
                     }}
                   />
                   <Stack.Screen
+                    name="auth/callback"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="auth/set-new-password"
+                    options={{ title: "New Password" }}
+                  />
+                  <Stack.Screen
                     name="auth/profile"
                     options={{ title: "Profile" }}
                   />

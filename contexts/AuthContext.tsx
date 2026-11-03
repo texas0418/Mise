@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
 import createContextHook from '@nkzw/create-context-hook';
+import Constants from 'expo-constants';
 import { supabase } from '@/lib/supabase';
+import { AUTH_CALLBACK_PATH, NEXT_SET_PASSWORD } from '@/lib/authLinks';
 import type { Session, User } from '@supabase/supabase-js';
 
 // ---------------------------------------------------------------------------
@@ -14,6 +16,21 @@ try {
   }
 } catch {
   // expo-apple-authentication not installed or not on iOS
+}
+
+// ---------------------------------------------------------------------------
+// Where auth emails send the user back to. The app's scheme on native, the
+// site's own origin on web. Every form of this URL must be on the Supabase
+// Auth "Redirect URLs" allow-list, or Supabase falls back to the Site URL.
+// ---------------------------------------------------------------------------
+function authRedirectUrl(next?: string): string {
+  const query = next ? `?next=${next}` : '';
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    return `${window.location.origin}/${AUTH_CALLBACK_PATH}${query}`;
+  }
+  const scheme = Constants.expoConfig?.scheme;
+  const name = (Array.isArray(scheme) ? scheme[0] : scheme) || 'mise-app';
+  return `${name}://${AUTH_CALLBACK_PATH}${query}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -61,6 +78,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         password,
         options: {
           data: { display_name: displayName },
+          emailRedirectTo: authRedirectUrl(),
         },
       });
       if (error) throw error;
@@ -91,6 +109,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     async (email: string) => {
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
+        options: { emailRedirectTo: authRedirectUrl() },
       });
       if (error) throw error;
       return data;
@@ -176,7 +195,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   // Password reset — sends a reset email
   // -----------------------------------------------------------------------
   const resetPassword = useCallback(async (email: string) => {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: authRedirectUrl(NEXT_SET_PASSWORD),
+    });
     if (error) throw error;
     return data;
   }, []);

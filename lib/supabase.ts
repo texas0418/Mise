@@ -6,11 +6,9 @@ import { AppState } from 'react-native';
 // ---------------------------------------------------------------------------
 // Supabase credentials
 // The anon key is safe for client-side use — RLS protects all data access.
-// Replace YOUR_ANON_KEY_HERE with the anon key from:
-//   Supabase Dashboard → Settings → API Keys → Legacy tab → anon public
 // ---------------------------------------------------------------------------
 const SUPABASE_URL = 'https://mnzkjdpwaibufwhirkon.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uemtqZHB3YWlidWZ3aGlya29uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MDM4MTYsImV4cCI6MjA4ODA3OTgxNn0.LotUiQJWvsFZj5OesnzkqgpZ0ExT9_p9yejuCRlF1Jc'; // TODO: paste your anon key
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uemtqZHB3YWlidWZ3aGlya29uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MDM4MTYsImV4cCI6MjA4ODA3OTgxNn0.LotUiQJWvsFZj5OesnzkqgpZ0ExT9_p9yejuCRlF1Jc';
 
 // ---------------------------------------------------------------------------
 // Supabase client — singleton, import this throughout the app
@@ -25,7 +23,12 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false, // Prevents issues with Expo deep linking
+    // Links are completed by app/auth/callback.tsx, on web as well, so one
+    // screen owns it and a code is never exchanged twice.
+    detectSessionInUrl: false,
+    // A magic link or reset email comes back as ?code=, which survives the
+    // router on native where a #fragment may not (see lib/authLinks.ts).
+    flowType: 'pkce',
   },
 });
 
