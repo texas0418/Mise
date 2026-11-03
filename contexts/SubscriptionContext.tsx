@@ -115,6 +115,16 @@ interface SubscriptionState {
   error: string | null;
 }
 
+/**
+ * What to tell the user about a failed purchase. A cancel is the user's own
+ * choice and stays silent (null); anything else goes back to the paywall,
+ * which used to swallow it.
+ */
+function purchaseErrorMessage(error: any): string | null {
+  const userCancelled = error?.userCancelled || error?.code === '1';
+  return userCancelled ? null : error?.message || 'Purchase failed';
+}
+
 /** How a purchase ended. `error` is null on success and on a user cancel. */
 export interface PurchaseOutcome {
   ok: boolean;
@@ -384,10 +394,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         const isPro = applyCustomerInfo(customerInfo, missing);
         return isPro ? { ok: true, error: null } : { ok: false, error: missing };
       } catch (error: any) {
-        // A cancel is the user's own choice and stays silent; anything else
-        // goes back to the paywall, which used to swallow it.
-        const userCancelled = error?.userCancelled || error?.code === '1';
-        const message: string | null = userCancelled ? null : error?.message || 'Purchase failed';
+        const message = purchaseErrorMessage(error);
         setState(prev => ({ ...prev, isLoading: false, error: message }));
         return { ok: false, error: message };
       }
